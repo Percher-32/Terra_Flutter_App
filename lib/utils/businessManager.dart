@@ -4,6 +4,177 @@ import 'package:flutter/widgets.dart';
 import 'package:nextfind/networking/apiconn.dart';
 // import 'package:nextfind/utils/arbitStore.dart';
 
+class MiniBusinessLoc {
+  const MiniBusinessLoc(
+      {required this.locationId,
+      required this.businessId,
+      required this.name,
+      required this.type,
+      required this.location,
+      required this.address,
+      required this.verified,
+      required this.distance,
+      this.openHours,
+      this.averageRating,
+      this.numRatings});
+
+  final int locationId;
+  final int businessId;
+  final String name;
+  final int type;
+  final List location;
+  final Map address;
+  final bool verified;
+  final double distance;
+  final Map<String,List<String>>? openHours;
+  final double? averageRating;
+  final int? numRatings;
+}
+
+const json = {
+  "business_id": "660959d1-5c68-4e05-b0d6-6b44dc2e4f51",
+  "business_name": "RideRight Bike School",
+  "business_description":
+      "Cycling lessons for all ages.Cycling lessons for all ages.THIS IS DESC FOR THIS LOCATIOn",
+  "gas_safe": false,
+  "elec_safe": false,
+  "btype": "Business",
+  "primary_type": 8,
+  "secondary_types": [],
+  "business_location_id": "64c5c3d0-f566-4a89-a43c-fb2eb15a0c9d",
+  "business_location_location":
+      "0101000020E610000038471D1D57DF4A40DF88EE59D768D5BF",
+  "distance": 0.07960646572,
+  "over_18": false,
+  "rating_average": null,
+  "rating_count": null,
+  "phone_number": null,
+  "website": null,
+  "address": {
+    "city": "Hull",
+    "road": "Guildhall Road",
+    "type": "unclassified",
+    "class": "highway",
+    "state": "England",
+    "county": "Kingston upon Hull",
+    "suburb": "Old Town",
+    "country": "United Kingdom",
+    "quarter": "Garrison Side",
+    "postcode": "HU9 9SA",
+    "country_code": "gb",
+    "display_name":
+        "Guildhall Road, Garrison Side, Old Town, Hull, Kingston upon Hull, Hull and East Yorkshire, England, HU9 9SA, United Kingdom",
+    "ISO3166-2-lvl4": "GB-ENG",
+    "ISO3166-2-lvl6": "GB-KHL",
+    "state_district": "Hull and East Yorkshire"
+  },
+  "open_hours": {
+    "1": ["09:30", "22:30"],
+    "2": ["09:30", "22:30"],
+    "3": ["09:30", "22:30"],
+    "4": ["09:30", "22:30"],
+    "5": ["09:30", "22:30"],
+    "6": ["09:30", "22:30"],
+    "7": ["09:30", "22:30"]
+  },
+  "shutdown_days": [],
+  "timezone": null,
+  "Location": [53.744845999999995, -0.334524]
+};
+
+const abc = {
+  "Location": [
+    53.744845999999995,
+    -0.334524
+  ],
+  "created_at": "2026-05-24T07:59:07.875844+00:00",
+  "Open_Hours": {
+    "1": [
+      "09:30",
+      "22:30"
+    ],
+    "2": [
+      "09:30",
+      "22:30"
+    ],
+    "3": [
+      "09:30",
+      "22:30"
+    ],
+    "4": [
+      "09:30",
+      "22:30"
+    ],
+    "5": [
+      "09:30",
+      "22:30"
+    ],
+    "6": [
+      "09:30",
+      "22:30"
+    ],
+    "7": [
+      "09:30",
+      "22:30"
+    ]
+  },
+  "max_capacity": 1,
+  "last_time_location_changed": "2026-05-24T07:59:07.875844+00:00",
+  "shutdown_days": [],
+  "id": "64c5c3d0-f566-4a89-a43c-fb2eb15a0c9d",
+  "website": null,
+  "links": {
+    "Maps": "Maps/locations/RideRight Bike School.com",
+    "Uber": "User/businesses/RideRight Bike School.com",
+    "Venmo": "Vemno/App/traders/RideRight Bike School.org.uk"
+  },
+  "Business_Id": "660959d1-5c68-4e05-b0d6-6b44dc2e4f51",
+  "address": {
+    "city": "Hull",
+    "road": "Guildhall Road",
+    "type": "unclassified",
+    "class": "highway",
+    "state": "England",
+    "county": "Kingston upon Hull",
+    "suburb": "Old Town",
+    "country": "United Kingdom",
+    "quarter": "Garrison Side",
+    "postcode": "HU9 9SA",
+    "country_code": "gb",
+    "display_name": "Guildhall Road, Garrison Side, Old Town, Hull, Kingston upon Hull, Hull and East Yorkshire, England, HU9 9SA, United Kingdom",
+    "ISO3166-2-lvl4": "GB-ENG",
+    "ISO3166-2-lvl6": "GB-KHL",
+    "state_district": "Hull and East Yorkshire"
+  },
+  "description": "Cycling lessons for all ages.THIS IS DESC FOR THIS LOCATIOn",
+  "last_time_desc_changed": "2026-05-24T07:59:07.875844+00:00",
+  "phone_number": null,
+  "timezone": null,
+  "verified": false,
+  "search_occurances": {},
+  "schedule": {},
+  "rating_average": null,
+  "rating_count": null,
+  "rating_distribution": null,
+  "Business_Name": "RideRight Bike School",
+  "Business_created_at": "2026-05-24T07:59:07.674941+00:00",
+  "Business_Website": "RideRight Bike School.co.uk",
+  "Business_Mean_Rating": null,
+  "Business_description": "Cycling lessons for all ages.",
+  "Business_Btype": "Business",
+  "Business_secondary_types": [],
+  "Business_Gas-Safe": false,
+  "Business_Electricity-Safe": false,
+  "Business_primary_type": 8,
+  "Business_pro": false,
+  "Business_last_time_name_changed": null,
+  "Business_last_time_desc_changed": null,
+  "Business_last_time_primary_type_changed": null,
+  "Business_id": "660959d1-5c68-4e05-b0d6-6b44dc2e4f51",
+  "Business_owner_id": "12a1b239-c493-40e0-aa06-03eb6de291f3",
+  "Business_over_18": false
+};
+
 class BusinessLoc {
   const BusinessLoc({
     required this.locId,

@@ -16,7 +16,7 @@ class ServerConnect {
   Future<dynamic> getNearbyBusinesses({
     required List location,
     String macroTypes = "All",
-    List<int> btypes = const [],
+    type,
     int maxdist = 6000,
     String sort = "RAT",
     String query = "",
@@ -24,17 +24,13 @@ class ServerConnect {
     bool elecSafeOnly = false,
   }) async {
 
-    String allowTypeString = "";
 
-    for (var allowedType in btypes) {
-      allowTypeString += "&allow_type=$allowedType";
-    }
 
     final String url;
 
-    if (btypes.length > 0) {
+    if (type.length != null) {
       url =
-          '$serverUrl/NearbyBusinesses?query=$query&maxdist=$maxdist&sort=$sort&gas_safe_only=$gasSafeOnly&electricity_safe_only=$elecSafeOnly&allow_base=$macroTypes&allow_types=$allowTypeString';
+          '$serverUrl/NearbyBusinesses?query=$query&maxdist=$maxdist&sort=$sort&gas_safe_only=$gasSafeOnly&electricity_safe_only=$elecSafeOnly&allow_base=$macroTypes&allow_type=$type';
     } else {
       url =
           '$serverUrl/NearbyBusinesses?query=$query&maxdist=$maxdist&sort=$sort&gas_safe_only=$gasSafeOnly&electricity_safe_only=$elecSafeOnly&allow_base=$macroTypes';
