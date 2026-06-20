@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'theme/app_theme.dart';
 import 'pages/homepage.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 
@@ -17,17 +16,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Next Find',
       theme: ThemeData(
-        colorScheme: ColorScheme(
-          brightness: Brightness.light,
-          primary: AppColors.primary,
-          onPrimary: Colors.white,
-          secondary: AppColors.secondary,
-          onSecondary: Colors.white,
-          surface: AppColors.surface,
-          onSurface: AppColors.text,
-          error: AppColors.error,
-          onError: Colors.white,
-        ),
         brightness: Brightness.light,
       ),
       darkTheme: ThemeData(

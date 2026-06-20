@@ -2,11 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:nextfind/theme/app_theme.dart';
 import 'package:nextfind/utils/businessManager.dart';
 import 'package:nextfind/widgets/widgets.dart';
 import 'package:nextfind/utils/arbitStore.dart';
-import 'package:nextfind/theme/app_theme.dart';
+import 'package:nextfind/widgets/newwidgets.dart';
+
 
 class Rating {
   const Rating(
@@ -32,7 +32,7 @@ class ReviewBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.main,
+      color: AppColors.text,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: () {},
@@ -92,7 +92,7 @@ class BusinessLocPageState extends State<BusinessLocPage> {
 
     Widget nameText = HText(
       widget.businessLoc.name,
-      color: AppColors.main,
+      color: AppColors.text,
       size: 20,
     );
 

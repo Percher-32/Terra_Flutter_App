@@ -4,7 +4,6 @@ import 'dart:math';
 // import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nextfind/networking/apiconn.dart' as api;
-import 'package:nextfind/theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nextfind/pages/homepage.dart';
 import 'package:nextfind/pages/searchpage.dart';
@@ -14,8 +13,10 @@ import 'package:nextfind/utils/businessManager.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:nextfind/pages/focusedviewed.dart';
 import 'package:logger/logger.dart';
+import "package:nextfind/widgets/newwidgets.dart";
 
 final nameController = TextEditingController();
+
 final log = Logger();
 
 //TEXT INPUTS
@@ -140,7 +141,7 @@ class MainInput extends StatefulWidget {
   const MainInput({
     super.key,
     this.hint,
-    this.color = AppColors.surface,
+    this.color = AppColors.text,
     this.size = 30.0,
     this.controller,
   });
@@ -168,7 +169,7 @@ class _MainInputState extends State<MainInput> {
         hintStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w500,
-          color: AppColors.secondarytext,
+          color: AppColors.text,
         ),
         enabledBorder: InputBorder.none,
         focusedBorder: InputBorder.none,
@@ -216,7 +217,7 @@ class MainInputBg extends StatelessWidget {
           Expanded(
             child: MainInput(
               hint: hint,
-              color: AppColors.main,
+              color: AppColors.text,
               size: 20.0,
               controller: controller,
             ),
@@ -345,7 +346,7 @@ class MainSliderState extends State<MainSlider> {
           "Search Distance: ${distances[sliderValue.toInt()]} miles",
           size: 16,
           bold: FontWeight.w600,
-          color: AppColors.main,
+          color: AppColors.text,
         ),
         Slider(
           value: sliderValue.toDouble(),
@@ -608,7 +609,7 @@ class _MainDropdownState<T> extends State<MainDropdown<T>> {
       items: widget.items.map((item) {
         return DropdownMenuItem<T>(
           value: item,
-          child: HText(widget.display(item), color: AppColors.main),
+          child: HText(widget.display(item), color: AppColors.text),
         );
       }).toList(),
       onChanged: (value) {
@@ -724,19 +725,19 @@ class _BusinessBlockState extends State<BusinessBlock> {
   @override
   void initState() {
     super.initState();
-    _load();
+    // _load();
   }
 
-  Future<void> _load() async {
-    final allImages =
-        await businessManager.getLocationImages(widget.businessLoc.locId);
-    if (allImages != null) {
-      bannerImage = allImages[0];
-    }
+  // Future<void> _load() async {
+  //   final allImages =
+  //       await businessManager.getLocationImages(widget.businessLoc.locId);
+  //   if (allImages != null) {
+  //     bannerImage = allImages[0];
+  //   }
 
-    if (!mounted) return;
-    setState(() {});
-  }
+  //   if (!mounted) return;
+  //   setState(() {});
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -747,7 +748,7 @@ class _BusinessBlockState extends State<BusinessBlock> {
     }.toString());
     // _load();
     return Material(
-      color: AppColors.main,
+      color: AppColors.text,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: () {
@@ -781,7 +782,7 @@ class _BusinessBlockState extends State<BusinessBlock> {
                 spacing: 10 / widget.scaleDown,
                 children: [
                   SizedBox(width: 20 / widget.scaleDown),
-                  Expanded(child: bannerImage!),
+                  Expanded(child: bannerImage),
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(right: 30 / widget.scaleDown),
@@ -888,7 +889,7 @@ Widget bottombar(BuildContext context) {
   }
 
   Future<void> userButtonLogic(BuildContext context) async {
-    if (await api.serverconnect.LoggedIn()) {
+    if (await api.serverconnect.loggedIn()) {
       Navigator.push(
         context,
         PageRouteBuilder(
@@ -939,7 +940,7 @@ Widget bottombar(BuildContext context) {
       borderRadius: BorderRadius.circular(0),
       child: Container(
         height: 50,
-        color: AppColors.main,
+        color: AppColors.text,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -996,7 +997,7 @@ PreferredSize searchbar(BuildContext context) {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              color: AppColors.main,
+              color: AppColors.text,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -1041,7 +1042,7 @@ void filterDropDown(BuildContext context) {
           spacing: 0,
           mainAxisSize: MainAxisSize.min,
           children: [
-            HText("Filters", color: AppColors.main),
+            HText("Filters", color: AppColors.text),
             SizedBox(height: 20 / 2),
             MultiToggle(
               onChanged: (isleft) {},
@@ -1063,7 +1064,7 @@ void filterDropDown(BuildContext context) {
             Row(
               spacing: 20,
               children: [
-                HText("Gas Safe Only", color: AppColors.main),
+                HText("Gas Safe Only", color: AppColors.text),
                 Maincheckbox(
                   initialValue: arbitStore.data["gasSafeOnly"],
                   onChanged: (state) {
@@ -1076,7 +1077,7 @@ void filterDropDown(BuildContext context) {
             Row(
               spacing: 20,
               children: [
-                HText("Electricity Safe Only", color: AppColors.main),
+                HText("Electricity Safe Only", color: AppColors.text),
                 Maincheckbox(
                   initialValue: arbitStore.data["electricitySafeOnly"],
                   onChanged: (state) {

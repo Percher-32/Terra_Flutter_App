@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nextfind/theme/app_theme.dart';
+import 'package:nextfind/widgets/newwidgets.dart';
 import 'package:nextfind/widgets/widgets.dart';
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/pages/homepage.dart';
@@ -22,7 +22,7 @@ class LoginOrSignupPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const MainText("Next find", AppColors.main),
+            const MainText("Next find", AppColors.text),
             const SizedBox(
               height: 30,
             ),
@@ -49,7 +49,7 @@ class LoginOrSignupPage extends StatelessWidget {
             ),
             const HText(
               "Or",
-              color: AppColors.main,
+              color: AppColors.text,
               size: 20,
             ),
             SizedBox(
@@ -134,7 +134,7 @@ class _UserSignupPageState extends State<UserSignupPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            MainText("SignUp Next find", AppColors.main),
+            MainText("SignUp Next find", AppColors.text),
 
             // MainText("Next Find", AppColors.main),
             MainInputBg(
@@ -142,14 +142,14 @@ class _UserSignupPageState extends State<UserSignupPage> {
               hint: "",
               color: Colors.black,
               controller: emailcontroller,
-              bgcolor: AppColors.secondarytext,
+              bgcolor: AppColors.primary,
             ),
             MainInputBg(
               before: "Password",
               hint: "",
               controller: passwordcontroller,
               color: Colors.black,
-              bgcolor: AppColors.secondarytext,
+              bgcolor: AppColors.primary,
             ),
 
             // ← Button now inside build()
@@ -223,7 +223,7 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const MainText("Login", AppColors.main),
+            const MainText("Login", AppColors.text),
 
             // MainText("Next Find", AppColors.main),
             MainInputBg(
@@ -231,14 +231,14 @@ class _LoginPageState extends State<LoginPage> {
               hint: "",
               color: Colors.black,
               controller: emailcontroller,
-              bgcolor: AppColors.secondarytext,
+              bgcolor: AppColors.primary,
             ),
             MainInputBg(
               before: "Password",
               hint: "",
               controller: passwordcontroller,
               color: Colors.black,
-              bgcolor: AppColors.secondarytext,
+              bgcolor: AppColors.primary,
             ),
 
             // ← Button now inside build()

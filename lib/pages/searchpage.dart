@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nextfind/theme/app_theme.dart';
 import 'package:nextfind/utils/locationmanager.dart';
 import 'package:nextfind/widgets/widgets.dart';
 import 'package:nextfind/networking/apiconn.dart';
@@ -8,6 +7,7 @@ import 'package:logger/logger.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import "package:nextfind/widgets/newwidgets.dart";
 
 final log = Logger();
 
@@ -159,7 +159,7 @@ class _MapSearchViewState extends State<MapSearchView> {
     else if (snapshot.hasData) {
       if (snapshot.data!.isEmpty) {
         return const Center(
-            child: MainText("No businesses found", AppColors.main));
+            child: MainText("No businesses found", AppColors.text));
       } else {
         return ListView.separated(
           controller: scrollController,
@@ -281,7 +281,7 @@ class _MapSearchViewState extends State<MapSearchView> {
           elecSafeOnly: arbitStore.data["electricitySafeOnly"],
           gasSafeOnly: arbitStore.data["gasSafeOnly"],
           maxdist: arbitStore.data["distance"],
-          btypes: [arbitStore.data["categoryINDEX"]],
+          // btypes: [arbitStore.data["categoryINDEX"]],
         ),
         builder: (context, snapshot) {
           if (usedLocation.isEmpty) {

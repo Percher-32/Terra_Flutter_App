@@ -11,7 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
 
-    
+
+
+  cached_network_image: ^3.3.1
   logger: ^2.0.2
   flutter_map: ^7.0.0
   latlong2: ^0.9.0
@@ -30,3 +32,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/img/
+    
+  fonts:
+    - family: LilitaOne
+      fonts:
+        - asset: assets/fonts/LilitaOne-Regular.ttf
+          weight: 400

@@ -2,16 +2,23 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:nextfind/utils/tokenmanager.dart';
 import 'package:nextfind/utils/businessManager.dart';
-// import 'package:nextfind/utils/widgets.dart';
+import 'package:nextfind/utils/arbitStore.dart';
 import 'package:logger/logger.dart';
+
 final log = Logger();
 
 class ServerConnect {
-  // final serverUrl = 'http://192.168.1.106:8000';
-  final serverUrl = 'http://10.0.1.140:8000';
-  
+  final serverUrl = 'http://192.168.1.106:8000';
+  // final serverUrl = 'http://10.0.1.140:8000';
+
   var userData;
   var timeUserDataCol;
+
+  Future<bool> testPing() async {
+    final response = await http.get(Uri.parse('$serverUrl/main'));
+
+    return response.statusCode == 400;
+  }
 
   Future<dynamic> getNearbyBusinesses({
     required List location,
@@ -20,107 +27,140 @@ class ServerConnect {
     int maxdist = 6000,
     String sort = "RAT",
     String query = "",
+    bool idOnly = false,
     bool gasSafeOnly = false,
     bool elecSafeOnly = false,
   }) async {
-
-
-
     final String url;
 
-    if (type.length != null) {
+    log.i("FUNCTION : getNearbyBusinesses | START");
+
+    if (type != null) {
       url =
-          '$serverUrl/NearbyBusinesses?query=$query&maxdist=$maxdist&sort=$sort&gas_safe_only=$gasSafeOnly&electricity_safe_only=$elecSafeOnly&allow_base=$macroTypes&allow_type=$type';
+          '$serverUrl/nearbybusinesses?query=$query&maxdist=$maxdist&sort=$sort&gas_safe_only=$gasSafeOnly&electricity_safe_only=$elecSafeOnly&just_id=$idOnly&allow_base=$macroTypes&allow_type=$type';
     } else {
       url =
-          '$serverUrl/NearbyBusinesses?query=$query&maxdist=$maxdist&sort=$sort&gas_safe_only=$gasSafeOnly&electricity_safe_only=$elecSafeOnly&allow_base=$macroTypes';
+          '$serverUrl/nearbybusinesses?query=$query&maxdist=$maxdist&sort=$sort&gas_safe_only=$gasSafeOnly&electricity_safe_only=$elecSafeOnly&just_id=$idOnly&allow_base=$macroTypes';
     }
+
+    log.d("FUNCTION : getNearbyBusinesses | URL = $url");
 
     final response = await http.get(
       Uri.parse(url),
       headers: {"x-location": "${location[0]} , ${location[1]}"},
     );
 
+    log.d("FUNCTION : getNearbyBusinesses | DATA COLLECTION COMPLETE");
+
     final data = jsonDecode(response.body);
     if (response.statusCode == 200) {
-      List<int> returnedBusinessesLocationIds = [];
-      List<BusinessLoc> returnedBusinessesLocations = [];
-      for (var businessData in data) {
-        final newBusinessLocation = businessManager.addBusiness(businessData);
+      if (!idOnly) {
+        List<int> returnedBusinessesLocationIds = [];
+        List<MiniBusinessLoc> returnedBusinessesLocations = [];
 
-        returnedBusinessesLocationIds.add(businessData["id"]);
-        returnedBusinessesLocations.add(newBusinessLocation);
+        for (var businessData in data) {
+          final newBusinessLocation =
+              businessManager.addBusinessLocationMini(businessData);
+
+          if (newBusinessLocation == null) {
+            log.e(
+                "FUNCTION : getNearbyBusinesses | Error creating business location class from data $newBusinessLocation");
+          } else {
+            returnedBusinessesLocationIds.add(businessData["id"]);
+            returnedBusinessesLocations.add(newBusinessLocation);
+          }
+        }
+
+        log.d(
+            "FUNCTION : getNearbyBusinesses | RESULT (FULL_DATA) = $returnedBusinessesLocations");
+        return returnedBusinessesLocations;
+      } else {
+        log.d("FUNCTION : getNearbyBusinesses | RESULT (ONlY_ID) = $data");
+        return data;
       }
-      return returnedBusinessesLocations;
     } else {
+      log.e("FUNCTION : getNearbyBusinesses | Error Occured $data");
       return data;
     }
   }
 
-  Future<bool> testPing() async {
-    final response = await http.get(Uri.parse('$serverUrl/main'));
+  Future<dynamic> getTrendingBusinessIds(
+      {int limit = 30, int offset = 0}) async {
+    log.i("FUNCTION : GET TRENDING BUSINESSES | START");
 
+    final response = await http.post(
+      Uri.parse('$serverUrl/homepage/trending?limit=$limit&offset=$offset'),
+      headers: {
+        "x-location":
+            "${arbitStore.data["userLocation"][0]} , ${arbitStore.data["userLocation"][1]}"
+      },
+    );
 
-    return response.statusCode == 400;
-  }
-
-  Future<dynamic> getTrending() async {
-    final response = await http.get(Uri.parse('$serverUrl/trending'));
+    log.d(
+        "FUNCTION : GET TRENDING BUSINESSES | Gotten Trending Data | RESPONSE : $response");
 
     if (response.statusCode == 200) {
       final dynamic data = jsonDecode(response.body);
-
-      // List<int> returnedBusinessesLocationIds = [];
-      // List<BusinessLoc> returnedBusinessesLocations = [];
-      List<int> trendingBusinessIds = [];
-      for (Map trendingData in data) {
-        trendingBusinessIds.add(trendingData["location_id"]);
+      List<String> trendingBusinessIds = [];
+      for (Map bData in data) {
+        trendingBusinessIds.add(bData["location_id"]);
       }
 
-      final returnedBusinessesLocations =
-          await businessManager.getBusinessLocationData(trendingBusinessIds);
+      log.d(
+          "FUNCTION : GET TRENDING BUSINESSES | Trending Business Ids = $trendingBusinessIds");
 
-      return returnedBusinessesLocations;
+      return trendingBusinessIds;
+    } else {
+      log.e(
+          "FUNCTION : GET TRENDING BUSINESSES | Error ${jsonDecode(response.body)}");
     }
   }
 
-  Future<dynamic> getBusinessData({required List id}) async {
+  Future<dynamic> getBusinessLocationDataMiniApi(
+      {required List<String> locationIds}) async {
+    log.i("FUNCTION GET BUSINESSES MINI LOCATION | START");
+
     String urlquery = "";
     int counter = 0;
-    for (var idval in id) {
-      urlquery += "id=$idval";
+    for (var idval in locationIds) {
+      urlquery += "location_ids=$idval";
       counter += 1;
-      if (counter != id.length) {
+      if (counter != locationIds.length) {
         urlquery += "&";
       }
     }
 
+    log.d("FUNCTION GET BUSINESSES MINI LOCATION | Urlquery = $urlquery");
 
     final response = await http.get(
-      Uri.parse('$serverUrl/Business?$urlquery'),
+      Uri.parse(
+          '$serverUrl/mini_collect/business_location?$urlquery&location=${arbitStore.data["userLocation"]}'),
     );
 
     final dynamic data = jsonDecode(response.body);
-    return data;
-  }
 
-  Future<dynamic> getBusinessLocationData({required List id}) async {
-    String urlquery = "";
-    int counter = 0;
-    for (var idval in id) {
-      urlquery += "id=$idval";
-      counter += 1;
-      if (counter != id.length) {
-        urlquery += "&";
+    if ( response.statusCode == 200){
+
+      Map<String, MiniBusinessLoc> retrunedBusinessLocations = {};
+      for (Map businessMiniData in data) {
+        final newBusinessLoc =
+            businessManager.addBusinessLocationMini(businessMiniData);
+
+        if (newBusinessLoc == null) {
+          log.e(
+              "Error creating business location class from data $newBusinessLoc");
+        } else {
+          retrunedBusinessLocations[newBusinessLoc.locationId] = newBusinessLoc;
+        }
       }
+
+      log.i("FUNCTION GET BUSINESSES MINI LOCATION | SUCCESS IN PARSING ALL BUSINESSES ");
+      return retrunedBusinessLocations;
+    }
+    else{
+      return null;
     }
 
-    final response = await http.get(
-      Uri.parse('$serverUrl/Business_Location?$urlquery'),
-    );
-    final dynamic data = jsonDecode(response.body);
-
-    return data;
   }
 
   Future<dynamic> signupUser({
@@ -152,7 +192,6 @@ class ServerConnect {
       }),
     );
     final Map data = jsonDecode(response.body);
-
 
     if (data.keys.toList().contains("access_token")) {
       final String token = data["access_token"];
@@ -198,7 +237,6 @@ class ServerConnect {
     Map<String, String> headers = const {},
     bool donebf = false,
   }) async {
-
     // FIX: build URL safely
     final uri = Uri.parse(
       "$serverUrl$endpoint",
@@ -228,7 +266,6 @@ class ServerConnect {
     final respdata = jsonDecode(response.body);
 
     if (response.statusCode == 401) {
-
       if (!donebf) {
         await getNewToken();
         return await performLogginTask(
@@ -246,7 +283,7 @@ class ServerConnect {
     return respdata;
   }
 
-  Future<bool> LoggedIn() async {
+  Future<bool> loggedIn() async {
     final String? tok = await tokenmanager.getToken();
     return tok != null;
   }
@@ -260,7 +297,8 @@ class ServerConnect {
     }
   }
 
-  Future<dynamic> getLocationImageUrls(List<int> locations) async {
+  Future<dynamic> getLocationImageUrls(List<String> locations,
+      {bool firstOnly = false}) async {
     String urlquery = "";
     int counter = 0;
     for (var idval in locations) {
@@ -293,3 +331,5 @@ final serverconnect = ServerConnect();
 Future<void> main() async {
   serverconnect.signupUser(email: "MAMBA", password: "JAMBO");
 }
+
+
