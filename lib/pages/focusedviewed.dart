@@ -126,33 +126,33 @@ class BusinessLocPageState extends State<BusinessLocPage> {
       size: 15,
     );
 
-    const Widget favButton = RoundIconButton(
-      icon: Icons.favorite,
-    );
+    // const Widget favButton = RoundIconButton(
+    //   icon: Icons.favorite,
+    // );
 
-    const Widget reviewButton = RoundIconButton(
-      icon: Icons.reviews,
-    );
+    // const Widget reviewButton = RoundIconButton(
+    //   icon: Icons.reviews,
+    // );
 
-    const Widget visitButton = SizedBox(
-      width: 200,
-      child: RoundButton(
-        bgColor: Color.fromARGB(255, 73, 201, 255),
-        text: "visit",
-      ),
-    );
+    // const Widget visitButton = SizedBox(
+    //   width: 200,
+    //   child: RoundButton(
+    //     bgColor: Color.fromARGB(255, 73, 201, 255),
+    //     text: "visit",
+    //   ),
+    // );
 
-    const rowButtons = Row(
-      spacing: 30,
-      children: [
-        SizedBox(
-          width: 0,
-        ),
-        favButton,
-        reviewButton,
-        visitButton,
-      ],
-    );
+    // const rowButtons = Row(
+    //   spacing: 30,
+    //   children: [
+    //     SizedBox(
+    //       width: 0,
+    //     ),
+    //     favButton,
+    //     reviewButton,
+    //     visitButton,
+    //   ],
+    // );
 
     List<Widget> widgets = [
       box,
@@ -168,7 +168,7 @@ class BusinessLocPageState extends State<BusinessLocPage> {
       ratingText,
       box,
       box,
-      rowButtons
+      // rowButtons
     ];
 
     return ListView.separated(

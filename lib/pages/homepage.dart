@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/networking/apiconn.dart';
-import 'package:nextfind/widgets/widgets.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:logger/logger.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
@@ -60,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget myBody(BuildContext context) {
     return Stack(
       children: [
-        Positioned(top: 70, left: 0, right: 0, child: mainFeedBuilder()),
+        Positioned(top: -50, left: 0, right: 0, child: mainFeedBuilder()),
       ],
     );
   }
@@ -68,9 +67,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget trendScroll(BuildContext context) {
     return Column(
       spacing: 20,
+      // mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const HText(
-          "Trending Now",
+        const SubHeading(
+          "Trending Now🔥",
           color: AppColors.text,
         ),
         SizedBox(
@@ -78,13 +78,17 @@ class _MyHomePageState extends State<MyHomePage> {
             child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {
-                  String trendyBusinessId = trendingBusinesses![index];
-                  return BusinessLocationThumbnail(
-                    locationId: trendyBusinessId,
-                  );
+                  if (index == 0) {
+                    return const SizedBox(width: 0);
+                  } else {
+                    String trendyBusinessId = trendingBusinesses![index - 1];
+                    return BusinessLocationThumbnail(
+                      locationId: trendyBusinessId,
+                    );
+                  }
                 },
-                separatorBuilder: (context, index) => const SizedBox(width: 50),
-                itemCount: trendingBusinesses!.length))
+                separatorBuilder: (context, index) => const SizedBox(width: 20),
+                itemCount: trendingBusinesses!.length + 1))
       ],
     );
   }
@@ -107,16 +111,17 @@ class _MyHomePageState extends State<MyHomePage> {
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return const SizedBox(
-                    height: 50,
+                    height: 0,
                   );
                 } else if (index == 1) {
                   return trendScroll(context);
                 } else {
-                  return BusinessLocationThumbnail(
-                      locationId: snapshot.data[index - 2]);
+                  return Center(
+                      child: BusinessLocationThumbnail(
+                          locationId: snapshot.data[index - 2]));
                 }
               },
-              separatorBuilder: (context, index) => const SizedBox(height: 50),
+              separatorBuilder: (context, index) => const SizedBox(height: 20),
               padding: const EdgeInsets.only(top: 20, bottom: 20),
             ),
           );
@@ -128,8 +133,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        // appBar: myBody(context),
-        // bottomNavigationBar: bottombar(context),
+        appBar: newsearchbar(context),
+        bottomNavigationBar: newbottombar(context),
         body: myBody(context));
   }
 }

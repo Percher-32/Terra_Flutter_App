@@ -1,11 +1,11 @@
-import 'dart:io';
-
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/utils/businessManager.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:nextfind/utils/arbitStore.dart';
 
 final mlog = Logger();
+final searchBarTextController = TextEditingController();
 
 class AppColors {
   static const background = Color.fromARGB(255, 255, 255, 255);
@@ -13,6 +13,53 @@ class AppColors {
   static const primary = Color.fromARGB(255, 252, 130, 74);
   static const secondary = Color.fromARGB(255, 101, 44, 145);
   static const accent = Color.fromARGB(255, 34, 139, 219);
+}
+
+class HeaderInput extends StatefulWidget {
+  const HeaderInput({
+    super.key,
+    this.hint = "",
+    this.color = AppColors.background,
+    this.size = 30.0,
+    this.controller,
+  });
+
+  final Color color;
+  final double size;
+  final String hint;
+  final TextEditingController? controller;
+
+  @override
+  State<HeaderInput> createState() => HeaderInputState();
+}
+
+class HeaderInputState extends State<HeaderInput> {
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: widget.controller,
+      onSubmitted: (value) {
+        // changepage(context, () => SearchPage(title: "e"));
+      },
+      decoration: InputDecoration(
+        hintText: widget.hint,
+        hintStyle: TextStyle(
+          fontSize: widget.size,
+          fontWeight: FontWeight.w400,
+          fontFamily: "LilitaOne",
+          color: const Color.fromARGB(106, 255, 255, 255),
+        ),
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+      ),
+      style: TextStyle(
+        fontSize: widget.size,
+        fontWeight: FontWeight.w400,
+        fontFamily: "LilitaOne",
+        color: widget.color,
+      ),
+    );
+  }
 }
 
 class Heading extends StatelessWidget {
@@ -109,15 +156,15 @@ class BaseImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ImageProvider myImage = FileImage(File("assets/img/kde.png"));
+    ImageProvider myImage = const AssetImage("assets/img/kde.png");
     String trueUrl = url;
     if (url != "No Url") {
       trueUrl = "${serverconnect.serverUrl}/image/$url";
-      log.f("The URL IS $trueUrl");
+      log.i("[IMAGE] The URL IS $trueUrl");
       myImage = NetworkImage(trueUrl);
+    } else {
+      log.i("[IMAGE] Hello , this is a default image , the image is $myImage");
     }
-
-    mlog.d("HELLO YES HI THE URL S ||||||||||||||||||||| $trueUrl");
 
     return Container(
       width: width,
@@ -166,7 +213,7 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
 
       return SizedBox(
         width: 377.42,
-        height: 214,
+        height: 240,
         child: Stack(
           children: [
             //shadow
@@ -347,4 +394,781 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
           return buildWidget(context, snapshot);
         });
   }
+}
+
+class MyMainToggle extends StatefulWidget {
+  final Function(bool isleft) onChanged;
+  final String left;
+  final String right;
+  const MyMainToggle({
+    required this.onChanged,
+    this.left = "",
+    this.right = "",
+    super.key,
+  });
+
+  @override
+  State<MyMainToggle> createState() => MyMainToggleState();
+}
+
+class MyMainToggleState extends State<MyMainToggle> {
+  bool isService = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() => isService = true);
+                widget.onChanged(true);
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isService ? Colors.blue : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: Text(
+                    widget.left,
+                    style: TextStyle(
+                      color: isService ? Colors.white : Colors.black87,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() => isService = false);
+                widget.onChanged(false);
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: !isService ? Colors.blue : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: Text(
+                    widget.right,
+                    style: TextStyle(
+                      color: !isService ? Colors.white : Colors.black87,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MyMainSlider extends StatefulWidget {
+  final Function(int) onChanged;
+  final List<int> distances;
+  final int startValue;
+
+  const MyMainSlider({
+    required this.onChanged,
+    this.distances = const [1, 3, 5, 10, 15, 20, 30, 50],
+    this.startValue = 0,
+    super.key,
+  });
+
+  @override
+  State<MyMainSlider> createState() => MyMainSliderState();
+}
+
+class MyMainSliderState extends State<MyMainSlider> {
+  late int sliderValue;
+
+  @override
+  void initState() {
+    super.initState();
+    sliderValue = widget.startValue; // store initial value once
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<int> distances = widget.distances;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      spacing: 20,
+      children: [
+        Body(
+          "Search Distance: ${distances[sliderValue.toInt()]} miles",
+          color: AppColors.text,
+        ),
+        Slider(
+          value: sliderValue.toDouble(),
+          min: 0,
+          max: (distances.length - 1).toDouble(),
+          divisions: distances.length - 1,
+          label: "${distances[sliderValue.toInt()]} miles",
+          onChanged: (value) {
+            setState(() => sliderValue = value.toInt());
+            widget.onChanged(distances[value.toInt()]);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class MyMaincheckbox extends StatefulWidget {
+  final bool initialValue;
+  final ValueChanged<bool> onChanged;
+  final double size;
+  final Color activeColor;
+  final Color borderColor;
+  final double borderRadius;
+
+  const MyMaincheckbox({
+    super.key,
+    required this.initialValue,
+    required this.onChanged,
+    this.size = 22,
+    this.activeColor = Colors.blue,
+    this.borderColor = Colors.blue,
+    this.borderRadius = 6,
+  });
+
+  @override
+  State<MyMaincheckbox> createState() => MyMaincheckboxState();
+}
+
+class MyMaincheckboxState extends State<MyMaincheckbox> {
+  late bool _value;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.initialValue;
+  }
+
+  void _toggle() {
+    setState(() => _value = !_value);
+    widget.onChanged(_value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: _toggle,
+      borderRadius: BorderRadius.circular(widget.borderRadius),
+      child: Container(
+        width: widget.size,
+        height: widget.size,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          border: Border.all(color: widget.borderColor, width: 2),
+          color: _value ? widget.activeColor : Colors.transparent,
+        ),
+        child: _value
+            ? Icon(Icons.check, size: widget.size * 0.65, color: Colors.white)
+            : null,
+      ),
+    );
+  }
+}
+
+class MyMultiToggle extends StatefulWidget {
+  final int initial;
+  final List options;
+  final Function(int) onChanged;
+
+  const MyMultiToggle({
+    super.key,
+    required this.initial,
+    required this.options,
+    required this.onChanged,
+  });
+
+  @override
+  State<MyMultiToggle> createState() => MyMultiToggleState();
+}
+
+class MyMultiToggleState extends State<MyMultiToggle> {
+  late int selected;
+
+  @override
+  void initState() {
+    super.initState();
+    selected = widget.initial;
+  }
+
+  Widget _buildOption(String label, int index) {
+    final bool active = selected == index;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          setState(() => selected = index);
+          widget.onChanged(index);
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: active ? AppColors.secondary : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                  color: active ? Colors.white : Colors.black87,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 17,
+                  fontFamily: "LilitaOne"),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          for (int i = 0; i < widget.options.length; i++)
+            _buildOption(widget.options[i], i),
+        ],
+      ),
+    );
+  }
+}
+
+class MyVertMultiToggle extends StatefulWidget {
+  final int initial;
+  final List options;
+  final Function(int) onChanged;
+
+  const MyVertMultiToggle({
+    super.key,
+    required this.initial,
+    required this.options,
+    required this.onChanged,
+  });
+
+  @override
+  State<MyVertMultiToggle> createState() => MyVertMultiToggleState();
+}
+
+class MyVertMultiToggleState extends State<MyVertMultiToggle> {
+  late int selected;
+
+  @override
+  void initState() {
+    super.initState();
+    selected = widget.initial;
+  }
+
+  Widget _buildOption(String label, int index) {
+    final bool active = selected == index;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          setState(() => selected = index);
+          widget.onChanged(index);
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: active ? Colors.blue : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: active ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          for (int i = 0; i < widget.options.length; i++)
+            _buildOption(widget.options[i], i),
+        ],
+      ),
+    );
+  }
+}
+
+class MainDropdown<T> extends StatefulWidget {
+  final List<T> items;
+  final T? initialValue;
+  final String? label;
+  final String Function(T) display;
+  final ValueChanged<T> onChanged;
+
+  const MainDropdown({
+    super.key,
+    required this.items,
+    required this.display,
+    required this.onChanged,
+    this.initialValue,
+    this.label,
+  });
+
+  @override
+  State<MainDropdown<T>> createState() => _MainDropdownState<T>();
+}
+
+class _MainDropdownState<T> extends State<MainDropdown<T>> {
+  T? selected;
+
+  @override
+  void initState() {
+    super.initState();
+    selected = widget.initialValue;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<T>(
+      isExpanded: true,
+      initialValue: selected,
+      decoration: InputDecoration(
+        labelText: widget.label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 24, // increases height
+          horizontal: 12,
+        ),
+      ),
+      items: widget.items.map((item) {
+        return DropdownMenuItem<T>(
+          value: item,
+          child: SizedBox(
+            height: 60, // menu item height
+            child: Body(widget.display(item), color: AppColors.text),
+          ),
+        );
+      }).toList(),
+      onChanged: (value) {
+        if (value == null) return;
+        setState(() => selected = value);
+        widget.onChanged(value);
+      },
+    );
+  }
+}
+
+class RoundIconButton extends StatelessWidget {
+  const RoundIconButton({
+    super.key,
+    required this.icon,
+    this.size = 26,
+    this.color = Colors.black87,
+    this.bgColor = Colors.white,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final double size;
+  final Color color;
+  final VoidCallback? onTap;
+  final Color bgColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: bgColor,
+      shape: const CircleBorder(),
+      elevation: 6,
+      child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Icon(
+              icon,
+              size: size,
+              color: color,
+            ),
+          )),
+    );
+    // return
+  }
+}
+
+class RoundButton extends StatelessWidget {
+  const RoundButton({
+    super.key,
+    this.size = 26,
+    this.color = Colors.black87,
+    this.bgColor = Colors.white,
+    this.text = "",
+    this.onTap,
+  });
+
+  final double size;
+  final Color color;
+  final VoidCallback? onTap;
+  final Color bgColor;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 12,
+      shadowColor: Colors.black87,
+      borderRadius: BorderRadius.circular(12),
+      color: bgColor,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 14,
+            ),
+            child: Center(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            )),
+      ),
+    );
+    // return
+  }
+}
+
+Widget newbottombar(BuildContext context, {int index = 2}) {
+  void homePageButtonLogic(BuildContext context) {
+    // Navigator.push(
+    //   context,
+    //   PageRouteBuilder(
+    //     pageBuilder: (_, __, ___) => MyHomePage(title: "Hi"),
+    //     transitionsBuilder: (_, animation, __, child) {
+    //       final slide = Tween(
+    //         begin: Offset(0, 0.1),
+    //         end: Offset.zero,
+    //       ).animate(animation);
+
+    //       final fade = Tween(begin: 0.0, end: 1.0).animate(animation);
+
+    //       return SlideTransition(
+    //         position: slide,
+    //         child: FadeTransition(opacity: fade, child: child),
+    //       );
+    //     },
+    //     transitionDuration: Duration(milliseconds: 250),
+    //   ),
+    // );
+  }
+
+  void searchButtonLogic(BuildContext context) {
+    // Navigator.push(
+    //   context,
+    //   PageRouteBuilder(
+    //     pageBuilder: (_, __, ___) => SearchPage(title: "Hi"),
+    //     transitionsBuilder: (_, animation, __, child) {
+    //       final slide = Tween(
+    //         begin: Offset(0, 0.1),
+    //         end: Offset.zero,
+    //       ).animate(animation);
+
+    //       final fade = Tween(begin: 0.0, end: 1.0).animate(animation);
+
+    //       return SlideTransition(
+    //         position: slide,
+    //         child: FadeTransition(opacity: fade, child: child),
+    //       );
+    //     },
+    //     transitionDuration: Duration(milliseconds: 250),
+    //   ),
+    // );
+  }
+
+  Future<void> userButtonLogic(BuildContext context) async {
+    // if (await api.serverconnect.loggedIn()) {
+    //   Navigator.push(
+    //     context,
+    //     PageRouteBuilder(
+    //       pageBuilder: (_, __, ___) => UserPage(title: "Hi"),
+    //       transitionsBuilder: (_, animation, __, child) {
+    //         final slide = Tween(
+    //           begin: Offset(0, 0.1),
+    //           end: Offset.zero,
+    //         ).animate(animation);
+
+    //         final fade = Tween(begin: 0.0, end: 1.0).animate(animation);
+
+    //         return SlideTransition(
+    //           position: slide,
+    //           child: FadeTransition(opacity: fade, child: child),
+    //         );
+    //       },
+    //       transitionDuration: Duration(milliseconds: 250),
+    //     ),
+    //   );
+    // } else {
+    //   Navigator.push(
+    //     context,
+    //     PageRouteBuilder(
+    //       pageBuilder: (_, __, ___) => LoginOrSignupPage(),
+    //       transitionsBuilder: (_, animation, __, child) {
+    //         final slide = Tween(
+    //           begin: Offset(0, 0.1),
+    //           end: Offset.zero,
+    //         ).animate(animation);
+
+    //         final fade = Tween(begin: 0.0, end: 1.0).animate(animation);
+
+    //         return SlideTransition(
+    //           position: slide,
+    //           child: FadeTransition(opacity: fade, child: child),
+    //         );
+    //       },
+    //       transitionDuration: Duration(milliseconds: 250),
+    //     ),
+    //   );
+    // }
+  }
+
+  Icon searchIcon = const Icon(Icons.search, color: Colors.white, size: 35);
+  Icon leaderboardIcon =
+      const Icon(Icons.leaderboard_outlined, color: Colors.white, size: 35);
+  Icon homeIcon =
+      const Icon(Icons.home_outlined, color: Colors.white, size: 35);
+  Icon favoriteIcon =
+      const Icon(Icons.favorite_border_rounded, color: Colors.white, size: 35);
+  Icon userIcon =
+      const Icon(Icons.person_outline, color: Colors.white, size: 35);
+
+  if (index == 0) {
+    searchIcon = const Icon(Icons.search, color: Colors.white, size: 35);
+  } else if (index == 1) {
+    leaderboardIcon =
+        const Icon(Icons.leaderboard, color: Colors.white, size: 35);
+  } else if (index == 2) {
+    homeIcon = const Icon(Icons.home, color: Colors.white, size: 35);
+  } else if (index == 3) {
+    favoriteIcon = const Icon(Icons.favorite, color: Colors.white, size: 35);
+  } else if (index == 4) {
+    userIcon = const Icon(Icons.person, color: Colors.white, size: 35);
+  }
+
+  return Padding(
+    padding: const EdgeInsets.all(0),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(0),
+      child: Container(
+        height: 50,
+        color: AppColors.primary,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              icon: searchIcon,
+              iconSize: 35,
+              onPressed: () {
+                log.d("User tapped bottom nav button : search");
+                searchButtonLogic(context);
+              },
+            ),
+            IconButton(
+              icon: leaderboardIcon,
+              iconSize: 35,
+              onPressed: () {
+                log.d("User tapped bottom nav button leader :board");
+              },
+            ),
+            IconButton(
+              icon: homeIcon,
+              iconSize: 35,
+              onPressed: () {
+                log.d("User tapped bottom nav button : home");
+                homePageButtonLogic(context);
+              },
+            ),
+            IconButton(
+              icon: favoriteIcon,
+              iconSize: 35,
+              onPressed: () {
+                log.d("User tapped bottom nav button : favorite");
+              },
+            ),
+            IconButton(
+              icon: userIcon,
+              iconSize: 35,
+              onPressed: () async {
+                log.d("User tapped bottom nav button : user");
+                await userButtonLogic(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+PreferredSize newsearchbar(BuildContext context) {
+  return PreferredSize(
+    preferredSize: const Size.fromHeight(84),
+    child: Column(
+      children: [
+        const SizedBox(height: 30),
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              color: AppColors.primary,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                // mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(width: 10),
+                  const Icon(Icons.search, color: Colors.white, size: 40),
+                  Expanded(
+                    child: HeaderInput(
+                      hint: "find a businesses",
+                      controller: searchBarTextController,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.filter_alt,
+                        color: Colors.white, size: 40),
+                    iconSize: 35,
+                    onPressed: () => filterDropDown(context),
+                  ),
+                  const SizedBox(width: 10),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+void filterDropDown(BuildContext context) {
+  Arbitfallbacks();
+  final distances = [1, 3, 5, 10, 15, 20, 30, 50];
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          spacing: 0,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SubHeading("Filters", color: AppColors.text),
+            MyMainSlider(
+              distances: distances,
+              onChanged: (distance) {
+                arbitStore.data["distance_index"] = distances.indexOf(distance);
+                arbitStore.data["distance"] = milesToKm(
+                  distance.toDouble(),
+                ).toInt();
+              },
+              startValue: arbitStore.data["distance_index"],
+            ),
+            const SizedBox(height: 30),
+            MainDropdown(
+              items: base_types.keys.toList(),
+              initialValue: arbitStore.data["categoryINDEX"],
+              label: "Business Category",
+              display: (value) => base_types[value]!,
+              onChanged: (value) {
+                arbitStore.data["category"] = base_types[value]!;
+                arbitStore.data["categoryINDEX"] = value;
+              },
+            ),
+            const SizedBox(height: 25),
+            MyMultiToggle(
+              initial: arbitStore.data["sortingINDEX"],
+              options: const ["Distance", "Rating", "Query"],
+              onChanged: (val) {
+                arbitStore.data["sortingINDEX"] = val;
+                if (val == 0) {
+                  arbitStore.data["sorting"] = "DST";
+                }
+
+                if (val == 1) {
+                  arbitStore.data["sorting"] = "RAT";
+                }
+                if (val == 2) {
+                  arbitStore.data["sorting"] = " ";
+                }
+              },
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 300,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: () {
+                  // changepage(context, () => SearchPage(title: "Hi"));
+                },
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 18, horizontal: 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  backgroundColor: AppColors.primary,
+                ),
+                child: const Body("Search", color: AppColors.background),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }

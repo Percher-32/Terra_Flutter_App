@@ -301,6 +301,11 @@ class Businessmanager {
       miniBusinessLocLookup[locationData["business_location_id"]] =
           newMiniBusiness;
 
+      if (locationData["thumbnail_path"] != null) {
+        log.i(
+            "[IMAGE] HELLO HI YEAH THE URL IS ACTUALLY ${locationData["thumbnail_path"]}");
+      }
+      log.i("[IMAGE] URL = ${locationData["thumbnail_path"]}");
 
       return newMiniBusiness;
     } catch (e) {
