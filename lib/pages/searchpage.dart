@@ -3,41 +3,38 @@ import 'package:nextfind/utils/locationmanager.dart';
 import 'package:nextfind/widgets/widgets.dart';
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/utils/businessManager.dart';
-import 'package:logger/logger.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import "package:nextfind/widgets/newwidgets.dart";
 
-final log = Logger();
-
 class MapSearchView extends StatefulWidget {
-  const MapSearchView({super.key, this.location = const [53.7446, -0.3352]});
+  const MapSearchView(
+      {super.key,
+      this.location = const [53.7446, -0.3352],
+      required this.query});
 
   final List location;
+  final String query;
 
   @override
   State<MapSearchView> createState() => _MapSearchViewState();
 }
 
 class _MapSearchViewState extends State<MapSearchView> {
-  late List usedLocation = [0.0, 0.0];
   var scrollController = ScrollController(initialScrollOffset: 0);
 
   @override
   void initState() {
     super.initState();
-    usedLocation = widget.location; // ✔ mutable copy
-    if (arbitStore.data.containsKey("mapPointLocation")) {
-      usedLocation = arbitStore.data["mapPointLocation"];
-    }
   }
 
   FlutterMap map(AsyncSnapshot snapshot) {
     List<Marker> markers = [];
     markers.add(
       Marker(
-          point: LatLng(usedLocation[0], usedLocation[1]),
+          point: LatLng(arbitStore.data["userLocation"][0],
+              arbitStore.data["userLocation"][1]),
           width: 40,
           height: 40,
           child: const Column(mainAxisSize: MainAxisSize.min, children: [
@@ -87,7 +84,8 @@ class _MapSearchViewState extends State<MapSearchView> {
 
     return FlutterMap(
       options: MapOptions(
-        initialCenter: LatLng(usedLocation[0], usedLocation[1]), // Hull
+        initialCenter: LatLng(arbitStore.data["userLocation"][0],
+            arbitStore.data["userLocation"][1]), // Hull
         initialZoom: 13,
       ),
       children: [
@@ -169,11 +167,8 @@ class _MapSearchViewState extends State<MapSearchView> {
           ),
           itemCount: snapshot.data!.length,
           itemBuilder: (context, index) {
-            final BusinessLoc businesloc = snapshot.data![index];
-            return BusinessBlock(
-              businessLoc: businesloc,
-              scaleDown: 2,
-            );
+            final String businessLocationId = snapshot.data![index];
+            return BusinessLocationThumbnail(locationId: businessLocationId);
           },
           separatorBuilder: (context, index) => const SizedBox(width: 20),
         );
@@ -246,13 +241,10 @@ class _MapSearchViewState extends State<MapSearchView> {
                         pos.latitude,
                         pos.longitude
                       ];
-                      usedLocation = arbitStore.data["userLocation"];
-                      arbitStore.data["mapPointLocation"] = usedLocation;
                       rebuild(); // refresh the whole widget
                     });
                   }
 
-                  log.d(arbitStore.data);
                   rebuild();
                 },
               ),
@@ -276,16 +268,17 @@ class _MapSearchViewState extends State<MapSearchView> {
   Widget build(BuildContext context) {
     return FutureBuilder<dynamic>(
         future: serverconnect.getNearbyBusinesses(
-          location: usedLocation,
-          query: nameController.text,
-          elecSafeOnly: arbitStore.data["electricitySafeOnly"],
-          gasSafeOnly: arbitStore.data["gasSafeOnly"],
-          maxdist: arbitStore.data["distance"],
-          // btypes: [arbitStore.data["categoryINDEX"]],
-        ),
+            location: arbitStore.data["userLocation"],
+            query: widget.query,
+            elecSafeOnly: arbitStore.data["electricitySafeOnly"],
+            gasSafeOnly: arbitStore.data["gasSafeOnly"],
+            maxdist: arbitStore.data["distance"],
+            idOnly: true
+            // btypes: [arbitStore.data["categoryINDEX"]],
+            ),
         builder: (context, snapshot) {
-          if (usedLocation.isEmpty) {
-            return SizedBox();
+          if (arbitStore.data["userLocation"].isEmpty) {
+            return const SizedBox();
           } else {
             return Stack(children: [
               map(snapshot),
@@ -298,8 +291,8 @@ class _MapSearchViewState extends State<MapSearchView> {
 }
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key, required this.title});
-  final String title;
+  const SearchPage({super.key, required this.query});
+  final String query;
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -308,9 +301,12 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
+    // log.i(widget.query);
     return Scaffold(
-        appBar: searchbar(context),
-        bottomNavigationBar: bottombar(context),
-        body: const MapSearchView());
+        appBar: newsearchbar(context),
+        bottomNavigationBar: newbottombar(context),
+        body: MapSearchView(
+          query: widget.query,
+        ));
   }
 }

@@ -162,7 +162,7 @@ class _MainInputState extends State<MainInput> {
     return TextField(
       controller: widget.controller,
       onSubmitted: (value) {
-        changepage(context, () => SearchPage(title: "e"));
+        changepage(context, () => SearchPage(query: "e"));
       },
       decoration: InputDecoration(
         hintText: widget.hint,
@@ -869,7 +869,7 @@ Widget bottombar(BuildContext context) {
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => SearchPage(title: "Hi"),
+        pageBuilder: (_, __, ___) => SearchPage(query: "Hi"),
         transitionsBuilder: (_, animation, __, child) {
           final slide = Tween(
             begin: Offset(0, 0.1),
@@ -1121,7 +1121,7 @@ void filterDropDown(BuildContext context) {
               height: 80,
               child: ElevatedButton(
                 onPressed: () {
-                  changepage(context, () => SearchPage(title: "Hi"));
+                  changepage(context, () => SearchPage(query: "Hi"));
                 },
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 18, horizontal: 40),

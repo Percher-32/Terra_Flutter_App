@@ -3,6 +3,7 @@ import 'package:nextfind/utils/businessManager.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:nextfind/utils/arbitStore.dart';
+import 'package:nextfind/pages/searchpage.dart';
 
 final mlog = Logger();
 final searchBarTextController = TextEditingController();
@@ -16,18 +17,19 @@ class AppColors {
 }
 
 class HeaderInput extends StatefulWidget {
-  const HeaderInput({
-    super.key,
-    this.hint = "",
-    this.color = AppColors.background,
-    this.size = 30.0,
-    this.controller,
-  });
+  const HeaderInput(
+      {super.key,
+      this.hint = "",
+      this.color = AppColors.background,
+      this.size = 30.0,
+      this.controller,
+      this.onSubmitted});
 
   final Color color;
   final double size;
   final String hint;
   final TextEditingController? controller;
+  final void Function(String value)? onSubmitted;
 
   @override
   State<HeaderInput> createState() => HeaderInputState();
@@ -138,6 +140,34 @@ class Small extends StatelessWidget {
   }
 }
 
+class MyText extends StatelessWidget {
+  const MyText(this.text,
+      {super.key,
+      this.color = AppColors.text,
+      this.size = 20,
+      this.fontWeight = FontWeight.w400});
+
+  final String text;
+  final Color color;
+  final double size;
+  final FontWeight fontWeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      maxLines: 2,
+      softWrap: true,
+      style: TextStyle(
+          color: color,
+          fontSize: size,
+          fontFamily: "LilitaOne",
+          overflow: TextOverflow.visible,
+          fontWeight: fontWeight),
+    );
+  }
+}
+
 class BaseImage extends StatelessWidget {
   final String url;
   final double width;
@@ -148,7 +178,7 @@ class BaseImage extends StatelessWidget {
   const BaseImage({
     required this.url,
     this.width = 180,
-    this.height = 150,
+    this.height = 170,
     this.radius = 18,
     this.fit = BoxFit.cover,
     super.key,
@@ -210,165 +240,123 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
       AsyncSnapshot<Map<String, MiniBusinessLoc>> snapshot) {
     if (snapshot.hasData) {
       final minibusinessLocation = snapshot.data![widget.locationId]!;
+      String ratings = "No Ratings";
+      if (minibusinessLocation.numRatings != null) {
+        ratings =
+            "${minibusinessLocation.averageRating} (${minibusinessLocation.numRatings!})";
+      }
 
       return SizedBox(
-        width: 377.42,
-        height: 240,
+        width: 380,
+        height: 260,
         child: Stack(
           children: [
-            //shadow
+            // SHADOW ONLY
             Positioned(
               left: 0,
               top: 0,
-              child: Container(
-                width: 377.07,
-                height: 214,
-                decoration: ShapeDecoration(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
+              child: IgnorePointer(
+                child: Container(
+                  width: 380,
+                  height: 240,
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                  ),
-                  shadows: const [
-                    BoxShadow(
-                      color: Color(0x3F000000),
-                      blurRadius: 10,
-                      offset: Offset(-7, 10),
-                      spreadRadius: 0,
-                    )
-                  ],
-                ),
-              ),
-            ),
-
-            //Opening time
-            const Positioned(
-              left: 37,
-              top: 181,
-              child: SizedBox(
-                width: 156,
-                height: 22,
-                child: Small('CLOSED - Opens 16:00 '),
-              ),
-            ),
-
-            //Address
-            const Positioned(
-              left: 229,
-              top: 115,
-              child: SizedBox(
-                width: 119,
-                height: 46,
-                child: Small(
-                  // '67 ${minibusinessLocation.address["road"]!}\n${minibusinessLocation.address["postcode"]}',
-                  '67',
-                ),
-              ),
-            ),
-
-            //distance
-            Positioned(
-              left: 230,
-              top: 161,
-              child: SizedBox(
-                width: 46,
-                height: 20,
-                child: Small(
-                  '${minibusinessLocation.distance} km',
-                ),
-              ),
-            ),
-
-            //average ratings
-            Positioned(
-              left: 230,
-              top: 80,
-              child: SizedBox(
-                width: 35.82,
-                height: 34.85,
-                child: Small(
-                  '${minibusinessLocation.averageRating}',
-                ),
-              ),
-            ),
-
-            // Num ratings
-            Positioned(
-              left: 256,
-              top: 91,
-              child: SizedBox(
-                width: 53,
-                height: 12,
-                child: Small(
-                  '(${minibusinessLocation.numRatings})',
-                ),
-              ),
-            ),
-
-            // Type Bar
-            Positioned(
-              left: 231,
-              top: 47,
-              child: SizedBox(
-                width: 146.42,
-                height: 24.13,
-                child: Small(
-                  minibusinessLocation.type.toString(),
-                ),
-              ),
-            ),
-
-            // Title
-            Positioned(
-              left: 202,
-              top: 13,
-              child: SizedBox(
-                width: 122,
-                height: 24,
-                child: Small(
-                  minibusinessLocation.name,
-                ),
-              ),
-            ),
-
-            //Decoration
-            Positioned(
-              left: 331,
-              top: 13,
-              child: Container(
-                width: 30.69,
-                height: 30.69,
-                decoration: ShapeDecoration(
-                  image: DecorationImage(
-                    image: NetworkImage("https://placehold.co/31x31"),
-                    fit: BoxFit.cover,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromARGB(62, 101, 101, 101),
+                        blurRadius: 10,
+                        offset: Offset(-7, 10),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
 
-            // CachedNetworkImage(imageUrl: )
-
-            //Image
+            // ACTUAL CARD (Material + InkWell)
             Positioned(
-                left: 13.15,
-                top: 13.15,
-                child: BaseImage(
-                    url: minibusinessLocation.thumbnailPath ?? "No Url")),
+              left: 0,
+              top: 0,
+              child: Material(
+                color: Colors.white,
+                // surfaceTintColor: app,
+                borderRadius: BorderRadius.circular(30),
+                clipBehavior: Clip.hardEdge,
+                child: InkWell(
+                  splashColor: const Color.fromARGB(255, 229, 233, 234),
+                  onTap: () {},
+                  child: SizedBox(
+                    width: 380,
+                    height: 240,
+                    child: Stack(
+                      children: [
+                        // RIGHT SIDE CONTENT
+                        Positioned(
+                          left: 210,
+                          top: 10,
+                          child: SizedBox(
+                            width: 150,
+                            child: Column(
+                              spacing: 5,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    minWidth: 150,
+                                    maxWidth: 150,
+                                    minHeight: 80,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      MyText(
+                                        minibusinessLocation.name,
+                                        color: AppColors.primary,
+                                        size: 20,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      MyText(
+                                        businessTypeLookup[
+                                            minibusinessLocation.type]!,
+                                        size: 14,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Small(ratings),
+                                MyText(
+                                  "230 Orchard Park Rd\nHU6 9BX",
+                                  size: 13,
+                                ),
+                                Row(
+                                  children: [
+                                    Small(
+                                      "${minibusinessLocation.distance.toStringAsFixed(2)} km",
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
 
-            //Logo
-            Positioned(
-              left: 202,
-              top: 174,
-              child: Container(
-                width: 23,
-                decoration: ShapeDecoration(
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      width: 4,
-                      strokeAlign: BorderSide.strokeAlignCenter,
+                        // LEFT SIDE IMAGE + STATUS
+                        Positioned(
+                          left: 13.15,
+                          top: 13.15,
+                          child: Column(
+                            spacing: 10,
+                            children: [
+                              BaseImage(
+                                url: minibusinessLocation.thumbnailPath ??
+                                    "No Url",
+                              ),
+                              Small("Open - Closes 4.00 PM"),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1047,6 +1035,14 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
         ),
       ),
     ),
+  );
+}
+
+void goToSearchPage(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+        builder: (context) => SearchPage(query: searchBarTextController.text)),
   );
 }
 

@@ -74,7 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
           color: AppColors.text,
         ),
         SizedBox(
-            height: 240,
+            height: 260,
             child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {

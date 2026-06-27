@@ -4,6 +4,20 @@ import 'package:flutter/widgets.dart';
 import 'package:nextfind/networking/apiconn.dart';
 // import 'package:nextfind/utils/arbitStore.dart';
 
+const businessTypeLookup = {
+    0:"Food & Dining",
+    1:"Home Services",
+    2:"Health & Wellness",
+    3:"Shopping & Retail",
+    4:"Professional Services",
+    5:"Automotive",
+    6:"Beauty & Personal Care",
+    7:"Entertainment & Leisure",
+    8:"Education",
+    9:"Lodging & Travel"
+};
+
+
 List<T> intersection<T>(List<T> a, List<T> b) {
   return a.toSet().intersection(b.toSet()).toList();
 }
@@ -359,6 +373,8 @@ class Businessmanager {
 }
 
 var businessManager = Businessmanager();
+
+
 
 Future<void> main() async {
   print("HI");
