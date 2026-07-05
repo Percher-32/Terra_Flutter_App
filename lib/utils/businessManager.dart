@@ -5,18 +5,17 @@ import 'package:nextfind/networking/apiconn.dart';
 // import 'package:nextfind/utils/arbitStore.dart';
 
 const businessTypeLookup = {
-    0:"Food & Dining",
-    1:"Home Services",
-    2:"Health & Wellness",
-    3:"Shopping & Retail",
-    4:"Professional Services",
-    5:"Automotive",
-    6:"Beauty & Personal Care",
-    7:"Entertainment & Leisure",
-    8:"Education",
-    9:"Lodging & Travel"
+  0: "Food & Dining",
+  1: "Home Services",
+  2: "Health & Wellness",
+  3: "Shopping & Retail",
+  4: "Professional Services",
+  5: "Automotive",
+  6: "Beauty & Personal Care",
+  7: "Entertainment & Leisure",
+  8: "Education",
+  9: "Lodging & Travel"
 };
-
 
 List<T> intersection<T>(List<T> a, List<T> b) {
   return a.toSet().intersection(b.toSet()).toList();
@@ -47,7 +46,7 @@ class MiniBusinessLoc {
   final bool verified;
   final double distance;
   final Map? openHours;
-  final double? averageRating;
+  final num? averageRating;
   final int? numRatings;
   final String? thumbnailPath;
   final bool over18;
@@ -297,6 +296,8 @@ class Businessmanager {
 
   MiniBusinessLoc? addBusinessLocationMini(Map locationData) {
     try {
+      log.d("ADD BUSINESS LOCATION || INPUTS [${locationData["business_location_id"]}] || data : $locationData ");
+
       final newMiniBusiness = MiniBusinessLoc(
           locationId: locationData["business_location_id"],
           businessId: locationData["business_id"],
@@ -305,7 +306,7 @@ class Businessmanager {
           location: locationData["Location"],
           address: locationData["address"],
           verified: locationData["verified"],
-          distance: locationData["distance"],
+          distance: locationData["distance"] + 0.0,
           openHours: locationData["open_hours"],
           averageRating: locationData["rating_average"],
           over18: locationData["over_18"],
@@ -317,16 +318,16 @@ class Businessmanager {
 
       if (locationData["thumbnail_path"] != null) {
         log.i(
-            "[IMAGE] HELLO HI YEAH THE URL IS ACTUALLY ${locationData["thumbnail_path"]}");
+            "ADD BUSINESS LOCATION || [IMAGE] HELLO HI YEAH THE URL IS ACTUALLY ${locationData["thumbnail_path"]} || INPUTS [${locationData["business_location_id"]}]");
       }
-      log.i("[IMAGE] URL = ${locationData["thumbnail_path"]}");
+      log.i("ADD BUSINESS LOCATION || [IMAGE] URL = ${locationData["thumbnail_path"]} || INPUTS [${locationData["business_location_id"]}]");
 
       return newMiniBusiness;
     } catch (e) {
       // {business_id: 660959d1-5c68-4e05-b0d6-6b44dc2e4f51, business_name: RideRight Bike School, business_description: Cycling lessons for all ages.Cycling lessons for all ages.THIS IS DESC FOR THIS LOCATIOn, gas_safe: false, elec_safe: false, btype: Business, primary_type: 8, secondary_types: [], business_location_id: 64c5c3d0-f566-4a89-a43c-fb2eb15a0c9d, business_location_location: 0101000020E610000038471D1D57DF4A40DF88EE59D768D5BF, distance: 0.07960646572, over_18: false, rating_average: null, rating_count: null, rating_distribution: null, phone_number: null, website: null, open_hours: {1: [09:30, 22:30], 2: [09:30, 22:30], 3: [09:30, 22:30], 4: [09:30, 22:30], 5: [09:30, 22:30], 6: [09:30, 22:30], 7: [09:30, 22:30]}, shutdown_days: [], timezone: null, verified: false}
-      log.e(e);
-      log.i("The location DATA IS ${locationData["Location"]}");
-      log.i("The location Data is $locationData");
+      log.e("ADD BUSINESS LOCATION || $e || INPUTS [${locationData["business_location_id"]}]");
+      log.e("ADD BUSINESS LOCATION || The location DATA IS ${locationData["Location"]} || INPUTS [${locationData["business_location_id"]}]");
+      log.e("ADD BUSINESS LOCATION || The location Data is $locationData || INPUTS [${locationData["business_location_id"]}]");
       return null;
     }
   }
@@ -337,7 +338,7 @@ class Businessmanager {
     List<String> locationsToGet = [];
 
     log.i("GET MINI BUSINESS LOCATION || ABSTRACTED || START");
-    // log.d("GET MINI BUSINESS LOCATION || ABSTRACTED || INPUTS $locationIds");
+    log.d("GET MINI BUSINESS LOCATION || ABSTRACTED || INPUTS $locationIds");
 
     for (var locationId in locationIds) {
       // log.d(
@@ -352,29 +353,31 @@ class Businessmanager {
     }
 
     log.d(
-        "GET MINI BUSINESS LOCATION || ABSTRACTED || EXTRACTED ALL KNOWN BUSINESS DATA");
+        "GET MINI BUSINESS LOCATION || ABSTRACTED || EXTRACTED ALL KNOWN BUSINESS DATA || currentRetLookup $retLookup || INPUTS $locationIds");
 
     if (locationsToGet.isNotEmpty) {
       log.d(
-          "GET MINI BUSINESS LOCATION || ABSTRACTED || EXTRACTING ALL UNKNOWN BUSINESSES DATA");
+          "GET MINI BUSINESS LOCATION || ABSTRACTED || EXTRACTING ALL UNKNOWN BUSINESSES DATA || locToGet $locationsToGet || INPUTS $locationIds");
       final newLocationData = await serverconnect
           .getBusinessLocationDataMiniApi(locationIds: locationsToGet);
+
+      log.d(
+          "GET MINI BUSINESS LOCATION || ABSTRACTED || EXTRACTING ALL UNKNOWN BUSINESSES DATA || newLocationData : $newLocationData || locToGet $locationsToGet || INPUTS $locationIds");
 
       retLookup = {...retLookup, ...newLocationData};
     }
 
-    log.d("GET MINI BUSINESS LOCATION || ABSTRACTED || LOOKUP + $retLookup");
+    log.d(
+        "GET MINI BUSINESS LOCATION || ABSTRACTED || LOOKUP + $retLookup || INPUTS $locationIds");
 
     log.i(
-        "GET MINI BUSINESS LOCATION || ABSTRACTED || ENDED RETURNED : $retLookup");
+        "GET MINI BUSINESS LOCATION || ABSTRACTED || ENDED RETURNED : $retLookup || INPUTS $locationIds");
 
     return retLookup;
   }
 }
 
 var businessManager = Businessmanager();
-
-
 
 Future<void> main() async {
   print("HI");

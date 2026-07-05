@@ -48,7 +48,14 @@ class MyApp extends StatelessWidget {
 //Remove-Item -Recurse -Force "$env:USERPROFILE\.gradle"
 //Remove-Item -Recurse -Force "C:\Users\User\Desktop\CODE\Flutter_Service_App\nextfind\android\.gradle"
 
-
 //flutter clean
 //flutter pub get
 //flutter run
+
+
+
+
+
+//[] ([he] [is] [the]) ([for][ty][forth]) ([pre][sid][dent]) ([of] [the]) ([U][NIT][ED] [STATES])
+// ([ev][ery][bo][dy]) ([give][it][up]) ([for][the][one][and][only]) ([BARACK][HUSIEN])
+// OBAMA ,

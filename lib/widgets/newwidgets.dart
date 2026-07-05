@@ -4,9 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:nextfind/pages/searchpage.dart';
+import 'package:intl/intl.dart';
 
 final mlog = Logger();
 final searchBarTextController = TextEditingController();
+
+bool isBetween(DateTime start, DateTime end, DateTime now) {
+  return now.isAfter(start) && now.isBefore(end);
+}
 
 class AppColors {
   static const background = Color.fromARGB(255, 255, 255, 255);
@@ -243,7 +248,43 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
       String ratings = "No Ratings";
       if (minibusinessLocation.numRatings != null) {
         ratings =
-            "${minibusinessLocation.averageRating} (${minibusinessLocation.numRatings!})";
+            "${minibusinessLocation.averageRating!.toStringAsFixed(2)}/10 (${minibusinessLocation.numRatings!})";
+      }
+
+      bool open = false;
+      String? signTime;
+      String openString = "";
+
+      final openTimes = minibusinessLocation.openHours;
+
+      if (openTimes != null) {
+        final weekday = DateTime.now().weekday.toString();
+
+        if (openTimes.containsKey(weekday)) {
+          List<dynamic> times = openTimes[weekday];
+
+          final openTime = DateFormat("HH:mm").parse(times[0]);
+          final closeTime = DateFormat("HH:mm").parse(times[1]);
+          final timeNow =
+              DateTime(1970, 1, 1, DateTime.now().hour, DateTime.now().minute);
+
+          if (isBetween(openTime, closeTime, timeNow) == true) {
+            open = true;
+            signTime = times[1];
+          } else {
+            signTime = times[0];
+          }
+        }
+
+        if (signTime == null) {
+          openString = "Closed Forever";
+        } else {
+          if (open) {
+            openString = "Open - Closes $signTime";
+          } else {
+            openString = "Closed - Opens $signTime";
+          }
+        }
       }
 
       return SizedBox(
@@ -317,6 +358,7 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                                         fontWeight: FontWeight.w600,
                                       ),
                                       MyText(
+                                        color: AppColors.primary,
                                         businessTypeLookup[
                                             minibusinessLocation.type]!,
                                         size: 14,
@@ -352,7 +394,7 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                                 url: minibusinessLocation.thumbnailPath ??
                                     "No Url",
                               ),
-                              Small("Open - Closes 4.00 PM"),
+                              Small(openString),
                             ],
                           ),
                         ),
@@ -685,18 +727,16 @@ class MyVertMultiToggleState extends State<MyVertMultiToggle> {
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 0),
           decoration: BoxDecoration(
-            color: active ? Colors.blue : Colors.transparent,
+            color: active ? AppColors.primary : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(
-            child: Text(
+            child: MyText(
               label,
-              style: TextStyle(
-                color: active ? Colors.white : Colors.black87,
-                fontWeight: FontWeight.w600,
-              ),
+              color: active ? AppColors.background : Colors.black87,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -707,9 +747,9 @@ class MyVertMultiToggleState extends State<MyVertMultiToggle> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(0),
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        // color: const Color.fromARGB(255, 195, 235, 255),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -892,26 +932,7 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
   }
 
   void searchButtonLogic(BuildContext context) {
-    // Navigator.push(
-    //   context,
-    //   PageRouteBuilder(
-    //     pageBuilder: (_, __, ___) => SearchPage(title: "Hi"),
-    //     transitionsBuilder: (_, animation, __, child) {
-    //       final slide = Tween(
-    //         begin: Offset(0, 0.1),
-    //         end: Offset.zero,
-    //       ).animate(animation);
-
-    //       final fade = Tween(begin: 0.0, end: 1.0).animate(animation);
-
-    //       return SlideTransition(
-    //         position: slide,
-    //         child: FadeTransition(opacity: fade, child: child),
-    //       );
-    //     },
-    //     transitionDuration: Duration(milliseconds: 250),
-    //   ),
-    // );
+    goToSearchPage(context);
   }
 
   Future<void> userButtonLogic(BuildContext context) async {

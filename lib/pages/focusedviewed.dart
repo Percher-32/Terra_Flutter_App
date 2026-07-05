@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:nextfind/utils/businessManager.dart';
 import 'package:nextfind/widgets/widgets.dart';
 import 'package:nextfind/utils/arbitStore.dart';

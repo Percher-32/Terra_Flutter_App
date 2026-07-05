@@ -10,6 +10,7 @@ final log = Logger();
 class ServerConnect {
   final serverUrl = 'http://192.168.1.106:8000';
   // final serverUrl = 'http://10.0.1.140:8000';
+  // final serverUrl = 'http://10.0.1.129:8000';
 
   var userData;
   var timeUserDataCol;
@@ -80,7 +81,7 @@ class ServerConnect {
       }
     } else {
       log.e("FUNCTION : getNearbyBusinesses | Error Occured $data");
-      return data;
+      return null;
     }
   }
 
@@ -118,7 +119,8 @@ class ServerConnect {
 
   Future<dynamic> getBusinessLocationDataMiniApi(
       {required List<String> locationIds}) async {
-    log.i("FUNCTION GET BUSINESSES MINI LOCATION | START");
+    log.i(
+        "FUNCTION GET BUSINESSES MINI LOCATION API || START || INPUTS $locationIds ");
 
     String urlquery = "";
     int counter = 0;
@@ -130,7 +132,8 @@ class ServerConnect {
       }
     }
 
-    log.d("FUNCTION GET BUSINESSES MINI LOCATION | Urlquery = $urlquery");
+    log.d(
+        "FUNCTION GET BUSINESSES MINI LOCATION API | Urlquery = $urlquery || INPUTS $locationIds ");
 
     final response = await http.get(
       Uri.parse(
@@ -139,8 +142,10 @@ class ServerConnect {
 
     final dynamic data = jsonDecode(response.body);
 
-    if ( response.statusCode == 200){
+    log.d(
+        "FUNCTION GET BUSINESSES MINI LOCATION API | respData : $data || INPUTS $locationIds ");
 
+    if (response.statusCode == 200) {
       Map<String, MiniBusinessLoc> retrunedBusinessLocations = {};
       for (Map businessMiniData in data) {
         final newBusinessLoc =
@@ -148,19 +153,20 @@ class ServerConnect {
 
         if (newBusinessLoc == null) {
           log.e(
-              "Error creating business location class from data $newBusinessLoc");
+              "FUNCTION GET BUSINESSES MINI LOCATION API || Error creating business location class from data $newBusinessLoc || INPUTS $locationIds");
         } else {
           retrunedBusinessLocations[newBusinessLoc.locationId] = newBusinessLoc;
         }
       }
 
-      log.i("FUNCTION GET BUSINESSES MINI LOCATION | SUCCESS IN PARSING ALL BUSINESSES ");
+      log.i(
+          "FUNCTION GET BUSINESSES MINI LOCATION API || SUCCESS IN PARSING ALL BUSINESSES || INPUTS $locationIds ");
       return retrunedBusinessLocations;
-    }
-    else{
+    } else {
+      log.e(
+          "FUNCTION GET BUSINESSES MINI LOCATION API || statusCode : ${response.statusCode} || respData : $data || INPUTS $locationIds ");
       return null;
     }
-
   }
 
   Future<dynamic> signupUser({
@@ -331,5 +337,3 @@ final serverconnect = ServerConnect();
 Future<void> main() async {
   serverconnect.signupUser(email: "MAMBA", password: "JAMBO");
 }
-
-
