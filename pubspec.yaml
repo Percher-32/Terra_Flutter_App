@@ -15,7 +15,8 @@ dependencies:
 
   cached_network_image: ^3.3.1
   logger: ^2.0.2
-  flutter_map: ^7.0.0
+  flutter_map: ^6.0.0
+  vector_map_tiles: ^5.0.0
   latlong2: ^0.9.0
   maplibre_gl: 0.26.2
   device_info_plus: ^9.1.2

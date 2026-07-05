@@ -5,11 +5,9 @@ import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/utils/businessManager.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart' as l_l;
-import "package:nextfind/widgets/newwidgets.dart";
-import "package:logger/logger.dart";
-import "package:maplibre_gl/maplibre_gl.dart";
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:latlong2/latlong.dart';
+import 'package:nextfind/widgets/newwidgets.dart';
+import 'package:logger/logger.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:typed_data';
 
@@ -36,60 +34,103 @@ class MapSearchView extends StatefulWidget {
 class _MapSearchViewState extends State<MapSearchView> {
   var scrollController = ScrollController(initialScrollOffset: 0);
   Offset overlayPos = Offset.zero;
-  final LatLng target = LatLng(53.7444, -0.3324);
-
-  late MapLibreMapController mapController;
-
+  final LatLng target = const LatLng(53.7444, -0.3324);
+  final mapController = MapController();
+  bool mapReady = false;
   @override
   void initState() {
     super.initState();
   }
 
   Widget map(AsyncSnapshot snapshot) {
-    final theMap = MapLibreMap(
-        styleString:
-            "https://api.maptiler.com/maps/streets/style.json?key=6qbiNDxrdNlr98KHQ1F9",
-        initialCameraPosition: const CameraPosition(
-          target: LatLng(53.7444, -0.3324),
-          zoom: 14,
-        ),
-        onMapCreated: (controller) async {
-          mapController = controller;
-        },
-        onStyleLoadedCallback: () async {
-          final bytes = await loadMarkerImage();
-          await mapController.addImage('my-marker', bytes);
+    List<Marker> markers = [];
+    if (snapshot.hasData) {
+      int counter = 0;
 
-          if (snapshot.hasData) {
-            int counter = 0;
-
-            for (String blocId in snapshot.data!) {
-              final bloc = businessManager.miniBusinessLocLookup[blocId]!;
-
-              mapController.addSymbol(
-                SymbolOptions(
-                  geometry: LatLng(bloc.location[0], bloc.location[1]),
-                  iconImage: "my-marker", 
-                  iconSize: 1.2,
-                  textField: bloc.name,
+      for (String blocId in snapshot.data!) {
+        final bloc = businessManager.miniBusinessLocLookup[blocId]!;
+        arbitStore.data["${bloc.name}${bloc.location} MARKER"] =
+            counter.toDouble();
+        markers.add(
+          Marker(
+              point: LatLng(bloc.location[0], bloc.location[1]),
+              width: 80,
+              height: 100,
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                IconButton(
+                  onPressed: () {
+                    scrollController.animateTo(
+                      arbitStore.data["${bloc.name}${bloc.location} MARKER"] -
+                          10.0, // pixel offset
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeOut,
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.location_pin,
+                    size: 30,
+                    color: AppColors.primary,
+                  ),
                 ),
-                {"Scroll": (counter * 1).toDouble()},
-              );
+                MyText(
+                  (bloc.numRatings ?? "No Ratings").toString(),
+                  color: AppColors.primary,
+                  size: 15,
+                ),
+              ])),
+        );
+        counter += 400;
+      }
+    }
 
-              counter += 400;
-            }
-          }
-        });
+    return Stack(
+      children: [
+        FlutterMap(
+          mapController: mapController,
+          options: MapOptions(
+            initialCenter: LatLng(53.7444, -0.3324),
+            initialZoom: 14,
+            onPositionChanged: (_, __) {
+              if (mapReady) setState(() {});
+            },
+            interactionOptions: InteractionOptions(
+              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+            ),
+          ),
+          children: [
+            TileLayer(
+              urlTemplate:
+                  'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png?api_key=b4b489af-f45d-442e-bb7e-88ebbacb7c3e',
+            ),
+            MarkerLayer(markers: markers)
+          ],
+        ),
 
-    return theMap;
-  }
+        // Overlay upright labels
 
-  void onMarkerTap(Symbol symbol) {
-    // Run your function
-    scrollController.animateTo(
-      symbol.data!["Scroll"] - 10.0, // pixel offset
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOut,
+        // Positioned(
+        //   left: screenPos.x,
+        //   top: screenPos.y,
+        //   child: Transform.rotate(
+        //     angle: -rotation, // keep upright
+        //     child: Container(
+        //       padding: const EdgeInsets.all(4),
+        //       decoration: BoxDecoration(
+        //         color: Colors.white.withOpacity(0.85),
+        //         borderRadius: BorderRadius.circular(4),
+        //       ),
+        //       child: Text(
+        //         label['name'] as String,
+        //         style: const TextStyle(
+        //           fontSize: 12,
+        //           fontWeight: FontWeight.bold,
+        //           color: Colors.black,
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // )
+      ],
     );
   }
 

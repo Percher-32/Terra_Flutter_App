@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nextfind/pages/searchpage.dart';
 import 'pages/homepage.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 
@@ -25,7 +26,8 @@ class MyApp extends StatelessWidget {
         ),
       ),
       themeMode: ThemeMode.light,
-      home: const MyHomePage(title: 'Next Find'),
+      // home: const MyHomePage(title: 'Next Find'),
+      home : const SearchPage(query: ""),
     );
   }
 }
