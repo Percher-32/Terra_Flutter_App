@@ -9,6 +9,14 @@ import 'package:latlong2/latlong.dart' as l_l;
 import "package:nextfind/widgets/newwidgets.dart";
 import "package:logger/logger.dart";
 import "package:maplibre_gl/maplibre_gl.dart";
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:typed_data';
+
+Future<Uint8List> loadMarkerImage() async {
+  final data = await rootBundle.load('assets/icons/Vector.png');
+  return data.buffer.asUint8List();
+}
 
 final slog = Logger();
 
@@ -27,6 +35,9 @@ class MapSearchView extends StatefulWidget {
 
 class _MapSearchViewState extends State<MapSearchView> {
   var scrollController = ScrollController(initialScrollOffset: 0);
+  Offset overlayPos = Offset.zero;
+  final LatLng target = LatLng(53.7444, -0.3324);
+
   late MapLibreMapController mapController;
 
   @override
@@ -35,110 +46,48 @@ class _MapSearchViewState extends State<MapSearchView> {
   }
 
   Widget map(AsyncSnapshot snapshot) {
-    List<Marker> markers = [];
-    markers.add(
-      Marker(
-          point: l_l.LatLng(arbitStore.data["userLocation"][0],
-              arbitStore.data["userLocation"][1]),
-          width: 40,
-          height: 40,
-          child: const Column(mainAxisSize: MainAxisSize.min, children: [
-            // HText(bloc.name, color: AppColors.main),
-            Icon(
-              Icons.location_pin,
-              size: 40,
-              color: Colors.blue,
-            ),
-          ])),
-    );
-    if (snapshot.hasData) {
-      int counter = 0;
-      for (String blocId in snapshot.data!) {
-        final bloc = businessManager.miniBusinessLocLookup[blocId]!;
-        // arbitStore.data["${bloc.name}${bloc.location} MARKER"] =
-        //     (counter * 1).toDouble();
-        markers.add(
-          Marker(
-              point: l_l.LatLng(bloc.location[0], bloc.location[1]),
-              width: 40,
-              height: 50,
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                // HText(bloc.name, color: AppColors.main),
-                IconButton(
-                  onPressed: () {
-                    scrollController.animateTo(
-                      arbitStore.data["${bloc.name}${bloc.location} MARKER"] -
-                          10.0, // pixel offset
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeOut,
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.location_pin,
-                    size: 30,
-                    color: AppColors.primary,
-                  ),
-                )
-              ])),
-        );
+    final theMap = MapLibreMap(
+        styleString:
+            "https://api.maptiler.com/maps/streets/style.json?key=6qbiNDxrdNlr98KHQ1F9",
+        initialCameraPosition: const CameraPosition(
+          target: LatLng(53.7444, -0.3324),
+          zoom: 14,
+        ),
+        onMapCreated: (controller) async {
+          mapController = controller;
+        },
+        onStyleLoadedCallback: () async {
+          final bytes = await loadMarkerImage();
+          await mapController.addImage('my-marker', bytes);
 
-        mapController.addSymbol(
-          SymbolOptions(
-            geometry: LatLng(bloc.location[0], bloc.location[1]),
-            iconImage: "marker-icon",
-            iconSize: 1.2,
-            textField: bloc.name, // store business ID
-          ),
-          {
-            "Scroll":(counter * 1).toDouble()
+          if (snapshot.hasData) {
+            int counter = 0;
+
+            for (String blocId in snapshot.data!) {
+              final bloc = businessManager.miniBusinessLocLookup[blocId]!;
+
+              mapController.addSymbol(
+                SymbolOptions(
+                  geometry: LatLng(bloc.location[0], bloc.location[1]),
+                  iconImage: "my-marker", 
+                  iconSize: 1.2,
+                  textField: bloc.name,
+                ),
+                {"Scroll": (counter * 1).toDouble()},
+              );
+
+              counter += 400;
+            }
           }
-        ).then((symbol) {
-          // This runs AFTER the symbol is created
-          // onMarkerCreated(symbol, b);
         });
 
-        counter += 400;
-      }
-    }
-
-    // return FlutterMap(
-    //   options: MapOptions(
-    //     initialCenter: LatLng(arbitStore.data["userLocation"][0],
-    //         arbitStore.data["userLocation"][1]), // Hull
-    //     initialZoom: 13,
-    //     keepUpright: true,
-
-    //   ),
-    //   children: [
-    //     TileLayer(
-    //       urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-    //       userAgentPackageName: 'com.nextfind.app',
-    //     ),
-    //     markerLayer
-    //   ],
-    // );
-    final theMap = MapLibreMap(
-      styleString:
-          "https://api.maptiler.com/maps/streets/style.json?key=6qbiNDxrdNlr98KHQ1F9",
-      initialCameraPosition: const CameraPosition(
-        target: LatLng(53.7444, -0.3324),
-        zoom: 14,
-      ),
-    );
-
     return theMap;
-
-    // return Stack(
-    //   children: [theMap, markerLayer],
-    // );
   }
-
 
   void onMarkerTap(Symbol symbol) {
     // Run your function
     scrollController.animateTo(
-      symbol.data!["Scroll"] -
-          10.0, // pixel offset
+      symbol.data!["Scroll"] - 10.0, // pixel offset
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOut,
     );
@@ -323,10 +272,7 @@ class _MapSearchViewState extends State<MapSearchView> {
       idOnly: true,
     ));
 
-    slog.i("MAPFUT || type ${toReturn.runtimeType}");
-
     await businessManager.getBusinessLocationMini(toReturn);
-
     return toReturn;
   }
 
