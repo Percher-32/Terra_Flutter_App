@@ -12,7 +12,6 @@ class ServerConnect {
   // final serverUrl = 'http://10.0.1.140:8000';
   // final serverUrl = 'http://10.0.1.129:8000';
   final serverUrl = 'http://10.0.1.121:8000';
-  
 
   var userData;
   var timeUserDataCol;
@@ -34,7 +33,7 @@ class ServerConnect {
     bool gasSafeOnly = false,
     bool elecSafeOnly = false,
   }) async {
-    final String url;
+    String url;
 
     log.i("FUNCTION : getNearbyBusinesses | START");
 
@@ -48,9 +47,11 @@ class ServerConnect {
 
     log.d("FUNCTION : getNearbyBusinesses | URL = $url");
 
+    url += "&location=${location[0]} , ${location[1]}";
+
     final response = await http.get(
       Uri.parse(url),
-      headers: {"x-location": "${location[0]} , ${location[1]}"},
+      // headers: {"location": "${location[0]} , ${location[1]}"},
     );
 
     log.d("FUNCTION : getNearbyBusinesses | DATA COLLECTION COMPLETE");
@@ -96,21 +97,24 @@ class ServerConnect {
       final businessLocation =
           businessManager.addBusinessLocation(dataFromResp);
 
-      final galleryResponse = await http
-        .get(Uri.parse('$serverUrl/location_image_paths?location_ids=$locationId'));
+      final galleryResponse = await http.get(Uri.parse(
+          '$serverUrl/location_image_paths?location_ids=$locationId'));
 
       final gallerydataFromResp = jsonDecode(galleryResponse.body);
 
-      if (response.statusCode == 200){
-        businessManager.businessLocationLookup[locationId]!.imagePaths = gallerydataFromResp[locationId]!;
-      }else{
-        log.e("FUNCTION : getNearbyBusinesses | GETTING PATHS | Error Occured |$gallerydataFromResp");
-      return null;
+      if (response.statusCode == 200) {
+        businessManager.businessLocationLookup[locationId]!.imagePaths =
+            gallerydataFromResp[locationId]!;
+      } else {
+        log.e(
+            "FUNCTION : getNearbyBusinesses | GETTING PATHS | Error Occured |$gallerydataFromResp");
+        return null;
       }
 
       return businessLocation;
     } else {
-      log.e("FUNCTION : getNearbyBusinesses | GETTING DATA | Error Occured $dataFromResp");
+      log.e(
+          "FUNCTION : getNearbyBusinesses | GETTING DATA | Error Occured $dataFromResp");
       return null;
     }
   }
@@ -120,11 +124,7 @@ class ServerConnect {
     log.i("FUNCTION : GET TRENDING BUSINESSES | START");
 
     final response = await http.post(
-      Uri.parse('$serverUrl/homepage/trending?limit=$limit&offset=$offset'),
-      headers: {
-        "x-location":
-            "${arbitStore.data["userLocation"][0]} , ${arbitStore.data["userLocation"][1]}"
-      },
+      Uri.parse('$serverUrl/homepage/trending?limit=$limit&offset=$offset&location=${arbitStore.data["userLocation"][0]} , ${arbitStore.data["userLocation"][1]}'),
     );
 
     log.d(
