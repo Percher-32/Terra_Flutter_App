@@ -1,11 +1,12 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:nextfind/utils/businessManager.dart';
-import 'package:nextfind/widgets/widgets.dart';
-import 'package:nextfind/utils/arbitStore.dart';
+// import 'package:nextfind/utils/arbitStore.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
 
+final flog = Logger();
 
 class Rating {
   const Rating(
@@ -55,167 +56,52 @@ class ReviewBlock extends StatelessWidget {
 }
 
 class BusinessLocPage extends StatefulWidget {
-  const BusinessLocPage({super.key, required this.businessLoc, this.image});
-  final BusinessLoc businessLoc;
-  final Widget? image;
+  const BusinessLocPage({super.key, required this.locationId});
+  final String locationId;
 
   @override
   State<BusinessLocPage> createState() => BusinessLocPageState();
 }
 
 class BusinessLocPageState extends State<BusinessLocPage> {
-  Widget buildMain(BusinessLocPage widget, BuildContext context) {
-    Widget businessimage = widget.image ??
-        Image.asset(
-          "assets/img/kde.png",
-          width: 200,
-          height: max(MediaQuery.of(context).size.width * 0.3, 200) * 1,
-          fit: BoxFit.cover,
-        );
+  late Future<BusinessLocation> _future;
 
-    businessimage = Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        image: const DecorationImage(
-          image: AssetImage("assets/img/kde.png"),
-          fit: BoxFit.cover,
-        ),
-      ),
-      width: 200,
-      height: max(MediaQuery.of(context).size.width * 0.3, 200) * 1,
-    );
-
-    const box = SizedBox(
-      height: 10,
-    );
-
-    Widget nameText = HText(
-      widget.businessLoc.name,
-      color: AppColors.text,
-      size: 20,
-    );
-
-    Widget typeText = HText(
-      base_types[widget.businessLoc.primaryType]!,
-      color: const Color.fromARGB(255, 66, 66, 66),
-      size: 15,
-    );
-
-    String ratingString = "No ratings";
-    if (widget.businessLoc.meanRating != null) {
-      ratingString = "Rating : ${widget.businessLoc.meanRating.toString()}";
-    }
-
-    Widget descText = HText(
-      widget.businessLoc.desc ?? "No description Provided",
-      color: const Color.fromARGB(255, 66, 66, 66),
-      size: 15,
-      // bold: FontWeight.w300,
-    );
-
-    Widget ratingText = HText(
-      ratingString,
-      color: const Color.fromARGB(255, 36, 85, 99),
-      size: 15,
-    );
-
-    Widget distanceText = HText(
-      "${KmTomiles((widget.businessLoc.distance * 1000)).toStringAsPrecision(4)} miles from you",
-      color: const Color.fromARGB(255, 36, 85, 99),
-      size: 15,
-    );
-
-    // const Widget favButton = RoundIconButton(
-    //   icon: Icons.favorite,
-    // );
-
-    // const Widget reviewButton = RoundIconButton(
-    //   icon: Icons.reviews,
-    // );
-
-    // const Widget visitButton = SizedBox(
-    //   width: 200,
-    //   child: RoundButton(
-    //     bgColor: Color.fromARGB(255, 73, 201, 255),
-    //     text: "visit",
-    //   ),
-    // );
-
-    // const rowButtons = Row(
-    //   spacing: 30,
-    //   children: [
-    //     SizedBox(
-    //       width: 0,
-    //     ),
-    //     favButton,
-    //     reviewButton,
-    //     visitButton,
-    //   ],
-    // );
-
-    List<Widget> widgets = [
-      box,
-      businessimage,
-      box,
-      nameText,
-      typeText,
-      box,
-      descText,
-      box,
-      box,
-      distanceText,
-      ratingText,
-      box,
-      box,
-      // rowButtons
-    ];
-
-    return ListView.separated(
-        itemBuilder: itemBuilder(context, widgets, [20]),
-        separatorBuilder: itemBuilder(context, widgets, [10], builder: false),
-        itemCount: widgets.length);
+  @override
+  void initState() {
+    super.initState();
+    _future = businessManager.getBusinessLocation(widget.locationId);
   }
 
-  Widget Function(BuildContext, int) itemBuilder(
-      BuildContext context, List<Widget> widgets, List<double> spacings,
-      {bool builder = true}) {
-    if (builder) {
-      return (context, index) {
-        return widgets[index];
-      };
+  Widget buildRoot(BuildContext context, AsyncSnapshot snapshot) {
+    if (snapshot.hasData) {
+      Widget image = SizedBox();
+
+      BusinessLocation businessLocation = snapshot.data!;
+
+      if (businessLocation.imagePaths.isNotEmpty) {
+        image = BaseImage(url: businessLocation.imagePaths[0]);
+      }
+
+      return Column(
+        children: [image],
+      );
+    } else if (snapshot.hasError) {
+      flog.e("${snapshot.error}");
+      return const CircularProgressIndicator();
     } else {
-      return (context, index) {
-        return SizedBox(
-          height: spacings.elementAtOrNull(index) ?? spacings[0],
-        );
-      };
+      return const CircularProgressIndicator();
     }
-  }
-
-  Widget topBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(color: AppColors.primary),
-      height: 70,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.arrow_back))
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    log.d("BUSINESSLOC ID : ${widget.businessLoc.locId}");
+    // super.build(context);
     return Scaffold(
-        appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(120), child: topBar(context)),
-        bottomNavigationBar: bottombar(context),
-        body: buildMain(widget, context));
+        bottomNavigationBar: newbottombar(context),
+        body: FutureBuilder(
+            future: _future,
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              return buildRoot(context, snapshot);
+            }));
   }
 }

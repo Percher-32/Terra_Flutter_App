@@ -5,7 +5,7 @@ import 'package:logger/logger.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
 // import 'package:nextfind/theme/app_theme.dart';
 
-final log = Logger();
+final hog = Logger();
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});

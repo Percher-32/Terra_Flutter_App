@@ -1,9 +1,10 @@
 // import 'dart:ffi';
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:nextfind/networking/apiconn.dart';
-// import 'package:nextfind/utils/arbitStore.dart';
 
+// import 'package:nextfind/utils/arbitStore.dart';
 const businessTypeLookup = {
   0: "Food & Dining",
   1: "Home Services",
@@ -19,6 +20,49 @@ const businessTypeLookup = {
 
 List<T> intersection<T>(List<T> a, List<T> b) {
   return a.toSet().intersection(b.toSet()).toList();
+}
+
+class BusinessLocation {
+  BusinessLocation(
+      {required this.locationId,
+      required this.location,
+      required this.businessId,
+      required this.name,
+      required this.type,
+      required this.address,
+      required this.verified,
+      // required this.distance,
+      this.openHours,
+      this.averageRating,
+      this.thumbnailPath,
+      this.numRatings,
+      this.over18 = false,
+      this.website,
+      this.links,
+      this.description,
+      this.phoneNumber,
+      this.timeZone = "Europe/London",
+      this.imagePaths = const []});
+
+  final String locationId;
+  final String businessId;
+  final String name;
+  final int type;
+  final List location;
+  final Map address;
+  final bool verified;
+  // final double distance;
+  final Map? openHours;
+  final num? averageRating;
+  final int? numRatings;
+  final String? thumbnailPath;
+  final bool over18;
+  final String? website;
+  final Map? links;
+  final String? description;
+  final String? phoneNumber;
+  final String timeZone;
+  List<String> imagePaths;
 }
 
 class MiniBusinessLoc {
@@ -283,6 +327,7 @@ class Business {
 
 class Businessmanager {
   Map<String, MiniBusinessLoc> miniBusinessLocLookup = {};
+  Map<String, BusinessLocation> businessLocationLookup = {};
 
   Map<int, BusinessLoc> businessLocationIdToData = {};
   Map<int, Business> businessIdToData = {};
@@ -296,7 +341,8 @@ class Businessmanager {
 
   MiniBusinessLoc? addBusinessLocationMini(Map locationData) {
     try {
-      log.d("ADD BUSINESS LOCATION || INPUTS [${locationData["business_location_id"]}] || data : $locationData ");
+      log.d(
+          "ADD BUSINESS LOCATION || INPUTS [${locationData["business_location_id"]}] || data : $locationData ");
 
       final newMiniBusiness = MiniBusinessLoc(
           locationId: locationData["business_location_id"],
@@ -320,15 +366,61 @@ class Businessmanager {
         log.i(
             "ADD BUSINESS LOCATION || [IMAGE] HELLO HI YEAH THE URL IS ACTUALLY ${locationData["thumbnail_path"]} || INPUTS [${locationData["business_location_id"]}]");
       }
-      log.i("ADD BUSINESS LOCATION || [IMAGE] URL = ${locationData["thumbnail_path"]} || INPUTS [${locationData["business_location_id"]}]");
+      log.i(
+          "ADD BUSINESS LOCATION || [IMAGE] URL = ${locationData["thumbnail_path"]} || INPUTS [${locationData["business_location_id"]}]");
 
       return newMiniBusiness;
     } catch (e) {
       // {business_id: 660959d1-5c68-4e05-b0d6-6b44dc2e4f51, business_name: RideRight Bike School, business_description: Cycling lessons for all ages.Cycling lessons for all ages.THIS IS DESC FOR THIS LOCATIOn, gas_safe: false, elec_safe: false, btype: Business, primary_type: 8, secondary_types: [], business_location_id: 64c5c3d0-f566-4a89-a43c-fb2eb15a0c9d, business_location_location: 0101000020E610000038471D1D57DF4A40DF88EE59D768D5BF, distance: 0.07960646572, over_18: false, rating_average: null, rating_count: null, rating_distribution: null, phone_number: null, website: null, open_hours: {1: [09:30, 22:30], 2: [09:30, 22:30], 3: [09:30, 22:30], 4: [09:30, 22:30], 5: [09:30, 22:30], 6: [09:30, 22:30], 7: [09:30, 22:30]}, shutdown_days: [], timezone: null, verified: false}
-      log.e("ADD BUSINESS LOCATION || $e || INPUTS [${locationData["business_location_id"]}]");
-      log.e("ADD BUSINESS LOCATION || The location DATA IS ${locationData["Location"]} || INPUTS [${locationData["business_location_id"]}]");
-      log.e("ADD BUSINESS LOCATION || The location Data is $locationData || INPUTS [${locationData["business_location_id"]}]");
+      log.e(
+          "ADD BUSINESS LOCATION || $e || INPUTS [${locationData["business_location_id"]}]");
+      log.e(
+          "ADD BUSINESS LOCATION || The location DATA IS ${locationData["Location"]} || INPUTS [${locationData["business_location_id"]}]");
+      log.e(
+          "ADD BUSINESS LOCATION || The location Data is $locationData || INPUTS [${locationData["business_location_id"]}]");
       return null;
+    }
+  }
+
+  BusinessLocation? addBusinessLocation(Map businessLocationData) {
+    try {
+      log.d(
+          "ADD FULL BUSINESS LOCATION || INPUTS [${businessLocationData["id"]}] || data : $businessLocationData ");
+
+      final newBusiness = BusinessLocation(
+          locationId: businessLocationData["id"],
+          businessId: businessLocationData["Business_id"],
+          name: businessLocationData["Business_Name"],
+          type: businessLocationData["Business_primary_type"],
+          location: businessLocationData["Location"],
+          address: businessLocationData["address"],
+          verified: businessLocationData["verified"],
+          // distance: businessLocationData["distance"] + 0.0,
+          openHours: businessLocationData["open_hours"],
+          averageRating: businessLocationData["rating_average"],
+          over18: businessLocationData["Business_over_18"],
+          numRatings: businessLocationData["rating_count"],
+          description: businessLocationData["description"] ?? "",
+          website: businessLocationData["Business_Website"],
+          links: businessLocationData["links"],
+          timeZone: businessLocationData["timezone"] ?? "Europe/London",
+          phoneNumber: businessLocationData["phone_number"]);
+
+      businessLocationLookup[businessLocationData["id"]] = newBusiness;
+
+      return newBusiness;
+    } catch (e) {
+      // {business_id: 660959d1-5c68-4e05-b0d6-6b44dc2e4f51, business_name: RideRight Bike School, business_description: Cycling lessons for all ages.Cycling lessons for all ages.THIS IS DESC FOR THIS LOCATIOn, gas_safe: false, elec_safe: false, btype: Business, primary_type: 8, secondary_types: [], business_location_id: 64c5c3d0-f566-4a89-a43c-fb2eb15a0c9d, business_location_location: 0101000020E610000038471D1D57DF4A40DF88EE59D768D5BF, distance: 0.07960646572, over_18: false, rating_average: null, rating_count: null, rating_distribution: null, phone_number: null, website: null, open_hours: {1: [09:30, 22:30], 2: [09:30, 22:30], 3: [09:30, 22:30], 4: [09:30, 22:30], 5: [09:30, 22:30], 6: [09:30, 22:30], 7: [09:30, 22:30]}, shutdown_days: [], timezone: null, verified: false}
+      log.e(e);
+      return null;
+    }
+  }
+
+  Future<BusinessLocation> getBusinessLocation(String locationId) async {
+    if (businessLocationLookup.containsKey(locationId)) {
+      return businessLocationLookup[locationId]!;
+    } else {
+      return await serverconnect.getFullLocationData(locationId);
     }
   }
 

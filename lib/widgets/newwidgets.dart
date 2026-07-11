@@ -1,4 +1,6 @@
 import 'package:nextfind/networking/apiconn.dart';
+import 'package:nextfind/pages/focusedviewed.dart';
+import 'package:nextfind/pages/homepage.dart';
 import 'package:nextfind/utils/businessManager.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -325,7 +327,9 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                 clipBehavior: Clip.hardEdge,
                 child: InkWell(
                   splashColor: const Color.fromARGB(255, 229, 233, 234),
-                  onTap: () {},
+                  onTap: () {
+                    goToBusinessPage(context, minibusinessLocation.locationId);
+                  },
                   child: SizedBox(
                     width: 380,
                     height: 240,
@@ -909,26 +913,7 @@ class RoundButton extends StatelessWidget {
 
 Widget newbottombar(BuildContext context, {int index = 2}) {
   void homePageButtonLogic(BuildContext context) {
-    // Navigator.push(
-    //   context,
-    //   PageRouteBuilder(
-    //     pageBuilder: (_, __, ___) => MyHomePage(title: "Hi"),
-    //     transitionsBuilder: (_, animation, __, child) {
-    //       final slide = Tween(
-    //         begin: Offset(0, 0.1),
-    //         end: Offset.zero,
-    //       ).animate(animation);
-
-    //       final fade = Tween(begin: 0.0, end: 1.0).animate(animation);
-
-    //       return SlideTransition(
-    //         position: slide,
-    //         child: FadeTransition(opacity: fade, child: child),
-    //       );
-    //     },
-    //     transitionDuration: Duration(milliseconds: 250),
-    //   ),
-    // );
+    goToHamePage(context);
   }
 
   void searchButtonLogic(BuildContext context) {
@@ -1064,6 +1049,20 @@ void goToSearchPage(BuildContext context) {
     context,
     MaterialPageRoute(
         builder: (context) => SearchPage(query: searchBarTextController.text)),
+  );
+}
+
+void goToHamePage(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const MyHomePage(title: "HI")),
+  );
+}
+
+void goToBusinessPage(BuildContext context, String locationId) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => BusinessLocPage(locationId: locationId)),
   );
 }
 

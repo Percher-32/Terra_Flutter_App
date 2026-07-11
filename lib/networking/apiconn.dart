@@ -8,9 +8,11 @@ import 'package:logger/logger.dart';
 final log = Logger();
 
 class ServerConnect {
-  final serverUrl = 'http://192.168.1.106:8000';
+  // final serverUrl = 'http://192.168.1.106:8000';
   // final serverUrl = 'http://10.0.1.140:8000';
   // final serverUrl = 'http://10.0.1.129:8000';
+  final serverUrl = 'http://10.0.1.121:8000';
+  
 
   var userData;
   var timeUserDataCol;
@@ -81,6 +83,34 @@ class ServerConnect {
       }
     } else {
       log.e("FUNCTION : getNearbyBusinesses | Error Occured $data");
+      return null;
+    }
+  }
+
+  Future<dynamic> getFullLocationData(String locationId) async {
+    final response = await http
+        .get(Uri.parse('$serverUrl/business_location?location_id=$locationId'));
+
+    final dataFromResp = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      final businessLocation =
+          businessManager.addBusinessLocation(dataFromResp);
+
+      final galleryResponse = await http
+        .get(Uri.parse('$serverUrl/location_image_paths?location_ids=$locationId'));
+
+      final gallerydataFromResp = jsonDecode(galleryResponse.body);
+
+      if (response.statusCode == 200){
+        businessManager.businessLocationLookup[locationId]!.imagePaths = gallerydataFromResp[locationId]!;
+      }else{
+        log.e("FUNCTION : getNearbyBusinesses | GETTING PATHS | Error Occured |$gallerydataFromResp");
+      return null;
+      }
+
+      return businessLocation;
+    } else {
+      log.e("FUNCTION : getNearbyBusinesses | GETTING DATA | Error Occured $dataFromResp");
       return null;
     }
   }

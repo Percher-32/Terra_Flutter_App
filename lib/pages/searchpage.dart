@@ -37,6 +37,8 @@ class _MapSearchViewState extends State<MapSearchView> {
   final LatLng target = const LatLng(53.7444, -0.3324);
   final mapController = MapController();
   bool mapReady = false;
+  final zoomNotifier = ValueNotifier<double>(14.0);
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +46,8 @@ class _MapSearchViewState extends State<MapSearchView> {
 
   Widget map(AsyncSnapshot snapshot) {
     List<Marker> markers = [];
+    List<Marker> smallMarkers = [];
+    List<Marker> superSmallMarkers = [];
     if (snapshot.hasData) {
       int counter = 0;
 
@@ -51,34 +55,97 @@ class _MapSearchViewState extends State<MapSearchView> {
         final bloc = businessManager.miniBusinessLocLookup[blocId]!;
         arbitStore.data["${bloc.name}${bloc.location} MARKER"] =
             counter.toDouble();
-        markers.add(
-          Marker(
-              point: LatLng(bloc.location[0], bloc.location[1]),
-              width: 80,
-              height: 100,
+
+        // final IconData myIcon = Icons.restaurant_outlined;
+        final myIconName = 'assets/icons/svg_logo.png';
+
+        final myIcon = Image.asset(
+          myIconName,
+          width: 30,
+          height: 30,
+        );
+
+        final myIconSmall = Image.asset(
+          myIconName,
+          width: 25,
+          height: 25,
+        );
+
+        final myVeryIconSmall = Image.asset(
+          myIconName,
+          width: 20,
+          height: 20,
+        );
+
+        markers.add(Marker(
+          point: LatLng(bloc.location[0], bloc.location[1]),
+          width: 80,
+          height: 100,
+          child: GestureDetector(
+              onTap: () {
+                scrollController.animateTo(
+                  arbitStore.data["${bloc.name}${bloc.location} MARKER"] -
+                      10.0, // pixel offset
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOut,
+                ); // run your function here
+              },
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                IconButton(
-                  onPressed: () {
-                    scrollController.animateTo(
-                      arbitStore.data["${bloc.name}${bloc.location} MARKER"] -
-                          10.0, // pixel offset
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeOut,
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.location_pin,
-                    size: 30,
-                    color: AppColors.primary,
-                  ),
-                ),
+                myIcon,
                 MyText(
                   (bloc.numRatings ?? "No Ratings").toString(),
                   color: AppColors.primary,
                   size: 15,
                 ),
               ])),
-        );
+        ));
+
+        smallMarkers.add(Marker(
+          point: LatLng(bloc.location[0], bloc.location[1]),
+          width: 80,
+          height: 100,
+          child: GestureDetector(
+              onTap: () {
+                scrollController.animateTo(
+                  arbitStore.data["${bloc.name}${bloc.location} MARKER"] -
+                      10.0, // pixel offset
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOut,
+                ); // run your function here
+              },
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                myIconSmall,
+                MyText(
+                  (bloc.numRatings ?? "No Ratings").toString(),
+                  color: const Color.fromARGB(88, 252, 130, 74),
+                  size: 15,
+                ),
+              ])),
+        ));
+
+        superSmallMarkers.add(Marker(
+          point: LatLng(bloc.location[0], bloc.location[1]),
+          width: 80,
+          height: 100,
+          child: GestureDetector(
+              onTap: () {
+                scrollController.animateTo(
+                  arbitStore.data["${bloc.name}${bloc.location} MARKER"] -
+                      10.0, // pixel offset
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOut,
+                ); // run your function here
+              },
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                myVeryIconSmall,
+                // MyText(
+                //   (bloc.numRatings ?? "No Ratings").toString(),
+                //   color: const Color.fromARGB(0, 252, 130, 74),
+                //   size: 15,
+                // ),
+              ])),
+        ));
+
         counter += 400;
       }
     }
@@ -88,12 +155,14 @@ class _MapSearchViewState extends State<MapSearchView> {
         FlutterMap(
           mapController: mapController,
           options: MapOptions(
-            initialCenter: LatLng(53.7444, -0.3324),
+            initialCenter: const LatLng(53.7444, -0.3324),
             initialZoom: 14,
-            onPositionChanged: (_, __) {
-              if (mapReady) setState(() {});
+            onPositionChanged: (pos, _) {
+              zoomNotifier.value = pos.zoom!;
             },
-            interactionOptions: InteractionOptions(
+            maxZoom: 17,
+            minZoom: 13,
+            interactionOptions: const InteractionOptions(
               flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
             ),
           ),
@@ -102,34 +171,30 @@ class _MapSearchViewState extends State<MapSearchView> {
               urlTemplate:
                   'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png?api_key=b4b489af-f45d-442e-bb7e-88ebbacb7c3e',
             ),
-            MarkerLayer(markers: markers)
+            ValueListenableBuilder<double>(
+              valueListenable: zoomNotifier,
+              builder: (_, zoom, __) {
+                final showDetailed = zoom >= 15.0;
+                final fullyZommedOut = zoom <= 14.0 && zoom < 15.0;
+
+                if (showDetailed) {
+                  return MarkerLayer(
+                    markers: markers,
+                  );
+                } else if (fullyZommedOut) {
+                  return MarkerLayer(
+                    markers: superSmallMarkers,
+                  );
+                  // return MarkerLayer();
+                } else {
+                  return MarkerLayer(
+                    markers: smallMarkers,
+                  );
+                }
+              },
+            ),
           ],
         ),
-
-        // Overlay upright labels
-
-        // Positioned(
-        //   left: screenPos.x,
-        //   top: screenPos.y,
-        //   child: Transform.rotate(
-        //     angle: -rotation, // keep upright
-        //     child: Container(
-        //       padding: const EdgeInsets.all(4),
-        //       decoration: BoxDecoration(
-        //         color: Colors.white.withOpacity(0.85),
-        //         borderRadius: BorderRadius.circular(4),
-        //       ),
-        //       child: Text(
-        //         label['name'] as String,
-        //         style: const TextStyle(
-        //           fontSize: 12,
-        //           fontWeight: FontWeight.bold,
-        //           color: Colors.black,
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-        // )
       ],
     );
   }
@@ -140,7 +205,7 @@ class _MapSearchViewState extends State<MapSearchView> {
       // top: 20,
       left: 0,
       right: 0,
-      bottom: 20,
+      bottom: -100,
       child: Container(
         height: 260,
         width: 6000,
@@ -164,29 +229,30 @@ class _MapSearchViewState extends State<MapSearchView> {
   Widget scrollBuildFromData(AsyncSnapshot snapshot) {
     // LOADING STATE
     if (snapshot.connectionState == ConnectionState.waiting) {
-      return ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        itemCount: 10,
-        itemBuilder: (context, index) => const BusinessBlock(
-          businessLoc: BusinessLoc(
-            locId: 0,
-            name: "---",
-            macroType: "",
-            locations: [],
-            bId: 0,
-            primaryType: 0,
-            location: [0, 0],
-            owneremail: "",
-            address: "",
-            distance: 67,
-          ),
-          scaleDown: 2,
-        ),
-        separatorBuilder: (context, index) => const SizedBox(width: 20),
-      );
+      // return ListView.separated(
+      //   scrollDirection: Axis.horizontal,
+      //   physics: const BouncingScrollPhysics(
+      //     parent: AlwaysScrollableScrollPhysics(),
+      //   ),
+      //   itemCount: 10,
+      //   itemBuilder: (context, index) => const BusinessBlock(
+      //     businessLoc: BusinessLoc(
+      //       locId: 0,
+      //       name: "---",
+      //       macroType: "",
+      //       locations: [],
+      //       bId: 0,
+      //       primaryType: 0,
+      //       location: [0, 0],
+      //       owneremail: "",
+      //       address: "",
+      //       distance: 67,
+      //     ),
+      //     scaleDown: 2,
+      //   ),
+      //   separatorBuilder: (context, index) => const SizedBox(width: 20),
+      // );
+      return SizedBox();
     }
 
     // DATA STATE
@@ -194,7 +260,7 @@ class _MapSearchViewState extends State<MapSearchView> {
       if (snapshot.data!.isEmpty) {
         slog.e("BUILD SCROLL VIEW || NO DATA");
         return const Center(
-            child: MainText("No businesses found", AppColors.text));
+            child: MyText("No businesses found"));
       } else {
         return ListView.separated(
           controller: scrollController,
