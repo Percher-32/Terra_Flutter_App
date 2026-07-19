@@ -1,6 +1,7 @@
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/pages/focusedviewed.dart';
 import 'package:nextfind/pages/homepage.dart';
+import 'package:nextfind/pages/userpage.dart';
 import 'package:nextfind/utils/businessManager.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -21,6 +22,57 @@ class AppColors {
   static const primary = Color.fromARGB(255, 252, 130, 74);
   static const secondary = Color.fromARGB(255, 101, 44, 145);
   static const accent = Color.fromARGB(255, 34, 139, 219);
+}
+
+class MyInputField extends StatelessWidget {
+  const MyInputField(
+      {super.key,
+      this.hint = "",
+      this.textColor = AppColors.text,
+      this.backgroundColor = AppColors.primary,
+      this.size = 30.0,
+      this.controller,
+      this.onSubmitted,
+      this.padding = const EdgeInsets.all(10),
+      this.borderRadius});
+
+  final Color textColor;
+  final Color backgroundColor;
+  final double size;
+  final String hint;
+  final TextEditingController? controller;
+  final void Function(String value)? onSubmitted;
+  final EdgeInsets padding;
+  final BorderRadius? borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: padding,
+          child: ClipRRect(
+            borderRadius: borderRadius??BorderRadius.circular(20),
+            child: Container(
+              color: backgroundColor,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: HeaderInput(
+                      hint: hint,
+                      controller: controller,
+                      color: textColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class HeaderInput extends StatefulWidget {
@@ -48,7 +100,9 @@ class HeaderInputState extends State<HeaderInput> {
     return TextField(
       controller: widget.controller,
       onSubmitted: (value) {
-        // changepage(context, () => SearchPage(title: "e"));
+        if (widget.onSubmitted != null) {
+          widget.onSubmitted!(value);
+        }
       },
       decoration: InputDecoration(
         hintText: widget.hint,
@@ -913,7 +967,7 @@ class RoundButton extends StatelessWidget {
 
 Widget newbottombar(BuildContext context, {int index = 2}) {
   void homePageButtonLogic(BuildContext context) {
-    goToHamePage(context);
+    goToHomePage(context);
   }
 
   void searchButtonLogic(BuildContext context) {
@@ -921,49 +975,7 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
   }
 
   Future<void> userButtonLogic(BuildContext context) async {
-    // if (await api.serverconnect.loggedIn()) {
-    //   Navigator.push(
-    //     context,
-    //     PageRouteBuilder(
-    //       pageBuilder: (_, __, ___) => UserPage(title: "Hi"),
-    //       transitionsBuilder: (_, animation, __, child) {
-    //         final slide = Tween(
-    //           begin: Offset(0, 0.1),
-    //           end: Offset.zero,
-    //         ).animate(animation);
-
-    //         final fade = Tween(begin: 0.0, end: 1.0).animate(animation);
-
-    //         return SlideTransition(
-    //           position: slide,
-    //           child: FadeTransition(opacity: fade, child: child),
-    //         );
-    //       },
-    //       transitionDuration: Duration(milliseconds: 250),
-    //     ),
-    //   );
-    // } else {
-    //   Navigator.push(
-    //     context,
-    //     PageRouteBuilder(
-    //       pageBuilder: (_, __, ___) => LoginOrSignupPage(),
-    //       transitionsBuilder: (_, animation, __, child) {
-    //         final slide = Tween(
-    //           begin: Offset(0, 0.1),
-    //           end: Offset.zero,
-    //         ).animate(animation);
-
-    //         final fade = Tween(begin: 0.0, end: 1.0).animate(animation);
-
-    //         return SlideTransition(
-    //           position: slide,
-    //           child: FadeTransition(opacity: fade, child: child),
-    //         );
-    //       },
-    //       transitionDuration: Duration(milliseconds: 250),
-    //     ),
-    //   );
-    // }
+    goToUserPage(context);
   }
 
   Icon searchIcon = const Icon(Icons.search, color: Colors.white, size: 35);
@@ -1052,7 +1064,7 @@ void goToSearchPage(BuildContext context) {
   );
 }
 
-void goToHamePage(BuildContext context) {
+void goToHomePage(BuildContext context) {
   Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => const MyHomePage(title: "HI")),
@@ -1062,7 +1074,15 @@ void goToHamePage(BuildContext context) {
 void goToBusinessPage(BuildContext context, String locationId) {
   Navigator.push(
     context,
-    MaterialPageRoute(builder: (context) => BusinessLocPage(locationId: locationId)),
+    MaterialPageRoute(
+        builder: (context) => BusinessLocPage(locationId: locationId)),
+  );
+}
+
+void goToUserPage(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const UserPage()),
   );
 }
 

@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:nextfind/utils/tokenmanager.dart';
+import 'package:nextfind/networking/newtokenmanager.dart';
 import 'package:nextfind/utils/businessManager.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:logger/logger.dart';
@@ -11,10 +11,12 @@ class ServerConnect {
   // final serverUrl = 'http://192.168.1.106:8000';
   // final serverUrl = 'http://10.0.1.140:8000';
   // final serverUrl = 'http://10.0.1.129:8000';
-  final serverUrl = 'http://10.0.1.121:8000';
+  
+  // final serverUrl = 'http://10.0.1.121:8000';
+  final serverUrl = 'http://192.168.1.107:8000';
 
-  var userData;
-  var timeUserDataCol;
+  dynamic userData;
+  dynamic timeUserDataCol;
 
   Future<bool> testPing() async {
     final response = await http.get(Uri.parse('$serverUrl/main'));
@@ -124,7 +126,8 @@ class ServerConnect {
     log.i("FUNCTION : GET TRENDING BUSINESSES | START");
 
     final response = await http.post(
-      Uri.parse('$serverUrl/homepage/trending?limit=$limit&offset=$offset&location=${arbitStore.data["userLocation"][0]} , ${arbitStore.data["userLocation"][1]}'),
+      Uri.parse(
+          '$serverUrl/homepage/trending?limit=$limit&offset=$offset&location=${arbitStore.data["userLocation"][0]} , ${arbitStore.data["userLocation"][1]}'),
     );
 
     log.d(
@@ -205,130 +208,25 @@ class ServerConnect {
   }) async {
     final response = await http.post(
       Uri.parse(
-        '$serverUrl/login_page?email=$email&user_type=User&full_name=Dinkle',
+        '$serverUrl/new_user',
       ),
-      headers: {"password": password, "Content-Type": "application/json"},
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': email,
+        'password': password,
+      }),
     );
     final dynamic data = jsonDecode(response.body);
     return data;
-  }
-
-  Future<dynamic> loginUser({
-    required String email,
-    required String password,
-    required String device,
-  }) async {
-    final response = await http.post(
-      Uri.parse('$serverUrl/token_json'),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "username": email,
-        "password": password,
-        "device": device,
-      }),
-    );
-    final Map data = jsonDecode(response.body);
-
-    if (data.keys.toList().contains("access_token")) {
-      final String token = data["access_token"];
-      final String reftoken = data["refresh_token"];
-
-      tokenmanager.saveToken(token);
-      tokenmanager.saveRefreshToken(reftoken);
-
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  Future<dynamic> getNewToken() async {
-    final String? reftoken = await tokenmanager.getRefreshToken();
-
-    if (reftoken != null) {
-      final response = await http.post(
-        Uri.parse('$serverUrl/refresh'),
-        headers: {"ref-token": reftoken, "Content-Type": "application/json"},
-      );
-      final Map data = jsonDecode(response.body);
-
-      if (response.statusCode == 401) {
-        return data;
-      } else {
-        final String newtoken = data["access_token"];
-        final String newreftoken = data["refresh_token"];
-
-        tokenmanager.saveToken(newtoken);
-        tokenmanager.saveRefreshToken(newreftoken);
-      }
-    } else {
-      return "No Ref Token";
-    }
-  }
-
-  Future<dynamic> performLogginTask({
-    required String endpoint,
-    String type = "POST",
-    Map<String, dynamic> params = const {},
-    Map<String, String> headers = const {},
-    bool donebf = false,
-  }) async {
-    // FIX: build URL safely
-    final uri = Uri.parse(
-      "$serverUrl$endpoint",
-    ).replace(queryParameters: params);
-    // final entireurl = uri.toString();
-
-    final token = await tokenmanager.getToken();
-
-    if (token == null) return "No Token";
-
-    // FIX: mutable headers
-    final mutableHeaders = Map<String, String>.from(headers);
-    mutableHeaders["Authorization"] = "Bearer $token";
-
-    http.Response response;
-
-    if (type == "POST") {
-      response = await http.post(uri, headers: mutableHeaders);
-    } else if (type == "GET") {
-      response = await http.get(uri, headers: mutableHeaders);
-    } else if (type == "DEL") {
-      response = await http.delete(uri, headers: mutableHeaders);
-    } else {
-      response = await http.post(uri, headers: mutableHeaders);
-    }
-
-    final respdata = jsonDecode(response.body);
-
-    if (response.statusCode == 401) {
-      if (!donebf) {
-        await getNewToken();
-        return await performLogginTask(
-          endpoint: endpoint,
-          type: type,
-          params: params,
-          headers: headers,
-          donebf: true,
-        );
-      } else {
-        return "Got Tokens But It still didnt work";
-      }
-    }
-
-    return respdata;
-  }
-
-  Future<bool> loggedIn() async {
-    final String? tok = await tokenmanager.getToken();
-    return tok != null;
   }
 
   Future<dynamic> getUserData() async {
     if (userData != null) {
       return userData;
     } else {
-      userData = await performLogginTask(endpoint: "/me/data", type: "GET");
+      userData = await tokenMaster.userGet("me/data");
       return userData;
     }
   }

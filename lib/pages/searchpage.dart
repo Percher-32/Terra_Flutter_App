@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/utils/locationmanager.dart';
-import 'package:nextfind/widgets/widgets.dart';
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/utils/businessManager.dart';
 import 'package:nextfind/utils/arbitStore.dart';
