@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:logger/logger.dart';
+import 'package:nextfind/utils/businessManager.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
 // import 'package:nextfind/theme/app_theme.dart';
 
@@ -18,6 +19,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<String>? trendingBusinesses;
   DateTime? trendingBusinessesLastUpdate;
+  List<String>? allUrls;
 
   @override
   void initState() {
@@ -53,6 +55,17 @@ class _MyHomePageState extends State<MyHomePage> {
       trendingBusinessesLastUpdate = DateTime.now();
     }
 
+    final allTrendyBusinesses =
+        await businessManager.getBusinessLocationMini(trendingBusinesses!);
+
+    if (trendingBusinesses != null) {
+      allUrls = trendingBusinesses!
+          .map((b) => allTrendyBusinesses[b]?.thumbnailPath)
+          .where((url) => url != null)
+          .cast<String>()
+          .toList();
+    }
+
     return nearbyBus;
   }
 
@@ -65,6 +78,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget trendScroll(BuildContext context) {
+
+    if (allUrls != null) {
+      startPreloading(context, allUrls!.take(10).toList());
+    }
+
     return Column(
       spacing: 20,
       // mainAxisAlignment: MainAxisAlignment.center,

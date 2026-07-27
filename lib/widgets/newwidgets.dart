@@ -16,6 +16,32 @@ bool isBetween(DateTime start, DateTime end, DateTime now) {
   return now.isAfter(start) && now.isBefore(end);
 }
 
+bool isCached(ImageProvider provider) {
+  final key = provider.obtainKey(const ImageConfiguration());
+  final cache = PaintingBinding.instance.imageCache;
+
+  return cache.containsKey(key);
+}
+
+void startPreloading(
+  BuildContext context,
+  List<String> urls,
+) {
+  _runPreloadTask(urls, context); // fire-and-forget
+}
+
+Future<void> _runPreloadTask(List<String> urls, BuildContext context) async {
+  for (final url in urls) {
+    log.i("CHACHED $url");
+
+    Future.microtask(() async {
+      await precacheImage(NetworkImage("$serverUrl/image/$url"), context);
+    });
+
+    await Future.delayed(const Duration(milliseconds: 30)); // throttle
+  }
+}
+
 class AppColors {
   static const background = Color.fromARGB(255, 255, 255, 255);
   static const text = Color.fromARGB(255, 0, 0, 0);
@@ -52,12 +78,15 @@ class MyInputField extends StatelessWidget {
         Padding(
           padding: padding,
           child: ClipRRect(
-            borderRadius: borderRadius??BorderRadius.circular(20),
+            borderRadius: borderRadius ?? BorderRadius.circular(20),
             child: Container(
               color: backgroundColor,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  SizedBox(
+                    width: 15,
+                  ),
                   Expanded(
                     child: HeaderInput(
                       hint: hint,
@@ -71,6 +100,45 @@ class MyInputField extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class MyButton extends StatelessWidget {
+  const MyButton(
+      {super.key,
+      this.child = const MyText("Button"),
+      required this.width,
+      required this.height,
+      this.onPressed,
+      this.padding = const EdgeInsets.symmetric(vertical: 18, horizontal: 40),
+      this.borderRadius,
+      this.backgroundColor = AppColors.primary});
+
+  final Widget child;
+  final double width;
+  final double height;
+  final VoidCallback? onPressed;
+  final EdgeInsets padding;
+  final BorderRadius? borderRadius;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 300,
+      height: 60,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 40),
+          shape: RoundedRectangleBorder(
+            borderRadius: borderRadius ?? BorderRadius.circular(12),
+          ),
+          backgroundColor: AppColors.primary,
+        ),
+        child: child,
+      ),
     );
   }
 }
@@ -229,7 +297,7 @@ class MyText extends StatelessWidget {
   }
 }
 
-class BaseImage extends StatelessWidget {
+class BaseImage extends StatefulWidget {
   final String url;
   final double width;
   final double height;
@@ -246,28 +314,45 @@ class BaseImage extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    ImageProvider myImage = const AssetImage("assets/img/kde.png");
-    String trueUrl = url;
-    if (url != "No Url") {
-      trueUrl = "${serverconnect.serverUrl}/image/$url";
-      log.i("[IMAGE] The URL IS $trueUrl");
-      myImage = NetworkImage(trueUrl);
-    } else {
-      log.i("[IMAGE] Hello , this is a default image , the image is $myImage");
-    }
+  State<BaseImage> createState() => _BaseImageState();
+}
 
-    return Container(
-      width: width,
-      height: height,
-      decoration: ShapeDecoration(
-        image: DecorationImage(
-          image: myImage,
-          fit: fit,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radius),
-        ),
+class _BaseImageState extends State<BaseImage> {
+  late final ImageProvider provider;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.url != "No Url") {
+      final trueUrl = "$serverUrl/image/${widget.url}";
+
+      provider = NetworkImage(trueUrl);
+      // WidgetsBinding.instance.addPostFrameCallback((_) async {
+      //   try {
+      //     await precacheImage(provider, context);
+      //     log.i("PRECACHE SUCCESS");
+      //   } catch (e, st) {
+      //     log.e("PRECACHE FAILED: $e\n$st");
+      //   }
+      // });
+
+      // preload once
+      // precacheImage(provider, context);
+    } else {
+      provider = const AssetImage("assets/img/kde.png");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(widget.radius),
+      child: Image(
+        image: provider,
+        width: widget.width,
+        height: widget.height,
+        fit: widget.fit,
       ),
     );
   }
@@ -1060,7 +1145,7 @@ void goToSearchPage(BuildContext context) {
   Navigator.push(
     context,
     MaterialPageRoute(
-        builder: (context) => SearchPage(query: searchBarTextController.text)),
+        builder: (context) => SearchPage()),
   );
 }
 
@@ -1108,6 +1193,7 @@ PreferredSize newsearchbar(BuildContext context) {
                     child: HeaderInput(
                       hint: "find a businesses",
                       controller: searchBarTextController,
+                      onSubmitted: (value) => goToSearchPage(context),
                     ),
                   ),
                   IconButton(
@@ -1156,12 +1242,12 @@ void filterDropDown(BuildContext context) {
             ),
             const SizedBox(height: 30),
             MainDropdown(
-              items: base_types.keys.toList(),
+              items: businessTypeLookup.keys.toList(),
               initialValue: arbitStore.data["categoryINDEX"],
               label: "Business Category",
-              display: (value) => base_types[value]!,
+              display: (value) => businessTypeLookup[value]!,
               onChanged: (value) {
-                arbitStore.data["category"] = base_types[value]!;
+                arbitStore.data["category"] = businessTypeLookup[value]!;
                 arbitStore.data["categoryINDEX"] = value;
               },
             ),

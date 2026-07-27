@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:nextfind/utils/devicemanager.dart';
 
 const FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
@@ -18,17 +19,15 @@ class TokenMaster {
     log.i("TOKEN : GETTING REF TOKEN , REF = $refToken");
   }
 
-  Future<bool> userLogin(
-      {required String email,
-      required String password,
-      String device = "None"}) async {
+  Future<(bool,dynamic)> userLogin(
+      {required String email, required String password}) async {
     final response = await http.post(
-      Uri.parse('${serverconnect.serverUrl}/login'),
+      Uri.parse('${serverUrl}/login'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "username": email,
         "password": password,
-        "device": device,
+        "device": await getDeviceDetails(),
       }),
     );
 
@@ -40,22 +39,44 @@ class TokenMaster {
       await saveRefreshToken();
 
       log.i("LOGIN ||| SUCCESFUL -> $tokensData");
-      return true;
+      return (true,"success");
     } else {
       log.e("LOGIN ||| UNSUCCESFUL -> ${jsonDecode(response.body)}");
-      return false;
+      return (false,jsonDecode(response.body));
     }
   }
 
-  Future<bool> user
+  Future<bool> userLogout() async {
+    final deviceName = await getDeviceDetails();
+    final response = await http.post(
+      Uri.parse('${serverUrl}/logout?device=$deviceName'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
 
+    if (response.statusCode == 200) {
+      log.i("LOGOUT : SUCCESFULL");
+
+      refToken = null;
+      accessToken = null;
+      serverconnect.userData = null;
+      saveRefreshToken();
+
+      return true;
+    } else {
+      log.e("LOGOUT : Error Logging Out ${jsonDecode(response.body)}");
+      return false;
+    }
+  }
 
   Future<(bool, dynamic)> renewTokens() async {
     refToken ??= await secureStorage.read(key: 'refresh_token');
 
     if (refToken != null) {
       final response = await http.post(
-        Uri.parse('${serverconnect.serverUrl}/refresh'),
+        Uri.parse('${serverUrl}/refresh'),
         body: jsonEncode({
           'refresh_token': refToken,
         }),
@@ -87,8 +108,9 @@ class TokenMaster {
   }
 
   Future<dynamic> userGet(String query) async {
+    log.d("USERGET FUNCTION START");
     final response = await http.get(
-      Uri.parse('${serverconnect.serverUrl}/$query'),
+      Uri.parse('${serverUrl}/$query'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
@@ -115,7 +137,7 @@ class TokenMaster {
 
   Future<dynamic> userPost(String query) async {
     final response = await http.post(
-      Uri.parse('${serverconnect.serverUrl}$query'),
+      Uri.parse('${serverUrl}$query'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',

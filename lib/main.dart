@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nextfind/pages/searchpage.dart';
 // import 'package:nextfind/pages/searchpage.dart';
 import 'pages/homepage.dart';
 import 'package:nextfind/utils/arbitStore.dart';
@@ -26,8 +27,8 @@ class MyApp extends StatelessWidget {
         ),
       ),
       themeMode: ThemeMode.light,
-      home: const MyHomePage(title: 'Next Find'),
-      // home : const SearchPage(query: ""),
+      // home: const MyHomePage(title: 'Next Find'),
+      home : const SearchPage(),
     );
   }
 }
@@ -59,5 +60,5 @@ class MyApp extends StatelessWidget {
 
 
 //[] ([he] [is] [the]) ([for][ty][forth]) ([pre][sid][dent]) ([of] [the]) ([U][NIT][ED] [STATES])
-// ([ev][ery][bo][dy]) ([give][it][up]) ([for][the][one][and][only]) ([BARACK][HUSIEN])
+// ([ev][ery][bo][dy]) ([give][it][up][for]) ([the][one][and][only]) ([BARACK][HUSIEN])
 // OBAMA ,

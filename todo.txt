@@ -12,10 +12,16 @@
 - add a function to add a new user
 
 
-LAST ERROR WAS  type 'List<dynamic>' is not a subtype of type 'List<String>':
-    from trying to load up the focusview.
-    this is beacuse the enpoint returns listDynamic , but the code somewhere is looking for lis String
-    fond what that is and the n fix the issue
+Ok so heres the gist:
+    you are trying to add movable icons to the maplibre map
+    good news : it works
+    bad news : yoi have to make it show the businesses
+
+    basically right now bacuse it was a beta it got it from a default list 
+    you should probably try and recreate that list to use the business locations . but idk how to do that
+
+    also add the icons to the thing pls
+
 
 64c5c3d0-f566-4a89-a43c-fb2eb15a0c9d
 eaae6023-4cff-4447-8c02-c365b3486b1a

@@ -3,6 +3,9 @@ import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/networking/newtokenmanager.dart';
 import 'package:nextfind/pages/signuppage.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
+import 'package:logger/logger.dart';
+
+final ulog = Logger();
 
 class UserPage extends StatefulWidget {
   const UserPage({super.key});
@@ -12,6 +15,31 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
+  Widget userPage(Map userData) {
+    return Column(children: [
+      MyText(userData["email"]),
+      MyButton(
+        width: 300,
+        height: 60,
+        child: const MyText("Logout", color: Colors.white),
+        onPressed: () async {
+          final loggedOut = await tokenMaster.userLogout();
+
+          if (loggedOut) {
+            ulog.i("LOGOUT || SUCCESS FROM UI SIDE");
+            goToHomePage(context);
+          } else {
+            ulog.e("LOGOUT || ERROR FROM UI SIDE");
+            showDialog(
+              context: context,
+              builder: (context) => MyText("ERROR IN LOGOUT"),
+            );
+          }
+        },
+      )
+    ]);
+  }
+
   Widget myBody() {
     if (tokenMaster.refToken != null) {
       return Center(
@@ -24,7 +52,7 @@ class _UserPageState extends State<UserPage> {
               future: serverconnect.getUserData(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  return MyText(snapshot.data!["email"]);
+                  return userPage(snapshot.data!);
                 } else {
                   return const CircularProgressIndicator();
                 }
@@ -38,12 +66,8 @@ class _UserPageState extends State<UserPage> {
     }
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        bottomNavigationBar: newbottombar(context),
-        body: myBody());
+    return Scaffold(bottomNavigationBar: newbottombar(context), body: myBody());
   }
 }

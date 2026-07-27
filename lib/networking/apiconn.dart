@@ -7,13 +7,14 @@ import 'package:logger/logger.dart';
 
 final log = Logger();
 
+final serverUrl = 'http://192.168.1.107:8000';
+
 class ServerConnect {
   // final serverUrl = 'http://192.168.1.106:8000';
   // final serverUrl = 'http://10.0.1.140:8000';
   // final serverUrl = 'http://10.0.1.129:8000';
-  
+
   // final serverUrl = 'http://10.0.1.121:8000';
-  final serverUrl = 'http://192.168.1.107:8000';
 
   dynamic userData;
   dynamic timeUserDataCol;
@@ -91,10 +92,12 @@ class ServerConnect {
   }
 
   Future<dynamic> getFullLocationData(String locationId) async {
+    log.i("FUNCTION : getFullLocationData | START");
+
     final response = await http
         .get(Uri.parse('$serverUrl/business_location?location_id=$locationId'));
-
     final dataFromResp = jsonDecode(response.body);
+
     if (response.statusCode == 200) {
       final businessLocation =
           businessManager.addBusinessLocation(dataFromResp);
@@ -102,21 +105,31 @@ class ServerConnect {
       final galleryResponse = await http.get(Uri.parse(
           '$serverUrl/location_image_paths?location_ids=$locationId'));
 
-      final gallerydataFromResp = jsonDecode(galleryResponse.body);
+      final Map gallerydataFromResp = jsonDecode(galleryResponse.body);
 
-      if (response.statusCode == 200) {
-        businessManager.businessLocationLookup[locationId]!.imagePaths =
-            gallerydataFromResp[locationId]!;
+      if (galleryResponse.statusCode == 200) {
+        log.i(
+            "FUNCTION : getFullLocationData | Contains key? | ${businessManager.businessLocationLookup.containsKey(locationId)}");
+
+
+        if (gallerydataFromResp.containsKey(locationId)){
+
+          businessManager.businessLocationLookup[locationId]!.imagePaths =
+              List<String>.from(gallerydataFromResp[locationId]);
+        }else{
+          log.i(
+            "FUNCTION : getFullLocationData | No Image Data");
+        }
       } else {
         log.e(
-            "FUNCTION : getNearbyBusinesses | GETTING PATHS | Error Occured |$gallerydataFromResp");
-        return null;
+            "FUNCTION : getFullLocationData | GETTING PATHS | Error Occured |$gallerydataFromResp");
+        // return null;
       }
 
       return businessLocation;
     } else {
       log.e(
-          "FUNCTION : getNearbyBusinesses | GETTING DATA | Error Occured $dataFromResp");
+          "FUNCTION : getFullLocationData | GETTING DATA | Error Occured $dataFromResp");
       return null;
     }
   }

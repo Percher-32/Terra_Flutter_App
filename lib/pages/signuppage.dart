@@ -24,49 +24,35 @@ class LoginOrSignupPage extends StatelessWidget {
         const SizedBox(
           height: 30,
         ),
-        SizedBox(
+        MyButton(
           width: 300,
-          height: 80,
-          child: ElevatedButton(
-            onPressed: () async {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()));
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 40),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              backgroundColor: AppColors.primary,
-            ),
-            child: const MyText("Login", size: 20),
+          height: 60,
+          child: const MyText(
+            "Login",
+            size: 20,
+            color: Colors.white,
           ),
+          onPressed: () async {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const LoginPage()));
+          },
         ),
         const MyText(
           "Or",
           color: AppColors.text,
           size: 20,
         ),
-        SizedBox(
+        MyButton(
           width: 300,
-          height: 80,
-          child: ElevatedButton(
-            onPressed: () async {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const UserSignupPage(title: "Hi")));
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 40),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              backgroundColor: AppColors.primary,
-            ),
-            child: const MyText("Sign Up", size: 20),
-          ),
-        ),
+          height: 60,
+          child: const MyText("Sign Up", size: 20),
+          onPressed: () async {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const UserSignupPage(title: "Hi")));
+          },
+        )
       ],
     ));
   }
@@ -95,17 +81,21 @@ class _UserSignupPageState extends State<UserSignupPage> {
 
     final String message = jsondata["message"];
 
-    if (message == 'User already exists') {
-      log.e("SIGNUP ERROR -> USER EXISTS");
-      return;
-    } else if (message == 'Successful') {
+    if (message == 'Successful') {
+      log.i("SIGNUP || SUCCESSFUL");
       await tokenMaster.userLogin(
-        email: emailcontroller.text,
-        password: passwordcontroller.text,
-        device: "flutter",
-      );
+          email: emailcontroller.text, password: passwordcontroller.text);
       if (!mounted) return;
       goToHomePage(context);
+    } else {
+      log.e("SIGNUP || ERROR -> $message");
+      if (message == 'User already exists') {
+        showDialog(
+          context: context,
+          builder: (context) => MyText(message),
+        );
+      }
+      return;
     }
   }
 
@@ -132,29 +122,17 @@ class _UserSignupPageState extends State<UserSignupPage> {
             ),
 
             // ← Button now inside build()
-            SizedBox(
-              width: 300,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: () async {
-                  await signup();
-                },
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 18, horizontal: 40),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  backgroundColor: AppColors.primary,
-                ),
+            MyButton(
+                width: 300,
+                height: 60,
                 child: const MyText(
                   "Sign Up",
                   size: 20,
-                  fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
-              ),
-            ),
+                onPressed: () async {
+                  await signup();
+                }),
           ],
         ),
       ),
@@ -176,12 +154,10 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> login(BuildContext context) async {
     debugPrint(emailcontroller.text);
     debugPrint(passwordcontroller.text);
-    final dynamic loginSuccess = await tokenMaster.userLogin(
-        email: emailcontroller.text,
-        password: passwordcontroller.text,
-        device: await getDeviceDetails());
+    final loginSuccess = await tokenMaster.userLogin(
+        email: emailcontroller.text, password: passwordcontroller.text);
 
-    if (loginSuccess) {
+    if (loginSuccess.$1) {
       final devicename = await getDeviceDetails();
       log.i("devicename : $devicename");
 
@@ -191,6 +167,10 @@ class _LoginPageState extends State<LoginPage> {
       }
     } else {
       log.e("LOGIN FAILED");
+      showDialog(
+        context: context,
+        builder: (context) => MyText(loginSuccess.$2.toString()),
+      );
     }
   }
 
@@ -217,29 +197,18 @@ class _LoginPageState extends State<LoginPage> {
             ),
 
             // ← Button now inside build()
-            SizedBox(
-              width: 300,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: () async {
-                  await login(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 18, horizontal: 40),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  backgroundColor: AppColors.primary,
-                ),
+
+            MyButton(
+                width: 300,
+                height: 60,
                 child: const MyText(
-                  "Sign In",
+                  "Login",
                   size: 20,
-                  fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
-              ),
-            ),
+                onPressed: () async {
+                  await login(context);
+                }),
           ],
         ),
       ),

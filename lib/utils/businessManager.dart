@@ -5,16 +5,16 @@ import 'package:nextfind/networking/apiconn.dart';
 
 // import 'package:nextfind/utils/arbitStore.dart';
 const businessTypeLookup = {
-  0: "Food & Dining",
-  1: "Home Services",
-  2: "Health & Wellness",
-  3: "Shopping & Retail",
-  4: "Professional Services",
-  5: "Automotive",
-  6: "Beauty & Personal Care",
-  7: "Entertainment & Leisure",
+  0: "Food",
+  1: "Home",
+  2: "Health",
+  3: "Shops",
+  4: "Specialists",
+  5: "Auto",
+  6: "Beauty",
+  7: "Fun",
   8: "Education",
-  9: "Lodging & Travel"
+  9: "Travel"
 };
 
 List<T> intersection<T>(List<T> a, List<T> b) {
@@ -410,7 +410,7 @@ class Businessmanager {
       return newBusiness;
     } catch (e) {
       // {business_id: 660959d1-5c68-4e05-b0d6-6b44dc2e4f51, business_name: RideRight Bike School, business_description: Cycling lessons for all ages.Cycling lessons for all ages.THIS IS DESC FOR THIS LOCATIOn, gas_safe: false, elec_safe: false, btype: Business, primary_type: 8, secondary_types: [], business_location_id: 64c5c3d0-f566-4a89-a43c-fb2eb15a0c9d, business_location_location: 0101000020E610000038471D1D57DF4A40DF88EE59D768D5BF, distance: 0.07960646572, over_18: false, rating_average: null, rating_count: null, rating_distribution: null, phone_number: null, website: null, open_hours: {1: [09:30, 22:30], 2: [09:30, 22:30], 3: [09:30, 22:30], 4: [09:30, 22:30], 5: [09:30, 22:30], 6: [09:30, 22:30], 7: [09:30, 22:30]}, shutdown_days: [], timezone: null, verified: false}
-      log.e(e);
+      log.e("addBusinessLocation || ERROR -> $e");
       return null;
     }
   }
