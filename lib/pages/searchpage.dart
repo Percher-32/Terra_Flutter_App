@@ -16,6 +16,11 @@ import 'dart:typed_data';
 
 map_gl.MapLibreMapController? _mapController;
 
+ValueNotifier<bool> _isShowingThumbnail = ValueNotifier(false);
+ValueNotifier<bool> isCheckingForTap = ValueNotifier(false);
+ValueNotifier<bool> shouldReloadMarkers = ValueNotifier(false);
+final ValueNotifier<bool> cleanUi = ValueNotifier(false);
+
 Future<Uint8List> loadMarkerImage() async {
   final data = await rootBundle.load('assets/icons/Vector.png');
   return data.buffer.asUint8List();
@@ -71,7 +76,9 @@ class _MapSearchViewState extends State<MapSearchView>
     with SingleTickerProviderStateMixin {
   bool _mapReady = false;
   int _frameCount = 0;
+  bool _lockCamera = false;
   late final Ticker _ticker;
+  String? miniBusinessId;
 
   // List.generate(30, (index) {
   //   final int row = index ~/ 20;
@@ -183,6 +190,21 @@ class _MapSearchViewState extends State<MapSearchView>
     }
   }
 
+  void onIconClicked(MiniBusinessLoc miniBusLoc) {
+    _mapController?.animateCamera(
+      map_gl.CameraUpdate.newLatLngZoom(
+        map_gl.LatLng(miniBusLoc.location[0], miniBusLoc.location[1]),
+        16.0, // zoom level
+      ),
+    );
+
+    // _lockCamera = true;
+
+    _isShowingThumbnail.value = true;
+    isCheckingForTap.value = false;
+    miniBusinessId = miniBusLoc.locationId;
+  }
+
   Widget createBusinessMapIcon(BuildContext context, MiniBusinessLoc miniBusLoc,
       double nearestDist, int index) {
     double normDist = ((nearestDist) * 0.00015).clamp(0, 1);
@@ -211,9 +233,12 @@ class _MapSearchViewState extends State<MapSearchView>
       's'
     ].contains(miniBusLoc.name[0].toLowerCase());
 
-    if (index <= 10) {
+    if (index <= 3) {
+      normDist += 0.2;
+    } else if (index <= 10) {
       normDist += 0.1;
     }
+
     if (verified) {
       normDist += 0.2;
       veriBadge = Positioned(
@@ -244,75 +269,101 @@ class _MapSearchViewState extends State<MapSearchView>
           shape: BoxShape.circle,
         ),
       );
-    } else if (normDist > 0.4 && normDist <= 0.8) {
-      trueWidget = Stack(clipBehavior: Clip.none, children: [
-        Image.asset(
-          'assets/icons/svg_logo.png',
-          width: 32,
-          height: 32,
-        ),
-        Positioned(
-            right: -10,
-            top: -5,
-            child: Container(
-                width: 20,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: AppColors.secondary),
-                child: Center(
-                    child: MyText(
-                  (miniBusLoc.averageRating ?? "-").toString(),
-                  size: 10,
-                  color: AppColors.background,
-                )))),
-        veriBadge
-      ]);
-    } else {
-      trueWidget = Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 15,
-        children: [
-          Stack(clipBehavior: Clip.none, children: [
-            Image.asset(
-              'assets/icons/svg_logo.png',
-              width: 32,
-              height: 32,
-            ),
-            Positioned(
+    } else if (normDist > 0.4 && normDist <= 0.8 + 0.3) {
+      trueWidget = Material(
+        color: const Color.fromARGB(0, 163, 73, 73),
+        child: InkWell(
+          onTap: () {
+            onIconClicked(miniBusLoc);
+          },
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Image.asset('assets/icons/svg_logo.png', width: 32, height: 32),
+              Positioned(
                 right: -10,
                 top: -5,
                 child: Container(
-                    width: 20,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: AppColors.secondary),
-                    child: Center(
-                        child: MyText(
+                  width: 20,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: AppColors.secondary,
+                  ),
+                  child: Center(
+                    child: MyText(
                       (miniBusLoc.averageRating ?? "-").toString(),
                       size: 10,
                       color: AppColors.background,
-                    )))),
-            veriBadge
-          ]),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            SizedBox(
-                width: 100,
-                // height: 30,
-                child: MyText(
-                  miniBusLoc.name,
+                    ),
+                  ),
+                ),
+              ),
+              veriBadge,
+            ],
+          ),
+        ),
+      );
+    } else {
+      trueWidget = GestureDetector(
+        onTap: () {
+          onIconClicked(miniBusLoc);
+        },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 15,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Image.asset(
+                  'assets/icons/svg_logo.png',
+                  width: 32,
+                  height: 32,
+                ),
+                Positioned(
+                  right: -10,
+                  top: -5,
+                  child: Container(
+                    width: 20,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.secondary,
+                    ),
+                    child: Center(
+                      child: MyText(
+                        (miniBusLoc.averageRating ?? "-").toString(),
+                        size: 10,
+                        color: AppColors.background,
+                      ),
+                    ),
+                  ),
+                ),
+                veriBadge,
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 100,
+                  child: MyText(
+                    miniBusLoc.name,
+                    size: 12,
+                    overflow: TextOverflow.ellipsis,
+                    maxlines: 1,
+                  ),
+                ),
+                MyText(
+                  businessTypeLookup[miniBusLoc.type]!,
                   size: 12,
                   overflow: TextOverflow.ellipsis,
                   maxlines: 1,
-                )),
-            MyText(
-              businessTypeLookup[miniBusLoc.type]!,
-              size: 12,
-              overflow: TextOverflow.ellipsis,
-              maxlines: 1,
-            )
-          ])
-        ],
+                ),
+              ],
+            ),
+          ],
+        ),
       );
     }
 
@@ -343,7 +394,11 @@ class _MapSearchViewState extends State<MapSearchView>
                   tilt: 60,
                   zoom: 16,
                 ),
-                tiltGesturesEnabled: true,
+
+                scrollGesturesEnabled: !_lockCamera,
+                zoomGesturesEnabled: !_lockCamera,
+                rotateGesturesEnabled: !_lockCamera,
+                tiltGesturesEnabled: !_lockCamera,
                 onMapCreated: (controller) async {
                   _mapController = controller;
                   // _mapReady = true;
@@ -417,21 +472,29 @@ class _MapSearchViewState extends State<MapSearchView>
                   _refreshOverlayPositions();
                 },
                 onCameraMove: (cameraPosition) {
-                  _mapZoom = cameraPosition.zoom ?? _mapZoom;
-                  _mapBearing = cameraPosition.bearing ?? _mapBearing;
+                  _mapZoom = cameraPosition.zoom;
+                  _mapBearing = cameraPosition.bearing;
                   _refreshOverlayPositions();
                 },
-                onMapClick: (map_gl.Point<double> point, map_gl.LatLng latLng) {
-                  final tappedLat = latLng.latitude;
-                  final tappedLng = latLng.longitude;
+                onMapClick: (_, map_gl.LatLng latLng) {
+                  if (isCheckingForTap.value) {
+                    final tappedLat = latLng.latitude;
+                    final tappedLng = latLng.longitude;
 
-                  print("User tapped at: $tappedLat, $tappedLng");
+                    log.i("PLAX :  User tapped at: $tappedLat, $tappedLng");
 
-                  // Example: update your userLocation
-                  arbitStore.data["userLocation"] = [tappedLat, tappedLng];
+                    // Example: update your userLocation
+                    arbitStore.data["userLocation"] = [tappedLat, tappedLng];
 
-                  // Example: reload markers
-                  setState(() {});
+                    isCheckingForTap.value = false;
+
+                    log.i("PLAX :  RELOADING USERLOC: $tappedLat, $tappedLng");
+
+                    shouldReloadMarkers.value = true;
+                  } else {
+                    _isShowingThumbnail.value = false;
+                    _lockCamera = false;
+                  }
                 },
                 onMapIdle: () {
                   _refreshOverlayPositions();
@@ -445,42 +508,52 @@ class _MapSearchViewState extends State<MapSearchView>
                 top: 0,
                 width: size.width,
                 height: size.height,
-                child: IgnorePointer(
-                  child: Stack(
-                    children: List.generate(
-                        widget.miniBusinessLocationids.length, (index) {
-                      MiniBusinessLoc miniBusLoc =
-                          businessManager.miniBusinessLocLookup[
-                              widget.miniBusinessLocationids[index]]!;
+                child: Stack(
+                  children: List.generate(widget.miniBusinessLocationids.length,
+                      (index) {
+                    MiniBusinessLoc miniBusLoc =
+                        businessManager.miniBusinessLocLookup[
+                            widget.miniBusinessLocationids[index]]!;
 
-                      return ValueListenableBuilder<Offset>(
-                        valueListenable: _markerOffsets[index],
-                        builder: (_, offset, __) {
-                          final dynamicSize =
-                              (40.0 * (16.0 / max(_mapZoom, 1.0)))
-                                  .clamp(20.0, 60.0);
+                    return ValueListenableBuilder<Offset>(
+                      valueListenable: _markerOffsets[index],
+                      builder: (_, offset, __) {
+                        final dynamicSize = (40.0 * (16.0 / max(_mapZoom, 1.0)))
+                            .clamp(20.0, 60.0);
 
-                          final nearestDist = _markerDist[index];
+                        final nearestDist = _markerDist[index];
 
-                          return Positioned(
-                            left: offset.dx - 20,
-                            top: offset.dy - 20,
-                            child: RepaintBoundary(
-                              child: Transform.rotate(
-                                angle: _mapBearing * pi / 180,
-                                child: Transform.scale(
-                                  scale: 16.0 / max(_mapZoom, 1.0),
-                                  child: createBusinessMapIcon(
-                                      context, miniBusLoc, nearestDist, index),
-                                ),
+                        return Positioned(
+                          left: offset.dx - 20,
+                          top: offset.dy - 20,
+                          child: RepaintBoundary(
+                            child: Transform.rotate(
+                              angle: _mapBearing * pi / 180,
+                              child: Transform.scale(
+                                scale: 16.0 / max(_mapZoom, 1.0),
+                                child: createBusinessMapIcon(
+                                    context, miniBusLoc, nearestDist, index),
                               ),
                             ),
-                          );
-                        },
-                      );
-                    }),
-                  ),
+                          ),
+                        );
+                      },
+                    );
+                  }),
                 ),
+              ),
+
+              ValueListenableBuilder<bool>(
+                valueListenable: _isShowingThumbnail,
+                builder: (_, choosing, __) {
+                  if (!choosing) return const SizedBox();
+                  if (miniBusinessId == null) return const SizedBox();
+                  return Positioned(
+                      bottom: 40,
+                      left: 20,
+                      child: BusinessLocationThumbnail(
+                          locationId: miniBusinessId!));
+                },
               ),
             ],
           ),
@@ -504,10 +577,35 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    shouldReloadMarkers.addListener(() {
+      if (shouldReloadMarkers.value) {
+        _reloadMapOnly();
+        shouldReloadMarkers.value = false;
+      }
+    });
+
+    isCheckingForTap.value = false;
+
+    isCheckingForTap.addListener(_updateHideState);
+    isCheckingForTap.addListener(() {
+      _isShowingThumbnail.value = false;
+    });
+    _isShowingThumbnail.addListener(_updateHideState);
+
     _getLocations();
   }
 
+  void _updateHideState() {
+    cleanUi.value = isCheckingForTap.value || _isShowingThumbnail.value;
+  }
+
+  Future<void> _reloadMapOnly() async {
+    await _getLocations(); // refresh business markers
+    isCheckingForTap.value = false;
+  }
+
   Future<void> _getLocations() async {
+    isCheckingForTap.value = false;
     _miniBusinessLocationids =
         List<String>.from(await serverconnect.getNearbyBusinesses(
       location: arbitStore.data["userLocation"],
@@ -531,30 +629,58 @@ class _SearchPageState extends State<SearchPage> {
       context: context,
       isScrollControlled: true, // allows full height
       backgroundColor: Colors.transparent, // optional
-      builder: (context) {
+      builder: (sheetContext) {
         return Container(
             // color: AppColors.background,
-            padding: EdgeInsets.only(left: 10, right: 10),
+            // padding: EdgeInsets.only(left: 10, right: 10),
             decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(40),
                     topRight: Radius.circular(40)),
                 color: AppColors.background),
-            height: 200,
+            height: 250,
             child: Center(
                 child: SizedBox(
-                    height: 100,
-                    child: MyMultiToggle(
-                        initial: 1,
-                        options: ["My Location", "Choose Location"],
-                        onChanged: (p0) async {
-                          if (p0 == 0) {
-                            await getLocation();
-                            log.i("GOTTEN USER LOCATION");
-                            await _getLocations();
-                            setState(() {});
-                          }
-                        }))));
+              // height: 200,
+              child: Column(
+                spacing: 30,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  MyButton(
+                    width: 50,
+                    height: 80,
+                    onPressed: () async {
+                      isReady = false;
+                      await getLocation();
+                      log.i("PLAX : GOTTEN USER LOCATION");
+                      await _reloadMapOnly();
+                      Navigator.pop(sheetContext);
+                    },
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 18, horizontal: 10),
+                    child: const MyText(
+                      "Use My Location",
+                      color: AppColors.background,
+                    ),
+                  ),
+                  MyButton(
+                    width: 50,
+                    height: 80,
+                    onPressed: () {
+                      isReady = false;
+                      isCheckingForTap.value = true;
+                      Navigator.pop(sheetContext);
+                    },
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 18, horizontal: 10),
+                    child: const MyText(
+                      "Choose Location",
+                      color: AppColors.background,
+                    ),
+                  ),
+                ],
+              ),
+            )));
       },
     );
   }
@@ -564,51 +690,210 @@ class _SearchPageState extends State<SearchPage> {
       children: [
         isReady
             ? MapSearchView(
-                key: UniqueKey(),
+                key: ValueKey(arbitStore.data["userLocation"].toString()),
                 miniBusinessLocationids: _miniBusinessLocationids,
                 isReady: isReady,
               )
-            : MyText("Loading Map..."),
-        Positioned(
-          top: 120,
-          right: 10,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              splashColor: const Color.fromARGB(111, 252, 178, 74),
-              onTap: () {
-                locationButtonPressed();
-              },
-              child: Ink(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.location_on,
-                    size: 35,
-                    color: AppColors.background,
+            : const Center(child: Heading("Loading Map...")),
+        ValueListenableBuilder<bool>(
+          valueListenable: isCheckingForTap,
+          builder: (_, choosing, __) {
+            if (choosing) return const SizedBox(); // hide search bar
+            return Positioned(
+              top: 120,
+              right: 10 + 70,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  splashColor: const Color.fromARGB(111, 252, 178, 74),
+                  onTap: () {
+                    locationButtonPressed();
+                  },
+                  child: Ink(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.location_on,
+                        size: 35,
+                        color: AppColors.background,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-        )
+            );
+          },
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: isCheckingForTap,
+          builder: (_, choosing, __) {
+            if (choosing) return const SizedBox(); // hide search bar
+            return Positioned(
+              top: 120,
+              right: 80 + 70,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  splashColor: const Color.fromARGB(111, 252, 178, 74),
+                  onTap: () {
+                    _mapController?.animateCamera(
+                      map_gl.CameraUpdate.newLatLngZoom(
+                        map_gl.LatLng(arbitStore.data["userLocation"][0],
+                            arbitStore.data["userLocation"][1]),
+                        16.0, // zoom level
+                      ),
+                    );
+                    ;
+                  },
+                  child: Ink(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.location_searching,
+                        size: 35,
+                        color: AppColors.background,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: isCheckingForTap,
+          builder: (_, choosing, __) {
+            if (choosing) return const SizedBox(); // hide search bar
+            return Positioned(
+              top: 120,
+              right: 10,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  splashColor: const Color.fromARGB(111, 252, 178, 74),
+                  onTap: () {},
+                  child: Ink(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.map_outlined,
+                        size: 35,
+                        color: AppColors.background,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: isCheckingForTap,
+          builder: (_, choosing, __) {
+            if (!choosing) return const SizedBox();
+
+            return Positioned(
+                top: 60,
+                left: 10,
+                child: Center(
+                    child: Container(
+                        width: MediaQuery.of(context).size.width - 20,
+                        height: 80,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: AppColors.primary),
+                        child: const Center(
+                            child: MyText(
+                          "Tap anywhere on the map to choose a location",
+                          size: 20,
+                          color: AppColors.background,
+                          textAlign: TextAlign.center,
+                        )))));
+          },
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: isCheckingForTap,
+          builder: (_, choosing, __) {
+            if (!choosing) return const SizedBox();
+
+            return Positioned(
+                bottom: 10,
+                left: MediaQuery.of(context).size.width / 8,
+                child: Center(
+                    child: MyButton(
+                  width: 20,
+                  height: 40,
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8.0),
+                  child: const MyText(
+                    "Back",
+                    color: AppColors.background,
+                  ),
+                  onPressed: () {
+                    isCheckingForTap.value = false;
+                  },
+                )));
+          },
+        ),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        bottomNavigationBar: newbottombar(context, index: 0),
-        body: Stack(children: [
-          Positioned(child: buildPage(context)),
-          Positioned(child: newsearchbar(context)),
-        ]));
+    return PopScope(
+        canPop:
+            !_isShowingThumbnail.value, // BLOCK back when thumbnail is showing
+        onPopInvokedWithResult: (didPop, result) {
+          if (_isShowingThumbnail.value) {
+            // Custom back behaviour
+            _isShowingThumbnail.value = false;
+
+            // DO NOT allow pop
+            return;
+          }
+
+          // If didPop == true → the page already popped
+          // If didPop == false → canPop prevented the pop
+        },
+        child: Scaffold(
+            bottomNavigationBar: ValueListenableBuilder<bool>(
+              valueListenable: isCheckingForTap,
+              builder: (_, choosing, __) {
+                if (choosing) return const SizedBox(); // hide search bar
+                return Positioned(child: newbottombar(context, index: 0));
+              },
+            ),
+            body: Stack(children: [
+              Positioned(child: buildPage(context)),
+              Positioned(
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: isCheckingForTap,
+                  builder: (_, choosing, __) {
+                    if (choosing) return const SizedBox(); // hide search bar
+                    return Positioned(child: newsearchbar(context));
+                  },
+                ),
+              ),
+            ])));
+
+    // return;
   }
 }

@@ -315,7 +315,8 @@ class MyText extends StatelessWidget {
       this.size = 20,
       this.fontWeight = FontWeight.w400,
       this.overflow = TextOverflow.visible,
-      this.maxlines = 2});
+      this.maxlines = 2,
+      this.textAlign = TextAlign.left});
 
   final String text;
   final Color color;
@@ -323,6 +324,7 @@ class MyText extends StatelessWidget {
   final int maxlines;
   final FontWeight fontWeight;
   final TextOverflow overflow;
+  final TextAlign textAlign;
 
   @override
   Widget build(BuildContext context) {
@@ -330,6 +332,7 @@ class MyText extends StatelessWidget {
       text,
       maxLines: maxlines,
       softWrap: true,
+      textAlign: textAlign,
       style: TextStyle(
           color: color,
           fontSize: size,
@@ -1106,27 +1109,64 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
     goToUserPage(context);
   }
 
-  Icon searchIcon = const Icon(Icons.search, color: Colors.white, size: 35);
-  Icon leaderboardIcon =
-      const Icon(Icons.leaderboard_outlined, color: Colors.white, size: 35);
-  Icon homeIcon =
-      const Icon(Icons.home_outlined, color: Colors.white, size: 35);
-  Icon favoriteIcon =
-      const Icon(Icons.favorite_border_rounded, color: Colors.white, size: 35);
-  Icon userIcon =
-      const Icon(Icons.person_outline, color: Colors.white, size: 35);
+  final midColor = Color.lerp(AppColors.background, AppColors.primary, 0.5);
+
+  Widget searchIcon = Icon(Icons.search, color: midColor, size: 35);
+  Widget leaderboardIcon = Stack(clipBehavior: Clip.none, children: [
+    Positioned(
+        top: -10,
+        child: Icon(Icons.leaderboard_outlined, color: midColor!, size: 35)),
+    Positioned(
+        bottom: -13,
+        left: -5,
+        child: MyText(
+          "leaderboard",
+          size: 15,
+          textAlign: TextAlign.center,
+          color: midColor,
+        ))
+  ]);
+  Widget homeIcon = Icon(Icons.home_outlined, color: midColor, size: 35);
+  Widget favoriteIcon =
+      Icon(Icons.favorite_border_rounded, color: midColor, size: 35);
+  Widget userIcon = Icon(Icons.person_outline, color: midColor, size: 35);
 
   if (index == 0) {
-    searchIcon = const Icon(Icons.search, color: Colors.white, size: 35);
+    searchIcon = const Stack(clipBehavior: Clip.none, children: [
+      Positioned(
+          top: -10, child: Icon(Icons.search, color: Colors.white, size: 35)),
+      Positioned(
+          bottom: -13,
+          left: -5,
+          child: MyText(
+            "search",
+            size: 15,
+            textAlign: TextAlign.center,
+            color: AppColors.background,
+          ))
+    ]);
   } else if (index == 1) {
     leaderboardIcon =
-        const Icon(Icons.leaderboard, color: Colors.white, size: 35);
+        const Icon(Icons.leaderboard_outlined, color: Colors.white, size: 35);
+    leaderboardIcon = const Stack(clipBehavior: Clip.none, children: [
+      Icon(Icons.leaderboard_outlined, color: Colors.white, size: 35),
+      Positioned(
+          bottom: -13,
+          left: -5,
+          child: MyText(
+            "leaderboard",
+            size: 15,
+            textAlign: TextAlign.center,
+            color: AppColors.background,
+          ))
+    ]);
   } else if (index == 2) {
-    homeIcon = const Icon(Icons.home, color: Colors.white, size: 35);
+    homeIcon = const Icon(Icons.home_outlined, color: Colors.white, size: 35);
   } else if (index == 3) {
-    favoriteIcon = const Icon(Icons.favorite, color: Colors.white, size: 35);
+    favoriteIcon = const Icon(Icons.favorite_border_rounded,
+        color: Colors.white, size: 35);
   } else if (index == 4) {
-    userIcon = const Icon(Icons.person, color: Colors.white, size: 35);
+    userIcon = const Icon(Icons.person_outline, color: Colors.white, size: 35);
   }
 
   return Padding(
@@ -1134,8 +1174,12 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
     child: ClipRRect(
       borderRadius: BorderRadius.circular(0),
       child: Container(
-        height: 50,
-        color: AppColors.primary,
+        height: 60,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+          color: AppColors.primary,
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -1185,32 +1229,65 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
 }
 
 void goToSearchPage(BuildContext context) {
-  Navigator.push(
+  Navigator.pushReplacement(
     context,
     MaterialPageRoute(builder: (context) => SearchPage()),
   );
 }
 
 void goToHomePage(BuildContext context) {
-  Navigator.push(
+  Navigator.pushReplacement(
     context,
     MaterialPageRoute(builder: (context) => const MyHomePage(title: "HI")),
   );
 }
 
-void goToBusinessPage(BuildContext context, String locationId) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-        builder: (context) => BusinessLocPage(locationId: locationId)),
+void goToBusinessPage(BuildContext context, String locationId,
+    {bool canGoBack = true}) {
+  final router = PageRouteBuilder(
+    transitionDuration: const Duration(milliseconds: 300),
+    pageBuilder: (_, __, ___) => BusinessLocPage(locationId: locationId),
+    transitionsBuilder: (_, animation, __, child) {
+      final offsetAnimation = Tween(
+        begin: const Offset(0, 1), // start below screen
+        end: Offset.zero, // end at normal position
+      ).animate(CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      ));
+
+      return SlideTransition(
+        position: offsetAnimation,
+        child: child,
+      );
+    },
   );
+
+  if (canGoBack) {
+    Navigator.push(
+      context,
+      router,
+    );
+  } else {
+    Navigator.pushReplacement(
+      context,
+      router,
+    );
+  }
 }
 
-void goToUserPage(BuildContext context) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const UserPage()),
-  );
+void goToUserPage(BuildContext context, {bool canGoBack = true}) {
+  if (canGoBack) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const UserPage()),
+    );
+  } else {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const UserPage()),
+    );
+  }
 }
 
 PreferredSize newsearchbar(BuildContext context) {
@@ -1289,7 +1366,6 @@ void filterDropDown(BuildContext context) {
               label: "Business Category",
               display: (value) => businessTypeLookup[value]!,
               onChanged: (value) {
-                arbitStore.data["category"] = businessTypeLookup[value]!;
                 arbitStore.data["categoryINDEX"] = value;
               },
             ),

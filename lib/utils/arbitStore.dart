@@ -23,13 +23,13 @@ const base_types = {
 
 void Arbitfallbacks() {
   arbitStore.fallback("distance_index", 3.toInt());
+  arbitStore.fallback("userLocationChooseIndex", 1.toInt());
   arbitStore.fallback("distance", milesToKm(10).toInt());
   arbitStore.fallback("gasSafeOnly", false);
   arbitStore.fallback("electricitySafeOnly", false);
   arbitStore.fallback("allowedBtypes", "Both");
   arbitStore.fallback("allowedBtypesINDEX", 0);
-  arbitStore.fallback("category", base_types.values.first);
-  arbitStore.fallback("categoryINDEX", base_types.keys.first);
+  arbitStore.fallback("categoryINDEX", -1);
   arbitStore.fallback("sorting", "DST");
   arbitStore.fallback("sortingINDEX", 0);
   arbitStore.fallback("userLocation", [53.7444,-0.3324]);

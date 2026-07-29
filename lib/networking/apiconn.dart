@@ -36,6 +36,10 @@ class ServerConnect {
     bool gasSafeOnly = false,
     bool elecSafeOnly = false,
   }) async {
+    if (type == -1) {
+      type = null;
+    }
+
     String url;
 
     log.i("FUNCTION : getNearbyBusinesses | START");
@@ -111,14 +115,11 @@ class ServerConnect {
         log.i(
             "FUNCTION : getFullLocationData | Contains key? | ${businessManager.businessLocationLookup.containsKey(locationId)}");
 
-
-        if (gallerydataFromResp.containsKey(locationId)){
-
+        if (gallerydataFromResp.containsKey(locationId)) {
           businessManager.businessLocationLookup[locationId]!.imagePaths =
               List<String>.from(gallerydataFromResp[locationId]);
-        }else{
-          log.i(
-            "FUNCTION : getFullLocationData | No Image Data");
+        } else {
+          log.i("FUNCTION : getFullLocationData | No Image Data");
         }
       } else {
         log.e(

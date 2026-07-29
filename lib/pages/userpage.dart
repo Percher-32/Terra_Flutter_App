@@ -68,6 +68,7 @@ class _UserPageState extends State<UserPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(bottomNavigationBar: newbottombar(context), body: myBody());
+    return Scaffold(
+        bottomNavigationBar: newbottombar(context, index: 4), body: myBody());
   }
 }

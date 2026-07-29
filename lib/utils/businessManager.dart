@@ -5,6 +5,7 @@ import 'package:nextfind/networking/apiconn.dart';
 
 // import 'package:nextfind/utils/arbitStore.dart';
 const businessTypeLookup = {
+  -1:"All",
   0: "Food",
   1: "Home",
   2: "Health",
@@ -14,7 +15,7 @@ const businessTypeLookup = {
   6: "Beauty",
   7: "Fun",
   8: "Education",
-  9: "Travel"
+  9: "Travel",
 };
 
 List<T> intersection<T>(List<T> a, List<T> b) {
