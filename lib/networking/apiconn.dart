@@ -28,7 +28,7 @@ class ServerConnect {
   Future<dynamic> getNearbyBusinesses({
     required List location,
     String macroTypes = "All",
-    type,
+    int? type,
     int maxdist = 6000,
     String sort = "RAT",
     String query = "",

@@ -12,16 +12,22 @@
 - add a function to add a new user
 
 
-Ok so heres the gist:
-    you are trying to add movable icons to the maplibre map
-    good news : it works
-    bad news : yoi have to make it show the businesses
-
-    basically right now bacuse it was a beta it got it from a default list 
-    you should probably try and recreate that list to use the business locations . but idk how to do that
-
-    also add the icons to the thing pls
-
 
 64c5c3d0-f566-4a89-a43c-fb2eb15a0c9d
 eaae6023-4cff-4447-8c02-c365b3486b1a
+
+
+
+
+
+
+
+
+
+Hey linc:
+    once youre done exercising do this 
+    make the {createBusinessMapIcon} take in the score ranking (where it came in the list) and the nearest distance parameter (how close its nearest neighbour is) 
+    to create a function to choose its size opacity and positioning.
+
+
+    DEADLINE - 7.00PM 

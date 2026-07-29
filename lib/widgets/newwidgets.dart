@@ -42,8 +42,47 @@ Future<void> _runPreloadTask(List<String> urls, BuildContext context) async {
   }
 }
 
+// double dist(List<double> a, List<double> b) {
+//   final dx = a[0] - b[0];
+//   final dy = a[1] - b[1];
+//   return math.sqrt(dx * dx + dy * dy);
+// }
+
+class Point {
+  final double x;
+  final double y;
+  const Point(this.x, this.y);
+}
+
+double dist2(Point a, Point b) {
+  final dx = a.x - b.x;
+  final dy = a.y - b.y;
+  return dx * dx + dy * dy;
+}
+
+List<double> nearestDistances(List<Point> points) {
+  final result = List<double>.filled(points.length, 0);
+
+  for (int i = 0; i < points.length; i++) {
+    double best = double.infinity;
+    final p = points[i];
+
+    for (int j = 0; j < points.length; j++) {
+      if (i == j) continue;
+
+      final d = dist2(p, points[j]);
+      if (d < best) best = d;
+    }
+
+    result[i] = best;
+  }
+
+  return result;
+}
+
 class AppColors {
   static const background = Color.fromARGB(255, 255, 255, 255);
+  static const leveled = Color.fromARGB(255, 230, 230, 230);
   static const text = Color.fromARGB(255, 0, 0, 0);
   static const primary = Color.fromARGB(255, 252, 130, 74);
   static const secondary = Color.fromARGB(255, 101, 44, 145);
@@ -274,24 +313,28 @@ class MyText extends StatelessWidget {
       {super.key,
       this.color = AppColors.text,
       this.size = 20,
-      this.fontWeight = FontWeight.w400});
+      this.fontWeight = FontWeight.w400,
+      this.overflow = TextOverflow.visible,
+      this.maxlines = 2});
 
   final String text;
   final Color color;
   final double size;
+  final int maxlines;
   final FontWeight fontWeight;
+  final TextOverflow overflow;
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text,
-      maxLines: 2,
+      maxLines: maxlines,
       softWrap: true,
       style: TextStyle(
           color: color,
           fontSize: size,
           fontFamily: "LilitaOne",
-          overflow: TextOverflow.visible,
+          overflow: overflow,
           fontWeight: fontWeight),
     );
   }
@@ -798,7 +841,7 @@ class MyMultiToggleState extends State<MyMultiToggle> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: active ? AppColors.secondary : Colors.transparent,
+            color: active ? AppColors.primary : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(
@@ -821,7 +864,7 @@ class MyMultiToggleState extends State<MyMultiToggle> {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: AppColors.leveled,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -1144,8 +1187,7 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
 void goToSearchPage(BuildContext context) {
   Navigator.push(
     context,
-    MaterialPageRoute(
-        builder: (context) => SearchPage()),
+    MaterialPageRoute(builder: (context) => SearchPage()),
   );
 }
 
@@ -1254,39 +1296,33 @@ void filterDropDown(BuildContext context) {
             const SizedBox(height: 25),
             MyMultiToggle(
               initial: arbitStore.data["sortingINDEX"],
-              options: const ["Distance", "Rating", "Query"],
+              options: const [
+                "Relevance",
+                "Distance",
+                "Rating",
+              ],
               onChanged: (val) {
                 arbitStore.data["sortingINDEX"] = val;
-                if (val == 0) {
+                if (val == 1) {
                   arbitStore.data["sorting"] = "DST";
                 }
 
-                if (val == 1) {
+                if (val == 2) {
                   arbitStore.data["sorting"] = "RAT";
                 }
-                if (val == 2) {
-                  arbitStore.data["sorting"] = " ";
+                if (val == 0) {
+                  arbitStore.data["sorting"] = "";
                 }
               },
             ),
             const SizedBox(height: 20),
-            SizedBox(
-              width: 300,
+            MyButton(
               height: 60,
-              child: ElevatedButton(
-                onPressed: () {
-                  // changepage(context, () => SearchPage(title: "Hi"));
-                },
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 18, horizontal: 40),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  backgroundColor: AppColors.primary,
-                ),
-                child: const Body("Search", color: AppColors.background),
-              ),
+              width: 60,
+              child: const Body("Search", color: AppColors.background),
+              onPressed: () {
+                goToSearchPage(context);
+              },
             ),
           ],
         ),
