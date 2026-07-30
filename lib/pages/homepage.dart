@@ -20,12 +20,12 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String>? trendingBusinesses;
   DateTime? trendingBusinessesLastUpdate;
   List<String>? allUrls;
-  bool _hasWifi = false;
+  bool _hasWifi = true;
 
   @override
   void initState() {
     super.initState();
-    _hasWifi = false;
+    _hasWifi = true;
     log.i("HI I LOGGED IT");
   }
 
@@ -127,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Heading("No Internet "),
             );
           }
-          
+
         if (!snapshot.hasData) {
           return const LinearProgressIndicator();
         } else {

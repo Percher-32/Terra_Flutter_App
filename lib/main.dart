@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
       ),
       themeMode: ThemeMode.light,
       // home: const MyHomePage(title: 'Next Find'),
-      home : const SearchPage(),
+      home: const SearchPage(),
     );
   }
 }

@@ -209,6 +209,38 @@ class _MapSearchViewState extends State<MapSearchView>
       double nearestDist, int index) {
     double normDist = ((nearestDist) * 0.00015).clamp(0, 1);
 
+    String iconPath = "assets/icons/business_type_icons/food_and_dining_icon.png";
+    if (miniBusLoc.type == 0){
+      iconPath = "assets/icons/business_type_icons/food_and_dining_icon.png";
+    }
+    else if(miniBusLoc.type == 1) {
+      iconPath = "assets/icons/business_type_icons/home_services.png";
+    }
+    else if(miniBusLoc.type == 2) {
+      iconPath = "assets/icons/business_type_icons/health_and_wellness_icon.png";
+    }
+    else if(miniBusLoc.type == 3) {
+      iconPath = "assets/icons/business_type_icons/shopping_and_retail_icon.png";
+    }
+    else if(miniBusLoc.type == 4) {
+      iconPath = "assets/icons/business_type_icons/proffesional_services_icon.png";
+    }
+    else if(miniBusLoc.type == 5) {
+      iconPath = "assets/icons/business_type_icons/automotive_icon.png";
+    }
+    else if(miniBusLoc.type == 6) {
+      iconPath = "assets/icons/business_type_icons/beauty_and_personal_care_icon.png";
+    }
+    else if(miniBusLoc.type == 7) {
+      iconPath = "assets/icons/business_type_icons/entertainment_and_leisure_icon.png";
+    }
+    else if(miniBusLoc.type == 8) {
+      iconPath = "assets/icons/business_type_icons/education_icon.png";
+    }
+    else if(miniBusLoc.type == 9) {
+      iconPath = "assets/icons/business_type_icons/lodging_and_travel_icon.png";
+    }
+
     Widget trueWidget = const SizedBox();
 
     Widget veriBadge = const SizedBox();
@@ -279,7 +311,7 @@ class _MapSearchViewState extends State<MapSearchView>
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              Image.asset('assets/icons/svg_logo.png', width: 32, height: 32),
+              Image.asset(iconPath, width: 32, height: 32),
               Positioned(
                 right: -10,
                 top: -5,
@@ -481,16 +513,13 @@ class _MapSearchViewState extends State<MapSearchView>
                     final tappedLat = latLng.latitude;
                     final tappedLng = latLng.longitude;
 
-                    log.i("PLAX :  User tapped at: $tappedLat, $tappedLng");
-
                     // Example: update your userLocation
                     arbitStore.data["userLocation"] = [tappedLat, tappedLng];
 
-                    mapMode.value = "Base";
-
-                    log.i("PLAX :  RELOADING USERLOC: $tappedLat, $tappedLng");
-
+                    log.i("ABABAABABABAB");
                     shouldReloadMarkers.value = true;
+
+                    mapMode.value = "Base";
                   } else {
                     _lockCamera = false;
 
@@ -574,7 +603,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   late List<String> _miniBusinessLocationids;
   bool isReady = false;
-  bool _hasWifi = false;
+  bool _hasWifi = true;
 
   @override
   void initState() {
@@ -586,7 +615,7 @@ class _SearchPageState extends State<SearchPage> {
       }
     });
 
-    _hasWifi = false;
+    _hasWifi = true;
 
     // isCheckingForTap.addListener(_updateHideState);
     // isCheckingForTap.addListener(() {
@@ -602,7 +631,10 @@ class _SearchPageState extends State<SearchPage> {
   // }
 
   Future<void> _reloadMapOnly() async {
+    log.i("ABABAABABABAB : reloading map");
     await _getLocations(); // refresh business markers
+
+    log.i("ABABAABABABAB : reloading Done");
     mapMode.value = "Base";
   }
 
@@ -795,8 +827,7 @@ class _SearchPageState extends State<SearchPage> {
         ValueListenableBuilder<String>(
           valueListenable: mapMode,
           builder: (_, choosing, __) {
-            if (["Thumbnail", "Choosing", "List"].contains(choosing)){
-
+            if (["Thumbnail", "Choosing", "List"].contains(choosing)) {
               return const SizedBox(); // hide search bar
             }
             return Positioned(
@@ -942,8 +973,7 @@ class _SearchPageState extends State<SearchPage> {
                   child: ValueListenableBuilder<String>(
                     valueListenable: mapMode,
                     builder: (_, choosing, __) {
-                      if (choosing != "List"){
-
+                      if (choosing != "List") {
                         return const SizedBox(); // hide search bar
                       }
                       return Positioned(child: newsearchbar(context));
@@ -953,8 +983,7 @@ class _SearchPageState extends State<SearchPage> {
             bottomNavigationBar: ValueListenableBuilder<String>(
               valueListenable: mapMode,
               builder: (_, choosing, __) {
-                if (choosing != "List"){
-                  
+                if (choosing != "List") {
                   return const SizedBox(); // hide search bar
                 }
                 return Positioned(child: newbottombar(context, index: 0));
