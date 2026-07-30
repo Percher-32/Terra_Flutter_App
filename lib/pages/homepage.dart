@@ -20,10 +20,12 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String>? trendingBusinesses;
   DateTime? trendingBusinessesLastUpdate;
   List<String>? allUrls;
+  bool _hasWifi = false;
 
   @override
   void initState() {
     super.initState();
+    _hasWifi = false;
     log.i("HI I LOGGED IT");
   }
 
@@ -35,6 +37,12 @@ class _MyHomePageState extends State<MyHomePage> {
       "maxdist": 500,
       "idOnly": true
     }}");
+
+    _hasWifi = await serverconnect.isOnline();
+
+    if (!_hasWifi) {
+      return;
+    }
 
     final nearbyBus = await serverconnect.getNearbyBusinesses(
         location: arbitStore.data["userLocation"],
@@ -78,7 +86,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget trendScroll(BuildContext context) {
-
     if (allUrls != null) {
       startPreloading(context, allUrls!.take(10).toList());
     }
@@ -115,9 +122,16 @@ class _MyHomePageState extends State<MyHomePage> {
     return FutureBuilder<dynamic>(
       future: buildFeed(),
       builder: (context, snapshot) {
+        if (!_hasWifi) {
+            return const Center(
+              child: Heading("No Internet "),
+            );
+          }
+          
         if (!snapshot.hasData) {
           return const LinearProgressIndicator();
         } else {
+          
           return SizedBox(
             height: MediaQuery.of(context).size.height,
             child: ListView.separated(

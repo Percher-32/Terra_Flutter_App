@@ -1112,54 +1112,18 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
   final midColor = Color.lerp(AppColors.background, AppColors.primary, 0.5);
 
   Widget searchIcon = Icon(Icons.search, color: midColor, size: 35);
-  Widget leaderboardIcon = Stack(clipBehavior: Clip.none, children: [
-    Positioned(
-        top: -10,
-        child: Icon(Icons.leaderboard_outlined, color: midColor!, size: 35)),
-    Positioned(
-        bottom: -13,
-        left: -5,
-        child: MyText(
-          "leaderboard",
-          size: 15,
-          textAlign: TextAlign.center,
-          color: midColor,
-        ))
-  ]);
+  Widget leaderboardIcon =
+      Icon(Icons.leaderboard_outlined, color: midColor, size: 35);
   Widget homeIcon = Icon(Icons.home_outlined, color: midColor, size: 35);
   Widget favoriteIcon =
       Icon(Icons.favorite_border_rounded, color: midColor, size: 35);
   Widget userIcon = Icon(Icons.person_outline, color: midColor, size: 35);
 
   if (index == 0) {
-    searchIcon = const Stack(clipBehavior: Clip.none, children: [
-      Positioned(
-          top: -10, child: Icon(Icons.search, color: Colors.white, size: 35)),
-      Positioned(
-          bottom: -13,
-          left: -5,
-          child: MyText(
-            "search",
-            size: 15,
-            textAlign: TextAlign.center,
-            color: AppColors.background,
-          ))
-    ]);
+    searchIcon = const Icon(Icons.search, color: Colors.white, size: 35);
   } else if (index == 1) {
     leaderboardIcon =
         const Icon(Icons.leaderboard_outlined, color: Colors.white, size: 35);
-    leaderboardIcon = const Stack(clipBehavior: Clip.none, children: [
-      Icon(Icons.leaderboard_outlined, color: Colors.white, size: 35),
-      Positioned(
-          bottom: -13,
-          left: -5,
-          child: MyText(
-            "leaderboard",
-            size: 15,
-            textAlign: TextAlign.center,
-            color: AppColors.background,
-          ))
-    ]);
   } else if (index == 2) {
     homeIcon = const Icon(Icons.home_outlined, color: Colors.white, size: 35);
   } else if (index == 3) {
@@ -1174,7 +1138,7 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
     child: ClipRRect(
       borderRadius: BorderRadius.circular(0),
       child: Container(
-        height: 60,
+        height: 50,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(10), topRight: Radius.circular(10)),

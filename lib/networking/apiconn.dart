@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:nextfind/networking/newtokenmanager.dart';
 import 'package:nextfind/utils/businessManager.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:logger/logger.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 final log = Logger();
 
@@ -25,6 +27,26 @@ class ServerConnect {
     return response.statusCode == 400;
   }
 
+  Future<bool> hasNetwork() async {
+    final result = await Connectivity().checkConnectivity();
+    return result != ConnectivityResult.none;
+  }
+
+  Future<bool> hasInternet() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> isOnline() async {
+  if (!await hasNetwork()) return false;
+  return await hasInternet();
+}
+
+
   Future<dynamic> getNearbyBusinesses({
     required List location,
     String macroTypes = "All",
@@ -38,6 +60,10 @@ class ServerConnect {
   }) async {
     if (type == -1) {
       type = null;
+    }
+
+    if (!(await isOnline())) {
+      return null;
     }
 
     String url;

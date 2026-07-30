@@ -22,12 +22,6 @@ eaae6023-4cff-4447-8c02-c365b3486b1a
 
 
 
-
-
-Hey linc:
-    once youre done exercising do this 
-    make the {createBusinessMapIcon} take in the score ranking (where it came in the list) and the nearest distance parameter (how close its nearest neighbour is) 
-    to create a function to choose its size opacity and positioning.
-
-
-    DEADLINE - 7.00PM 
+Yo linc add tags:
+    make it so that each businesses can add like 3 mini tags about themselves and useers can search using 
+    the tags and businesses that match more tags are shown higher up on the rankings

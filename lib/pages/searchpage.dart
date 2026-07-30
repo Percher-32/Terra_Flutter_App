@@ -16,10 +16,11 @@ import 'dart:typed_data';
 
 map_gl.MapLibreMapController? _mapController;
 
-ValueNotifier<bool> _isShowingThumbnail = ValueNotifier(false);
-ValueNotifier<bool> isCheckingForTap = ValueNotifier(false);
+ValueNotifier<String> mapMode = ValueNotifier("Base");
+// ValueNotifier<bool> _isShowingThumbnail = ValueNotifier(false);
+// ValueNotifier<bool> isCheckingForTap = ValueNotifier(false);
+// final ValueNotifier<bool> cleanUi = ValueNotifier(false);
 ValueNotifier<bool> shouldReloadMarkers = ValueNotifier(false);
-final ValueNotifier<bool> cleanUi = ValueNotifier(false);
 
 Future<Uint8List> loadMarkerImage() async {
   final data = await rootBundle.load('assets/icons/Vector.png');
@@ -200,8 +201,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
     // _lockCamera = true;
 
-    _isShowingThumbnail.value = true;
-    isCheckingForTap.value = false;
+    mapMode.value = "Thumbnail";
     miniBusinessId = miniBusLoc.locationId;
   }
 
@@ -269,7 +269,7 @@ class _MapSearchViewState extends State<MapSearchView>
           shape: BoxShape.circle,
         ),
       );
-    } else if (normDist > 0.4 && normDist <= 0.8 + 0.3) {
+    } else if (normDist > 0.4 && normDist <= 0.8) {
       trueWidget = Material(
         color: const Color.fromARGB(0, 163, 73, 73),
         child: InkWell(
@@ -477,7 +477,7 @@ class _MapSearchViewState extends State<MapSearchView>
                   _refreshOverlayPositions();
                 },
                 onMapClick: (_, map_gl.LatLng latLng) {
-                  if (isCheckingForTap.value) {
+                  if (mapMode.value == "Choosing") {
                     final tappedLat = latLng.latitude;
                     final tappedLng = latLng.longitude;
 
@@ -486,14 +486,15 @@ class _MapSearchViewState extends State<MapSearchView>
                     // Example: update your userLocation
                     arbitStore.data["userLocation"] = [tappedLat, tappedLng];
 
-                    isCheckingForTap.value = false;
+                    mapMode.value = "Base";
 
                     log.i("PLAX :  RELOADING USERLOC: $tappedLat, $tappedLng");
 
                     shouldReloadMarkers.value = true;
                   } else {
-                    _isShowingThumbnail.value = false;
                     _lockCamera = false;
+
+                    mapMode.value = "Base";
                   }
                 },
                 onMapIdle: () {
@@ -543,10 +544,10 @@ class _MapSearchViewState extends State<MapSearchView>
                 ),
               ),
 
-              ValueListenableBuilder<bool>(
-                valueListenable: _isShowingThumbnail,
+              ValueListenableBuilder<String>(
+                valueListenable: mapMode,
                 builder: (_, choosing, __) {
-                  if (!choosing) return const SizedBox();
+                  if (choosing != "Thumbnail") return const SizedBox();
                   if (miniBusinessId == null) return const SizedBox();
                   return Positioned(
                       bottom: 40,
@@ -573,6 +574,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   late List<String> _miniBusinessLocationids;
   bool isReady = false;
+  bool _hasWifi = false;
 
   @override
   void initState() {
@@ -584,28 +586,29 @@ class _SearchPageState extends State<SearchPage> {
       }
     });
 
-    isCheckingForTap.value = false;
+    _hasWifi = false;
 
-    isCheckingForTap.addListener(_updateHideState);
-    isCheckingForTap.addListener(() {
-      _isShowingThumbnail.value = false;
-    });
-    _isShowingThumbnail.addListener(_updateHideState);
+    // isCheckingForTap.addListener(_updateHideState);
+    // isCheckingForTap.addListener(() {
+    //   _isShowingThumbnail.value = false;
+    // });
+    // _isShowingThumbnail.addListener(_updateHideState);
 
     _getLocations();
   }
 
-  void _updateHideState() {
-    cleanUi.value = isCheckingForTap.value || _isShowingThumbnail.value;
-  }
+  // void _updateHideState() {
+  //   cleanUi.value = isCheckingForTap.value || _isShowingThumbnail.value;
+  // }
 
   Future<void> _reloadMapOnly() async {
     await _getLocations(); // refresh business markers
-    isCheckingForTap.value = false;
+    mapMode.value = "Base";
   }
 
   Future<void> _getLocations() async {
-    isCheckingForTap.value = false;
+    _hasWifi = await serverconnect.isOnline();
+
     _miniBusinessLocationids =
         List<String>.from(await serverconnect.getNearbyBusinesses(
       location: arbitStore.data["userLocation"],
@@ -621,6 +624,7 @@ class _SearchPageState extends State<SearchPage> {
 
     isReady = true;
 
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -668,7 +672,7 @@ class _SearchPageState extends State<SearchPage> {
                     height: 80,
                     onPressed: () {
                       isReady = false;
-                      isCheckingForTap.value = true;
+                      mapMode.value = "Choosing";
                       Navigator.pop(sheetContext);
                     },
                     padding: const EdgeInsets.symmetric(
@@ -686,21 +690,36 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget buildPage(BuildContext context) {
+    Widget suppposedMap = const Center(child: Heading("Loading Map..."));
+
+    if (!_hasWifi) {
+      suppposedMap = const Center(child: Heading("No Internet"));
+    }
+
+    if (isReady) {
+      if (mapMode.value == "Base") {
+        suppposedMap = MapSearchView(
+          key: ValueKey(arbitStore.data["userLocation"].toString()),
+          miniBusinessLocationids: _miniBusinessLocationids,
+          isReady: isReady,
+        );
+      } else if (mapMode.value == "List") {
+        suppposedMap = ListSearchView(
+            key: ValueKey(arbitStore.data["userLocation"].toString()),
+            miniBusinessLocationids: _miniBusinessLocationids);
+      }
+    }
+
     return Stack(
       children: [
-        isReady
-            ? MapSearchView(
-                key: ValueKey(arbitStore.data["userLocation"].toString()),
-                miniBusinessLocationids: _miniBusinessLocationids,
-                isReady: isReady,
-              )
-            : const Center(child: Heading("Loading Map...")),
-        ValueListenableBuilder<bool>(
-          valueListenable: isCheckingForTap,
+        suppposedMap,
+        ValueListenableBuilder<String>(
+          valueListenable: mapMode,
           builder: (_, choosing, __) {
-            if (choosing) return const SizedBox(); // hide search bar
+            if (["Thumbnail", "Choosing", "List"].contains(choosing))
+              return const SizedBox(); // hide search bar
             return Positioned(
-              top: 120,
+              bottom: 60,
               right: 10 + 70,
               child: Material(
                 color: Colors.transparent,
@@ -730,12 +749,13 @@ class _SearchPageState extends State<SearchPage> {
             );
           },
         ),
-        ValueListenableBuilder<bool>(
-          valueListenable: isCheckingForTap,
+        ValueListenableBuilder<String>(
+          valueListenable: mapMode,
           builder: (_, choosing, __) {
-            if (choosing) return const SizedBox(); // hide search bar
+            if (["Thumbnail", "Choosing", "List"].contains(choosing))
+              return const SizedBox(); // hide search bar
             return Positioned(
-              top: 120,
+              bottom: 60,
               right: 80 + 70,
               child: Material(
                 color: Colors.transparent,
@@ -772,19 +792,61 @@ class _SearchPageState extends State<SearchPage> {
             );
           },
         ),
-        ValueListenableBuilder<bool>(
-          valueListenable: isCheckingForTap,
+        ValueListenableBuilder<String>(
+          valueListenable: mapMode,
           builder: (_, choosing, __) {
-            if (choosing) return const SizedBox(); // hide search bar
+            if (["Thumbnail", "Choosing", "List"].contains(choosing)){
+
+              return const SizedBox(); // hide search bar
+            }
             return Positioned(
-              top: 120,
+              bottom: 60,
               right: 10,
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(20),
                   splashColor: const Color.fromARGB(111, 252, 178, 74),
-                  onTap: () {},
+                  onTap: () {
+                    mapMode.value = "List";
+                    setState(() {});
+                  },
+                  child: Ink(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.list,
+                        size: 35,
+                        color: AppColors.background,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        ValueListenableBuilder<String>(
+          valueListenable: mapMode,
+          builder: (_, choosing, __) {
+            if (choosing != "List") return const SizedBox(); // hide search bar
+            return Positioned(
+              bottom: 60 - 50,
+              right: 10,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  splashColor: const Color.fromARGB(111, 252, 178, 74),
+                  onTap: () {
+                    mapMode.value = "Base";
+                    setState(() {});
+                  },
                   child: Ink(
                     width: 60,
                     height: 60,
@@ -805,10 +867,10 @@ class _SearchPageState extends State<SearchPage> {
             );
           },
         ),
-        ValueListenableBuilder<bool>(
-          valueListenable: isCheckingForTap,
+        ValueListenableBuilder<String>(
+          valueListenable: mapMode,
           builder: (_, choosing, __) {
-            if (!choosing) return const SizedBox();
+            if (choosing != "Choosing") return const SizedBox();
 
             return Positioned(
                 top: 60,
@@ -829,10 +891,10 @@ class _SearchPageState extends State<SearchPage> {
                         )))));
           },
         ),
-        ValueListenableBuilder<bool>(
-          valueListenable: isCheckingForTap,
+        ValueListenableBuilder<String>(
+          valueListenable: mapMode,
           builder: (_, choosing, __) {
-            if (!choosing) return const SizedBox();
+            if (choosing != "Choosing") return const SizedBox();
 
             return Positioned(
                 bottom: 10,
@@ -847,7 +909,7 @@ class _SearchPageState extends State<SearchPage> {
                     color: AppColors.background,
                   ),
                   onPressed: () {
-                    isCheckingForTap.value = false;
+                    mapMode.value = "Base";
                   },
                 )));
           },
@@ -859,12 +921,12 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop:
-            !_isShowingThumbnail.value, // BLOCK back when thumbnail is showing
+        canPop: mapMode.value !=
+            "Thumbnail", // BLOCK back when thumbnail is showing
         onPopInvokedWithResult: (didPop, result) {
-          if (_isShowingThumbnail.value) {
+          if (mapMode.value == "Thumbnail") {
             // Custom back behaviour
-            _isShowingThumbnail.value = false;
+            mapMode.value = "Base";
 
             // DO NOT allow pop
             return;
@@ -874,20 +936,57 @@ class _SearchPageState extends State<SearchPage> {
           // If didPop == false → canPop prevented the pop
         },
         child: Scaffold(
-            bottomNavigationBar: ValueListenableBuilder<bool>(
-              valueListenable: isCheckingForTap,
+            appBar: PreferredSize(
+                preferredSize: const Size.fromHeight(84),
+                child: Positioned(
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: mapMode,
+                    builder: (_, choosing, __) {
+                      if (choosing != "List"){
+
+                        return const SizedBox(); // hide search bar
+                      }
+                      return Positioned(child: newsearchbar(context));
+                    },
+                  ),
+                )),
+            bottomNavigationBar: ValueListenableBuilder<String>(
+              valueListenable: mapMode,
               builder: (_, choosing, __) {
-                if (choosing) return const SizedBox(); // hide search bar
+                if (choosing != "List"){
+                  
+                  return const SizedBox(); // hide search bar
+                }
                 return Positioned(child: newbottombar(context, index: 0));
               },
             ),
             body: Stack(children: [
               Positioned(child: buildPage(context)),
               Positioned(
-                child: ValueListenableBuilder<bool>(
-                  valueListenable: isCheckingForTap,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: ValueListenableBuilder<String>(
+                  valueListenable: mapMode,
                   builder: (_, choosing, __) {
-                    if (choosing) return const SizedBox(); // hide search bar
+                    if (["Choosing", "List"].contains(choosing)) {
+                      return const SizedBox(); // hide search bar
+                    }
+                    return Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: newbottombar(context, index: 0));
+                  },
+                ),
+              ),
+              Positioned(
+                child: ValueListenableBuilder<String>(
+                  valueListenable: mapMode,
+                  builder: (_, choosing, __) {
+                    if (["Choosing", "List"].contains(choosing)) {
+                      return const SizedBox(); // hide search bar
+                    }
                     return Positioned(child: newsearchbar(context));
                   },
                 ),
@@ -895,5 +994,42 @@ class _SearchPageState extends State<SearchPage> {
             ])));
 
     // return;
+  }
+}
+
+class ListSearchView extends StatefulWidget {
+  const ListSearchView({super.key, required this.miniBusinessLocationids});
+
+  final List<String> miniBusinessLocationids;
+  @override
+  State<ListSearchView> createState() => _ListSearchViewState();
+}
+
+class _ListSearchViewState extends State<ListSearchView> {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      child: ListView.separated(
+        controller: ScrollController(initialScrollOffset: 0),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        itemCount: widget.miniBusinessLocationids.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return const SizedBox(
+              height: 0,
+            );
+          } else {
+            return Center(
+                child: BusinessLocationThumbnail(
+                    locationId: widget.miniBusinessLocationids[index - 1]));
+          }
+        },
+        separatorBuilder: (context, index) => const SizedBox(height: 20),
+        padding: const EdgeInsets.only(top: 20, bottom: 20),
+      ),
+    );
   }
 }
