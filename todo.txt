@@ -22,6 +22,6 @@ eaae6023-4cff-4447-8c02-c365b3486b1a
 
 
 
-Yo linc add tags:
-    make it so that each businesses can add like 3 mini tags about themselves and useers can search using 
-    the tags and businesses that match more tags are shown higher up on the rankings
+Ok so heres the issue.
+Rn the just_id function doesnt in the api returns a list of lists like [id , score]. but dart expects just a list of id's.
+fix it or sum

@@ -35,7 +35,32 @@ flutter:
   uses-material-design: true
   assets:
     - assets/img/
-    - assets/icons/
+    # - assets/icons/
+    - assets/icons/business_type_icons/
+    
+    - assets/icons/business_type_icons/food_and_dining_icon.png
+    - assets/icons/business_type_icons/home_services_icon.png
+    - assets/icons/business_type_icons/health_and_wellness_icon.png
+    - assets/icons/business_type_icons/shopping_and_retail_icon.png
+    - assets/icons/business_type_icons/shopping_and_retail_icon.png
+    - assets/icons/business_type_icons/automotive_icon.png
+    - assets/icons/business_type_icons/beauty_and_personal_care_icon.png
+    - assets/icons/business_type_icons/entertainment_and_leisure_icon.png
+    - assets/icons/business_type_icons/education_icon.png
+    - assets/icons/business_type_icons/lodging_and_travel_icon.png
+
+
+    
+    - assets/icons/business_type_icons/food_and_dining_icon_alt.png
+    - assets/icons/business_type_icons/home_services_icon_alt.png
+    - assets/icons/business_type_icons/health_and_wellness_icon_alt.png
+    - assets/icons/business_type_icons/shopping_and_retail_icon_alt.png
+    - assets/icons/business_type_icons/shopping_and_retail_icon_alt.png
+    - assets/icons/business_type_icons/automotive_icon_alt.png
+    - assets/icons/business_type_icons/beauty_and_personal_care_icon_alt.png
+    - assets/icons/business_type_icons/entertainment_and_leisure_icon_alt.png
+    - assets/icons/business_type_icons/education_icon_alt.png
+    - assets/icons/business_type_icons/lodging_and_travel_icon_alt.png
     
   fonts:
     - family: LilitaOne

@@ -474,6 +474,37 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
         }
       }
 
+      String iconPath = "assets/icons/svg_logo.png";
+      if (minibusinessLocation.type == 0) {
+        iconPath =
+            "assets/icons/business_type_icons/food_and_dining_icon_alt.png";
+      } else if (minibusinessLocation.type == 1) {
+        iconPath =
+            "assets/icons/business_type_icons/home_services_icon_alt.png";
+      } else if (minibusinessLocation.type == 2) {
+        iconPath =
+            "assets/icons/business_type_icons/health_and_wellness_icon_alt.png";
+      } else if (minibusinessLocation.type == 3) {
+        iconPath =
+            "assets/icons/business_type_icons/shopping_and_retail_icon_alt.png";
+      } else if (minibusinessLocation.type == 4) {
+        iconPath =
+            "assets/icons/business_type_icons/proffesional_services_icon_alt.png";
+      } else if (minibusinessLocation.type == 5) {
+        iconPath = "assets/icons/business_type_icons/automotive_icon_alt.png";
+      } else if (minibusinessLocation.type == 6) {
+        iconPath =
+            "assets/icons/business_type_icons/beauty_and_personal_care_icon_alt.png";
+      } else if (minibusinessLocation.type == 7) {
+        iconPath =
+            "assets/icons/business_type_icons/entertainment_and_leisure_icon_alt.png";
+      } else if (minibusinessLocation.type == 8) {
+        iconPath = "assets/icons/business_type_icons/education_icon_alt.png";
+      } else if (minibusinessLocation.type == 9) {
+        iconPath =
+            "assets/icons/business_type_icons/lodging_and_travel_icon_alt.png";
+      }
+
       return SizedBox(
         width: 380,
         height: 260,
@@ -546,12 +577,27 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                                         size: 20,
                                         fontWeight: FontWeight.w600,
                                       ),
-                                      MyText(
-                                        color: AppColors.primary,
-                                        businessTypeLookup[
-                                            minibusinessLocation.type]!,
-                                        size: 14,
-                                      ),
+                                      SizedBox(
+                                          width: 200,
+                                          height: 50,
+                                          child: Stack(
+                                              alignment:
+                                                  AlignmentGeometry.center,
+                                              children: [
+                                                Positioned(
+                                                    left: -2,
+                                                    child: Image.asset(iconPath,
+                                                        width: 30, height: 30)),
+                                                Positioned(
+                                                    left: 30,
+                                                    child: MyText(
+                                                      color: AppColors.primary,
+                                                      businessTypeLookup[
+                                                          minibusinessLocation
+                                                              .type]!,
+                                                      size: 14,
+                                                    )),
+                                              ])),
                                     ],
                                   ),
                                 ),

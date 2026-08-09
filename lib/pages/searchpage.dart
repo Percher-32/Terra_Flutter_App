@@ -5,6 +5,7 @@ import 'package:nextfind/utils/arbitStore.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
 import 'package:nextfind/utils/locationmanager.dart';
+import 'package:nextfind/utils/life_cycle_handler.dart';
 
 import 'package:logger/logger.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -155,38 +156,41 @@ class _MapSearchViewState extends State<MapSearchView>
   }
 
   Future<void> _refreshOverlayPositions() async {
-    // log.i("FRM : ${_frameCount % 4 == 0}");
-    _frameCount += 1;
+    if (_mapReady && _mapController != null) {
+      if (!lifecycle.isPaused) {
+        _frameCount += 1;
 
-    if (_frameCount > 10000) _frameCount = 0;
+        if (_frameCount > 10000) _frameCount = 0;
 
-    if (!_mapReady || _mapController == null) return;
+        if (!_mapReady || _mapController == null) return;
 
-    final points =
-        await _mapController!.toScreenLocationBatch(_markerPositions);
+        final points =
+            await _mapController!.toScreenLocationBatch(_markerPositions);
 
-    if (mounted) {
-      final dpr = MediaQuery.of(context).devicePixelRatio;
-      List<Point> dummyList = [];
+        if (mounted) {
+          final dpr = MediaQuery.of(context).devicePixelRatio;
+          List<Point> dummyList = [];
 
-      for (int i = 0; i < points.length; i++) {
-        final p = points[i];
-        _markerOffsets[i].value = Offset(
-          p.x.toDouble() / dpr,
-          p.y.toDouble() / dpr,
-        );
+          for (int i = 0; i < points.length; i++) {
+            final p = points[i];
+            _markerOffsets[i].value = Offset(
+              p.x.toDouble() / dpr,
+              p.y.toDouble() / dpr,
+            );
 
-        // if (_frameCount % 4 == 0) {
-        dummyList.add(Point(
-          p.x.toDouble() / dpr,
-          p.y.toDouble() / dpr,
-        ));
-        // }
-      }
+            // if (_frameCount % 4 == 0) {
+            dummyList.add(Point(
+              p.x.toDouble() / dpr,
+              p.y.toDouble() / dpr,
+            ));
+            // }
+          }
 
-      if (_frameCount % 10 == 0) {
-        _markerDist = nearestDistances(dummyList);
-        // log.i("FRM : AAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHH");
+          if (_frameCount % 10 == 0) {
+            _markerDist = nearestDistances(dummyList);
+            // log.i("FRM : AAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHH");
+          }
+        }
       }
     }
   }
@@ -209,35 +213,31 @@ class _MapSearchViewState extends State<MapSearchView>
       double nearestDist, int index) {
     double normDist = ((nearestDist) * 0.00015).clamp(0, 1);
 
-    String iconPath = "assets/icons/business_type_icons/food_and_dining_icon.png";
-    if (miniBusLoc.type == 0){
+    String iconPath = "assets/icons/svg_logo.png";
+    if (miniBusLoc.type == 0) {
       iconPath = "assets/icons/business_type_icons/food_and_dining_icon.png";
-    }
-    else if(miniBusLoc.type == 1) {
-      iconPath = "assets/icons/business_type_icons/home_services.png";
-    }
-    else if(miniBusLoc.type == 2) {
-      iconPath = "assets/icons/business_type_icons/health_and_wellness_icon.png";
-    }
-    else if(miniBusLoc.type == 3) {
-      iconPath = "assets/icons/business_type_icons/shopping_and_retail_icon.png";
-    }
-    else if(miniBusLoc.type == 4) {
-      iconPath = "assets/icons/business_type_icons/proffesional_services_icon.png";
-    }
-    else if(miniBusLoc.type == 5) {
+    } else if (miniBusLoc.type == 1) {
+      iconPath = "assets/icons/business_type_icons/home_services_icon.png";
+    } else if (miniBusLoc.type == 2) {
+      iconPath =
+          "assets/icons/business_type_icons/health_and_wellness_icon.png";
+    } else if (miniBusLoc.type == 3) {
+      iconPath =
+          "assets/icons/business_type_icons/shopping_and_retail_icon.png";
+    } else if (miniBusLoc.type == 4) {
+      iconPath =
+          "assets/icons/business_type_icons/proffesional_services_icon.png";
+    } else if (miniBusLoc.type == 5) {
       iconPath = "assets/icons/business_type_icons/automotive_icon.png";
-    }
-    else if(miniBusLoc.type == 6) {
-      iconPath = "assets/icons/business_type_icons/beauty_and_personal_care_icon.png";
-    }
-    else if(miniBusLoc.type == 7) {
-      iconPath = "assets/icons/business_type_icons/entertainment_and_leisure_icon.png";
-    }
-    else if(miniBusLoc.type == 8) {
+    } else if (miniBusLoc.type == 6) {
+      iconPath =
+          "assets/icons/business_type_icons/beauty_and_personal_care_icon.png";
+    } else if (miniBusLoc.type == 7) {
+      iconPath =
+          "assets/icons/business_type_icons/entertainment_and_leisure_icon.png";
+    } else if (miniBusLoc.type == 8) {
       iconPath = "assets/icons/business_type_icons/education_icon.png";
-    }
-    else if(miniBusLoc.type == 9) {
+    } else if (miniBusLoc.type == 9) {
       iconPath = "assets/icons/business_type_icons/lodging_and_travel_icon.png";
     }
 
@@ -349,7 +349,7 @@ class _MapSearchViewState extends State<MapSearchView>
               clipBehavior: Clip.none,
               children: [
                 Image.asset(
-                  'assets/icons/svg_logo.png',
+                  iconPath,
                   width: 32,
                   height: 32,
                 ),
@@ -438,70 +438,71 @@ class _MapSearchViewState extends State<MapSearchView>
                   // _refreshOverlayPositions();
                 },
                 onStyleLoadedCallback: () async {
-                  _mapReady = true;
+                  if (!lifecycle.isPaused) {
+                    _mapReady = true;
 
-                  // await _addSearchRadiusPolygon();
+                    // await _addSearchRadiusPolygon();
 
-                  if (_radiusSourceAdded) {
-                    _refreshOverlayPositions();
-                    return;
+                    if (_radiusSourceAdded) {
+                      // _refreshOverlayPositions();
+                      return;
+                    }
+
+                    // final polygon = generateCirclePolygon(
+                    //   53.7443,
+                    //   -0.33515,
+                    //   100,
+                    // );
+                    log.i(
+                        "PLAX : BUILD MAP ULOC -> ${arbitStore.data["userLocation"]}");
+                    _mapController!.addCircle(
+                      map_gl.CircleOptions(
+                        geometry: map_gl.LatLng(
+                            arbitStore.data["userLocation"][0],
+                            arbitStore.data["userLocation"][1]),
+                        circleRadius: 13.0,
+                        circleColor: AppColors.primary.toHexStringRGB(),
+                        circleOpacity: 1,
+                      ),
+                    );
+
+                    _mapController!.addCircle(
+                      map_gl.CircleOptions(
+                        geometry: map_gl.LatLng(
+                            arbitStore.data["userLocation"][0],
+                            arbitStore.data["userLocation"][1]),
+                        circleRadius: 7.0,
+                        circleColor: AppColors.background.toHexStringRGB(),
+                        circleOpacity: 1,
+                      ),
+                    );
+
+                    // await _mapController!.addSource(
+                    //   "search-radius-source",
+                    //   map_gl.GeojsonSourceProperties(
+                    //     data: {
+                    //       "type": "Feature",
+                    //       "geometry": {
+                    //         "type": "Polygon",
+                    //         "coordinates": [polygon],
+                    //       }
+                    //     },
+                    //   ),
+                    // );
+
+                    // await _mapController!.addLayer(
+                    //   "search-radius-source",
+                    //   "search-radius-layer",
+                    //   const map_gl.FillLayerProperties(
+                    //     fillColor: "#296CA8",
+                    //     fillOpacity: 0.2,
+                    //     fillOutlineColor: "#296CA8",
+                    //   ),
+                    // );
+
+                    _radiusSourceAdded = true;
                   }
-
-                  // final polygon = generateCirclePolygon(
-                  //   53.7443,
-                  //   -0.33515,
-                  //   100,
-                  // );
-                  log.i(
-                      "PLAX : BUILD MAP ULOC -> ${arbitStore.data["userLocation"]}");
-                  _mapController!.addCircle(
-                    map_gl.CircleOptions(
-                      geometry: map_gl.LatLng(
-                          arbitStore.data["userLocation"][0],
-                          arbitStore.data["userLocation"][1]),
-                      circleRadius: 13.0,
-                      circleColor: AppColors.primary.toHexStringRGB(),
-                      circleOpacity: 1,
-                    ),
-                  );
-
-                  _mapController!.addCircle(
-                    map_gl.CircleOptions(
-                      geometry: map_gl.LatLng(
-                          arbitStore.data["userLocation"][0],
-                          arbitStore.data["userLocation"][1]),
-                      circleRadius: 7.0,
-                      circleColor: AppColors.background.toHexStringRGB(),
-                      circleOpacity: 1,
-                    ),
-                  );
-
-                  // await _mapController!.addSource(
-                  //   "search-radius-source",
-                  //   map_gl.GeojsonSourceProperties(
-                  //     data: {
-                  //       "type": "Feature",
-                  //       "geometry": {
-                  //         "type": "Polygon",
-                  //         "coordinates": [polygon],
-                  //       }
-                  //     },
-                  //   ),
-                  // );
-
-                  // await _mapController!.addLayer(
-                  //   "search-radius-source",
-                  //   "search-radius-layer",
-                  //   const map_gl.FillLayerProperties(
-                  //     fillColor: "#296CA8",
-                  //     fillOpacity: 0.2,
-                  //     fillOutlineColor: "#296CA8",
-                  //   ),
-                  // );
-
-                  _radiusSourceAdded = true;
-
-                  _refreshOverlayPositions();
+                  // _refreshOverlayPositions();
                 },
                 onCameraMove: (cameraPosition) {
                   _mapZoom = cameraPosition.zoom;
@@ -608,6 +609,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(lifecycle);
     shouldReloadMarkers.addListener(() {
       if (shouldReloadMarkers.value) {
         _reloadMapOnly();
