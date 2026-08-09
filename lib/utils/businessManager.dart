@@ -5,7 +5,7 @@ import 'package:nextfind/networking/apiconn.dart';
 
 // import 'package:nextfind/utils/arbitStore.dart';
 const businessTypeLookup = {
-  -1:"All",
+  -1: "All",
   0: "Food",
   1: "Home",
   2: "Health",
@@ -42,7 +42,7 @@ class BusinessLocation {
       this.description,
       this.phoneNumber,
       this.timeZone = "Europe/London",
-      this.imagePaths = const []});
+      this.imagePaths = const [],});
 
   final String locationId;
   final String businessId;
@@ -79,7 +79,7 @@ class MiniBusinessLoc {
       this.averageRating,
       this.thumbnailPath,
       this.numRatings,
-      this.over18 = false});
+      this.over18 = false,required this.buildingNumber});
 
   final String locationId;
   final String businessId;
@@ -94,6 +94,8 @@ class MiniBusinessLoc {
   final int? numRatings;
   final String? thumbnailPath;
   final bool over18;
+  
+  final int buildingNumber;
 }
 
 const abc = {
@@ -357,7 +359,7 @@ class Businessmanager {
           averageRating: locationData["rating_average"],
           over18: locationData["over_18"],
           numRatings: locationData["rating_count"],
-          thumbnailPath: locationData["thumbnail_path"]);
+          thumbnailPath: locationData["thumbnail_path"],buildingNumber: locationData["building_number"]);
 
       miniBusinessLocLookup[locationData["business_location_id"]] =
           newMiniBusiness;

@@ -42,10 +42,9 @@ class ServerConnect {
   }
 
   Future<bool> isOnline() async {
-  if (!await hasNetwork()) return false;
-  return await hasInternet();
-}
-
+    if (!await hasNetwork()) return false;
+    return await hasInternet();
+  }
 
   Future<dynamic> getNearbyBusinesses({
     required List location,
@@ -57,6 +56,7 @@ class ServerConnect {
     bool idOnly = false,
     bool gasSafeOnly = false,
     bool elecSafeOnly = false,
+    bool includeScore = false,
   }) async {
     if (type == -1) {
       type = null;
@@ -113,7 +113,17 @@ class ServerConnect {
         return returnedBusinessesLocations;
       } else {
         log.d("FUNCTION : getNearbyBusinesses | RESULT (ONlY_ID) = $data");
-        return data;
+
+        if (!includeScore) {
+          List<String> newData = [];
+          for (List datachunk in data) {
+            newData.add(datachunk[0]);
+          }
+
+          return newData;
+        } else {
+          return data;
+        }
       }
     } else {
       log.e("FUNCTION : getNearbyBusinesses | Error Occured $data");

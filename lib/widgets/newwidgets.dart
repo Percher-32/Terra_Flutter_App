@@ -42,6 +42,17 @@ Future<void> _runPreloadTask(List<String> urls, BuildContext context) async {
   }
 }
 
+String parseAddress(Map address, int houseNumber) {
+  String addressString = "";
+
+  addressString += houseNumber.toString();
+
+  addressString += " ${address["road"] ?? "INVALID POSITION"}";
+
+  addressString += "\n${address["postcode"] ?? "INVALID POSITION"}";
+
+  return addressString;
+}
 // double dist(List<double> a, List<double> b) {
 //   final dx = a[0] - b[0];
 //   final dy = a[1] - b[1];
@@ -563,10 +574,9 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                               children: [
                                 ConstrainedBox(
                                   constraints: const BoxConstraints(
-                                    minWidth: 150,
-                                    maxWidth: 150,
-                                    minHeight: 80,
-                                  ),
+                                      minWidth: 150,
+                                      maxWidth: 150,
+                                      minHeight: 40),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -603,7 +613,8 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                                 ),
                                 Small(ratings),
                                 MyText(
-                                  "230 Orchard Park Rd\nHU6 9BX",
+                                  parseAddress(
+                                      minibusinessLocation.address, minibusinessLocation.buildingNumber),
                                   size: 13,
                                 ),
                                 Row(

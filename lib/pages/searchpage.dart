@@ -265,14 +265,21 @@ class _MapSearchViewState extends State<MapSearchView>
       's'
     ].contains(miniBusLoc.name[0].toLowerCase());
 
+    String ratingtext = "-";
+
+    if (miniBusLoc.averageRating != null) {
+      ratingtext =
+          "${miniBusLoc.averageRating!.toStringAsFixed(1)}(${miniBusLoc.numRatings})";
+    }
+
     if (index <= 3) {
-      normDist += 0.2;
+      normDist += 0.2 / 2;
     } else if (index <= 10) {
-      normDist += 0.1;
+      normDist += 0.1 / 2;
     }
 
     if (verified) {
-      normDist += 0.2;
+      normDist += 0.2 / 2;
       veriBadge = Positioned(
           right: -5,
           bottom: -5,
@@ -308,31 +315,37 @@ class _MapSearchViewState extends State<MapSearchView>
           onTap: () {
             onIconClicked(miniBusLoc);
           },
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Image.asset(iconPath, width: 32, height: 32),
-              Positioned(
-                right: -10,
-                top: -5,
-                child: Container(
-                  width: 20,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: AppColors.secondary,
-                  ),
-                  child: Center(
-                    child: MyText(
-                      (miniBusLoc.averageRating ?? "-").toString(),
-                      size: 10,
-                      color: AppColors.background,
+          child: Stack(clipBehavior: Clip.none, children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Image.asset(
+                  iconPath,
+                  width: 32,
+                  height: 32,
+                ),
+                Positioned(
+                  right: -10 - 20,
+                  top: -5,
+                  child: Container(
+                    width: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.secondary,
+                    ),
+                    child: Center(
+                      child: MyText(
+                        (ratingtext).toString(),
+                        size: 10,
+                        color: AppColors.background,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              veriBadge,
-            ],
-          ),
+                veriBadge,
+              ],
+            ),
+          ]),
         ),
       );
     } else {
@@ -343,7 +356,7 @@ class _MapSearchViewState extends State<MapSearchView>
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 15,
+          spacing: 30,
           children: [
             Stack(
               clipBehavior: Clip.none,
@@ -354,17 +367,17 @@ class _MapSearchViewState extends State<MapSearchView>
                   height: 32,
                 ),
                 Positioned(
-                  right: -10,
+                  right: -10 - 20,
                   top: -5,
                   child: Container(
-                    width: 20,
+                    width: 40,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       color: AppColors.secondary,
                     ),
                     child: Center(
                       child: MyText(
-                        (miniBusLoc.averageRating ?? "-").toString(),
+                        (ratingtext).toString(),
                         size: 10,
                         color: AppColors.background,
                       ),
@@ -372,25 +385,33 @@ class _MapSearchViewState extends State<MapSearchView>
                   ),
                 ),
                 veriBadge,
-              ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 100,
-                  child: MyText(
-                    miniBusLoc.name,
-                    size: 12,
-                    overflow: TextOverflow.ellipsis,
-                    maxlines: 1,
+                Positioned(
+                  left: 40,
+                  top: 10,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(
+                        height: 0,
+                      ),
+                      SizedBox(
+                        width: 100,
+                        // height: 100,
+                        child: MyText(
+                          miniBusLoc.name,
+                          size: 12,
+                          overflow: TextOverflow.ellipsis,
+                          maxlines: 1,
+                        ),
+                      ),
+                      MyText(
+                        businessTypeLookup[miniBusLoc.type]!,
+                        size: 12,
+                        overflow: TextOverflow.ellipsis,
+                        maxlines: 1,
+                      ),
+                    ],
                   ),
-                ),
-                MyText(
-                  businessTypeLookup[miniBusLoc.type]!,
-                  size: 12,
-                  overflow: TextOverflow.ellipsis,
-                  maxlines: 1,
                 ),
               ],
             ),
