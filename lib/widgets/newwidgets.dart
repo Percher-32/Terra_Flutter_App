@@ -181,11 +181,11 @@ class MyButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 40),
+          padding: padding,
           shape: RoundedRectangleBorder(
             borderRadius: borderRadius ?? BorderRadius.circular(12),
           ),
-          backgroundColor: AppColors.primary,
+          backgroundColor: backgroundColor,
         ),
         child: child,
       ),
@@ -613,8 +613,8 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                                 ),
                                 Small(ratings),
                                 MyText(
-                                  parseAddress(
-                                      minibusinessLocation.address, minibusinessLocation.buildingNumber),
+                                  parseAddress(minibusinessLocation.address,
+                                      minibusinessLocation.buildingNumber),
                                   size: 13,
                                 ),
                                 Row(
@@ -782,12 +782,16 @@ class MyMainSliderState extends State<MyMainSlider> {
   @override
   Widget build(BuildContext context) {
     final List<int> distances = widget.distances;
+
+    final bool isOne = (distances[sliderValue.toInt()] == 1);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
-      spacing: 20,
+      spacing: 5,
       children: [
         Body(
-          "Search Distance: ${distances[sliderValue.toInt()]} miles",
+          (distances[sliderValue.toInt()] == 1)
+              ? "Search within ${distances[sliderValue.toInt()]} mile"
+              : "Search within ${distances[sliderValue.toInt()]} miles",
           color: AppColors.text,
         ),
         Slider(
@@ -795,7 +799,7 @@ class MyMainSliderState extends State<MyMainSlider> {
           min: 0,
           max: (distances.length - 1).toDouble(),
           divisions: distances.length - 1,
-          label: "${distances[sliderValue.toInt()]} miles",
+          // label: "${distances[sliderValue.toInt()]} miles",
           onChanged: (value) {
             setState(() => sliderValue = value.toInt());
             widget.onChanged(distances[value.toInt()]);
@@ -1054,8 +1058,9 @@ class _MainDropdownState<T> extends State<MainDropdown<T>> {
         return DropdownMenuItem<T>(
           value: item,
           child: SizedBox(
-            height: 60, // menu item height
-            child: Body(widget.display(item), color: AppColors.text),
+            height: 40, // menu item height
+            child:
+                MyText(widget.display(item), color: AppColors.text, size: 20),
           ),
         );
       }).toList(),
@@ -1150,6 +1155,134 @@ class RoundButton extends StatelessWidget {
       ),
     );
     // return
+  }
+}
+
+class CustomDropDown extends StatefulWidget {
+  const CustomDropDown(
+      {super.key,
+      this.values = const [],
+      this.widgetAppend = const [],
+      this.startIndex = 0,
+      this.numColumns = 3});
+
+  final List values;
+  final int startIndex;
+  final int numColumns;
+  final List<Widget> widgetAppend;
+
+  @override
+  State<CustomDropDown> createState() => _CustomDropDownState();
+}
+
+class _CustomDropDownState extends State<CustomDropDown> {
+  late ValueNotifier<int> _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = ValueNotifier(widget.startIndex);
+  }
+
+  void showOptionPicker() {
+    List<Widget> gridItems = [];
+
+    for (int itemIndex = 0; itemIndex < widget.values.length; itemIndex++) {
+      final itemValue = widget.values[itemIndex];
+
+      Widget itemWidget = SizedBox();
+      if (itemIndex < widget.widgetAppend.length) {
+        itemWidget = widget.widgetAppend[itemIndex];
+      }
+
+      final bool isChosen = _currentIndex.value == itemIndex;
+
+      final gridWidget = MyButton(
+        width: 50,
+        height: 50,
+        // backgroundColor: isChosen ? AppColors.primary : AppColors.leveled,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Center(
+            child: Row(
+          children: [
+            MyText(
+              itemValue.toString(),
+              color: isChosen ? AppColors.background : AppColors.text,
+              textAlign: TextAlign.center,
+              size: 20,
+            ),
+            itemWidget
+          ],
+        )),
+      );
+
+      gridItems.add(gridWidget);
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: EdgeInsets.all(20),
+          child: SizedBox(
+              height: 500, // limit height
+              // width: ,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // how wide each item should be
+                  const itemWidth = 140.0;
+
+                  // calculate how many items fit
+                  final columns = (constraints.maxWidth / itemWidth).floor();
+
+                  return GridView.count(
+                    padding: EdgeInsets.all(20),
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    crossAxisCount: columns,
+                    children: gridItems,
+                  );
+                },
+              )),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+        valueListenable: _currentIndex,
+        builder: (_, index, __) {
+          return MyButton(
+            width: 300,
+            height: 60,
+            padding: const EdgeInsets.only(),
+            child: Stack(clipBehavior: Clip.none, children: [
+              Positioned(
+                left: -10,
+                top: -3,
+                child: MyText(
+                  widget.values[_currentIndex.value].toString(),
+                  textAlign: TextAlign.center,
+                  color: AppColors.background,
+                ),
+              ),
+              const Positioned(
+                right: -30,
+                top: -8,
+                child: Icon(
+                  Icons.arrow_drop_down,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              )
+            ]),
+            onPressed: () {
+              showOptionPicker();
+            },
+          );
+        });
   }
 }
 
@@ -1337,8 +1470,7 @@ PreferredSize newsearchbar(BuildContext context) {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.filter_alt,
-                        color: Colors.white, size: 40),
+                    icon: const Icon(Icons.tune, color: Colors.white, size: 40),
                     iconSize: 35,
                     onPressed: () => filterDropDown(context),
                   ),
@@ -1352,6 +1484,10 @@ PreferredSize newsearchbar(BuildContext context) {
     ),
   );
 }
+
+// Widget categoryPicker(){
+//   return
+// }
 
 void filterDropDown(BuildContext context) {
   Arbitfallbacks();
@@ -1369,7 +1505,12 @@ void filterDropDown(BuildContext context) {
           spacing: 0,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SubHeading("Filters", color: AppColors.text),
+            const MyText(
+              "Search Settings",
+              color: AppColors.text,
+              size: 30,
+            ),
+            const SizedBox(height: 20),
             MyMainSlider(
               distances: distances,
               onChanged: (distance) {
@@ -1381,14 +1522,17 @@ void filterDropDown(BuildContext context) {
               startValue: arbitStore.data["distance_index"],
             ),
             const SizedBox(height: 30),
-            MainDropdown(
-              items: businessTypeLookup.keys.toList(),
-              initialValue: arbitStore.data["categoryINDEX"],
-              label: "Business Category",
-              display: (value) => businessTypeLookup[value]!,
-              onChanged: (value) {
-                arbitStore.data["categoryINDEX"] = value;
-              },
+            // MainDropdown(
+            //   items: businessTypeLookup.keys.toList(),
+            //   initialValue: arbitStore.data["categoryINDEX"],
+            //   label: "Business Category",
+            //   display: (value) => businessTypeLookup[value]!,
+            //   onChanged: (value) {
+            //     arbitStore.data["categoryINDEX"] = value;
+            //   },
+            // ),
+            CustomDropDown(
+              values: businessTypeLookup.values.toList(),
             ),
             const SizedBox(height: 25),
             MyMultiToggle(
