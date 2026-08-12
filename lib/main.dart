@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nextfind/pages/searchpage.dart';
+// import 'package:nextfind/pages/searchpage.dart';
 // import 'package:nextfind/pages/searchpage.dart';
 import 'pages/homepage.dart';
 import 'package:nextfind/utils/arbitStore.dart';

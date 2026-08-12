@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/utils/businessManager.dart';
 import 'package:nextfind/utils/arbitStore.dart';
@@ -14,14 +15,6 @@ import 'package:flutter/scheduler.dart';
 
 import 'dart:math';
 import 'dart:typed_data';
-
-map_gl.MapLibreMapController? _mapController;
-
-ValueNotifier<String> mapMode = ValueNotifier("Base");
-// ValueNotifier<bool> _isShowingThumbnail = ValueNotifier(false);
-// ValueNotifier<bool> isCheckingForTap = ValueNotifier(false);
-// final ValueNotifier<bool> cleanUi = ValueNotifier(false);
-ValueNotifier<bool> shouldReloadMarkers = ValueNotifier(false);
 
 Future<Uint8List> loadMarkerImage() async {
   final data = await rootBundle.load('assets/icons/Vector.png');
@@ -65,10 +58,16 @@ class MapSearchView extends StatefulWidget {
   const MapSearchView(
       {super.key,
       required this.miniBusinessLocationids,
-      required this.isReady});
+      required this.isReady,
+      required this.mapMode,
+      required this.shouldReloadMap,
+      required this.changeMapLocation});
 
   final List<String> miniBusinessLocationids;
   final bool isReady;
+  final ValueNotifier<String> mapMode;
+  final ValueNotifier<bool> shouldReloadMap;
+  final ValueNotifier<List<double>> changeMapLocation;
 
   @override
   State<MapSearchView> createState() => _MapSearchViewState();
@@ -82,20 +81,8 @@ class _MapSearchViewState extends State<MapSearchView>
   late final Ticker _ticker;
   String? miniBusinessId;
 
-  // List.generate(30, (index) {
-  //   final int row = index ~/ 20;
-  //   final int col = index % 20;
-  //   final double minLat = 53.744 + 0.001;
-  //   final double maxLat = 53.744 - 0.001;
-  //   final double minLng = -0.335 + 0.001;
-  //   final double maxLng = -0.335 - 0.001;
-  //   final double lat = minLat + (col / 19) * (maxLat - minLat);
-  //   final double lng = minLng + (row / 9) * (maxLng - minLng);
-  //   return map_gl.LatLng(lat, lng);
-  // });
-
-  void moveToNewLocation(List location) {
-    _mapController?.animateCamera(
+  void moveToNewLocation(List<double> location) {
+    mapController?.animateCamera(
       map_gl.CameraUpdate.newLatLng(
         map_gl.LatLng(location[0], location[1]),
       ),
@@ -107,6 +94,8 @@ class _MapSearchViewState extends State<MapSearchView>
   late List<double> _markerDist;
 
   late List<map_gl.LatLng> _markerPositions;
+
+  late map_gl.MapLibreMapController? mapController;
 
   double _mapZoom = 16.0;
   double _mapBearing = 0.0;
@@ -136,9 +125,13 @@ class _MapSearchViewState extends State<MapSearchView>
     );
 
     _ticker = createTicker((_) {
-      if (_mapReady && _mapController != null) {
+      if (_mapReady && mapController != null) {
         _refreshOverlayPositions(); // runs every frame
       }
+    });
+
+    widget.changeMapLocation.addListener(() {
+      moveToNewLocation(widget.changeMapLocation.value);
     });
 
     _ticker.start();
@@ -156,16 +149,16 @@ class _MapSearchViewState extends State<MapSearchView>
   }
 
   Future<void> _refreshOverlayPositions() async {
-    if (_mapReady && _mapController != null) {
+    if (_mapReady && mapController != null) {
       if (!lifecycle.isPaused) {
         _frameCount += 1;
 
         if (_frameCount > 10000) _frameCount = 0;
 
-        if (!_mapReady || _mapController == null) return;
+        if (!_mapReady || mapController == null) return;
 
         final points =
-            await _mapController!.toScreenLocationBatch(_markerPositions);
+            await mapController!.toScreenLocationBatch(_markerPositions);
 
         if (mounted) {
           final dpr = MediaQuery.of(context).devicePixelRatio;
@@ -196,7 +189,7 @@ class _MapSearchViewState extends State<MapSearchView>
   }
 
   void onIconClicked(MiniBusinessLoc miniBusLoc) {
-    _mapController?.animateCamera(
+    mapController?.animateCamera(
       map_gl.CameraUpdate.newLatLngZoom(
         map_gl.LatLng(miniBusLoc.location[0], miniBusLoc.location[1]),
         16.0, // zoom level
@@ -205,7 +198,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
     // _lockCamera = true;
 
-    mapMode.value = "Thumbnail";
+    widget.mapMode.value = "Thumbnail";
     miniBusinessId = miniBusLoc.locationId;
   }
 
@@ -453,7 +446,7 @@ class _MapSearchViewState extends State<MapSearchView>
                 rotateGesturesEnabled: !_lockCamera,
                 tiltGesturesEnabled: !_lockCamera,
                 onMapCreated: (controller) async {
-                  _mapController = controller;
+                  mapController = controller;
                   // _mapReady = true;
 
                   // _refreshOverlayPositions();
@@ -476,7 +469,7 @@ class _MapSearchViewState extends State<MapSearchView>
                     // );
                     log.i(
                         "PLAX : BUILD MAP ULOC -> ${arbitStore.data["userLocation"]}");
-                    _mapController!.addCircle(
+                    mapController!.addCircle(
                       map_gl.CircleOptions(
                         geometry: map_gl.LatLng(
                             arbitStore.data["userLocation"][0],
@@ -487,7 +480,7 @@ class _MapSearchViewState extends State<MapSearchView>
                       ),
                     );
 
-                    _mapController!.addCircle(
+                    mapController!.addCircle(
                       map_gl.CircleOptions(
                         geometry: map_gl.LatLng(
                             arbitStore.data["userLocation"][0],
@@ -498,7 +491,7 @@ class _MapSearchViewState extends State<MapSearchView>
                       ),
                     );
 
-                    // await _mapController!.addSource(
+                    // await mapController!.addSource(
                     //   "search-radius-source",
                     //   map_gl.GeojsonSourceProperties(
                     //     data: {
@@ -511,7 +504,7 @@ class _MapSearchViewState extends State<MapSearchView>
                     //   ),
                     // );
 
-                    // await _mapController!.addLayer(
+                    // await mapController!.addLayer(
                     //   "search-radius-source",
                     //   "search-radius-layer",
                     //   const map_gl.FillLayerProperties(
@@ -531,21 +524,22 @@ class _MapSearchViewState extends State<MapSearchView>
                   _refreshOverlayPositions();
                 },
                 onMapClick: (_, map_gl.LatLng latLng) {
-                  if (mapMode.value == "Choosing") {
+                  log.i("SEARCHPAGELOG : MAP TAPPED");
+                  if (widget.mapMode.value == "Choosing") {
                     final tappedLat = latLng.latitude;
                     final tappedLng = latLng.longitude;
 
                     // Example: update your userLocation
                     arbitStore.data["userLocation"] = [tappedLat, tappedLng];
 
-                    log.i("ABABAABABABAB");
-                    shouldReloadMarkers.value = true;
+                    log.i("SEARCHPAGELOG : MAP TAPPED RELOADING MARKERS");
+                    widget.shouldReloadMap.value = true;
 
-                    mapMode.value = "Base";
+                    widget.mapMode.value = "Base";
                   } else {
                     _lockCamera = false;
 
-                    mapMode.value = "Base";
+                    widget.mapMode.value = "Base";
                   }
                 },
                 onMapIdle: () {
@@ -596,7 +590,7 @@ class _MapSearchViewState extends State<MapSearchView>
               ),
 
               ValueListenableBuilder<String>(
-                valueListenable: mapMode,
+                valueListenable: widget.mapMode,
                 builder: (_, choosing, __) {
                   if (choosing != "Thumbnail") return const SizedBox();
                   if (miniBusinessId == null) return const SizedBox();
@@ -624,45 +618,71 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   late List<String> _miniBusinessLocationids;
+
+  bool hasMapModeValue = false;
+  
+  // log.i("SEARCHPAGELOG : INIT STATE RAN");
+  late final ValueNotifier<String> mapMode;
+  late final ValueNotifier<bool> shouldReloadMap;
+  late final ValueNotifier<List<double>> changeMapLocation;
   bool isReady = false;
   bool _hasWifi = true;
 
   @override
   void initState() {
+    log.i("SEARCHPAGELOG : INIT STATE RAN");
+
     super.initState();
     WidgetsBinding.instance.addObserver(lifecycle);
-    shouldReloadMarkers.addListener(() {
-      if (shouldReloadMarkers.value) {
+
+    
+
+    mapMode = ValueNotifier("Base");
+    shouldReloadMap = ValueNotifier(false);
+    changeMapLocation =
+        ValueNotifier(arbitStore.data["userLocation"]);
+
+
+
+    
+
+    log.i("SEARCHPAGELOG : INIT STATE LATE INITIALISED");
+
+    changeMapLocation;
+
+    shouldReloadMap.addListener(() {
+      if (shouldReloadMap.value) {
+        log.i("SEARCHPAGELOG : Should RELOADING MAP");
         _reloadMapOnly();
-        shouldReloadMarkers.value = false;
+        shouldReloadMap.value = false;
       }
     });
 
+    
+
+    mapMode.addListener(() {
+      log.i("SEARCHPAGELOG : mapMode set to ${mapMode.value}");
+    });
+
     _hasWifi = true;
+    hasMapModeValue = true;
 
-    // isCheckingForTap.addListener(_updateHideState);
-    // isCheckingForTap.addListener(() {
-    //   _isShowingThumbnail.value = false;
-    // });
-    // _isShowingThumbnail.addListener(_updateHideState);
+    
 
-    _getLocations();
+    _runSearchFunction();
   }
 
-  // void _updateHideState() {
-  //   cleanUi.value = isCheckingForTap.value || _isShowingThumbnail.value;
-  // }
-
   Future<void> _reloadMapOnly() async {
-    log.i("ABABAABABABAB : reloading map");
-    await _getLocations(); // refresh business markers
-
-    log.i("ABABAABABABAB : reloading Done");
+    log.i("SEARCHPAGELOG : RELOAD MAP - START");
+    await _runSearchFunction(); // refresh business markers
+    log.i("SEARCHPAGELOG : RELOAD MAP - END");
     mapMode.value = "Base";
   }
 
-  Future<void> _getLocations() async {
+  Future<void> _runSearchFunction() async {
+    log.i("SEARCHPAGELOG : RUNNING SEARCH START");
     _hasWifi = await serverconnect.isOnline();
+
 
     _miniBusinessLocationids =
         List<String>.from(await serverconnect.getNearbyBusinesses(
@@ -675,12 +695,20 @@ class _SearchPageState extends State<SearchPage> {
       idOnly: true,
     ));
 
+
     await businessManager.getBusinessLocationMini(_miniBusinessLocationids);
+
 
     isReady = true;
 
+
     if (!mounted) return;
+
+
     setState(() {});
+
+    
+    log.i("SEARCHPAGELOG : RUNNING SEARCH END");
   }
 
   void locationButtonPressed() {
@@ -745,6 +773,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget buildPage(BuildContext context) {
+    log.i("SEARCHPAGELOG : BUILDPAGE RAN");
     Widget suppposedMap = const Center(child: Heading("Loading Map..."));
 
     if (!_hasWifi) {
@@ -753,10 +782,14 @@ class _SearchPageState extends State<SearchPage> {
 
     if (isReady) {
       if (mapMode.value == "Base") {
+        log.i("SEARCHPAGELOG : BUILDPAGE ADDED MAP FSR");
         suppposedMap = MapSearchView(
           key: ValueKey(arbitStore.data["userLocation"].toString()),
           miniBusinessLocationids: _miniBusinessLocationids,
           isReady: isReady,
+          mapMode: mapMode,
+          shouldReloadMap: shouldReloadMap,
+          changeMapLocation: changeMapLocation,
         );
       } else if (mapMode.value == "List") {
         suppposedMap = ListSearchView(
@@ -818,14 +851,7 @@ class _SearchPageState extends State<SearchPage> {
                   borderRadius: BorderRadius.circular(20),
                   splashColor: const Color.fromARGB(111, 252, 178, 74),
                   onTap: () {
-                    _mapController?.animateCamera(
-                      map_gl.CameraUpdate.newLatLngZoom(
-                        map_gl.LatLng(arbitStore.data["userLocation"][0],
-                            arbitStore.data["userLocation"][1]),
-                        16.0, // zoom level
-                      ),
-                    );
-                    ;
+                    changeMapLocation.value = arbitStore.data["userLocation"];
                   },
                   child: Ink(
                     width: 60,
@@ -974,83 +1000,91 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-        canPop: mapMode.value !=
-            "Thumbnail", // BLOCK back when thumbnail is showing
-        onPopInvokedWithResult: (didPop, result) {
-          if (mapMode.value == "Thumbnail") {
-            // Custom back behaviour
-            mapMode.value = "Base";
+    log.i("SEARCHPAGELOG : RUNNING BUILD FUNCTION");
+      
+      log.i("SEARCHPAGELOG : mapModeFound $hasMapModeValue");
+      log.i("SEARCHPAGELOG : RUNNING BUILD FUNCTION -> HAS MADMODE VALUE");
+      return PopScope(
+          canPop: mapMode.value !=
+              "Thumbnail", // BLOCK back when thumbnail is showing
+          onPopInvokedWithResult: (didPop, result) {
+            if (mapMode.value == "Thumbnail") {
+              // Custom back behaviour
+              mapMode.value = "Base";
 
-            // DO NOT allow pop
-            return;
-          }
+              // DO NOT allow pop
+              return;
+            }
 
-          // If didPop == true → the page already popped
-          // If didPop == false → canPop prevented the pop
-        },
-        child: Scaffold(
-            appBar: PreferredSize(
-                preferredSize: const Size.fromHeight(84),
-                child: Positioned(
+            // If didPop == true → the page already popped
+            // If didPop == false → canPop prevented the pop
+          },
+          child: Scaffold(
+              appBar: PreferredSize(
+                  preferredSize: const Size.fromHeight(84),
+                  child: Positioned(
+                    child: ValueListenableBuilder<String>(
+                      valueListenable: mapMode,
+                      builder: (_, choosing, __) {
+                        if (choosing != "List") {
+                          return const SizedBox(); // hide search bar
+                        }
+                        return Positioned(child: newsearchbar(context));
+                      },
+                    ),
+                  )),
+              bottomNavigationBar: ValueListenableBuilder<String>(
+                valueListenable: mapMode,
+                builder: (_, choosing, __) {
+                  if (choosing != "List") {
+                    return const SizedBox(); // hide search bar
+                  }
+                  return Positioned(child: newbottombar(context, index: 0));
+                },
+              ),
+              body: Stack(children: [
+                Positioned(child: buildPage(context)),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
                   child: ValueListenableBuilder<String>(
                     valueListenable: mapMode,
                     builder: (_, choosing, __) {
-                      if (choosing != "List") {
+                      if (["Choosing", "List"].contains(choosing)) {
+                        return const SizedBox(); // hide search bar
+                      }
+                      return Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: newbottombar(context, index: 0));
+                    },
+                  ),
+                ),
+                Positioned(
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: mapMode,
+                    builder: (_, choosing, __) {
+                      if (["Choosing", "List"].contains(choosing)) {
                         return const SizedBox(); // hide search bar
                       }
                       return Positioned(child: newsearchbar(context));
                     },
                   ),
-                )),
-            bottomNavigationBar: ValueListenableBuilder<String>(
-              valueListenable: mapMode,
-              builder: (_, choosing, __) {
-                if (choosing != "List") {
-                  return const SizedBox(); // hide search bar
-                }
-                return Positioned(child: newbottombar(context, index: 0));
-              },
-            ),
-            body: Stack(children: [
-              Positioned(child: buildPage(context)),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: ValueListenableBuilder<String>(
-                  valueListenable: mapMode,
-                  builder: (_, choosing, __) {
-                    if (["Choosing", "List"].contains(choosing)) {
-                      return const SizedBox(); // hide search bar
-                    }
-                    return Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: newbottombar(context, index: 0));
-                  },
                 ),
-              ),
-              Positioned(
-                child: ValueListenableBuilder<String>(
-                  valueListenable: mapMode,
-                  builder: (_, choosing, __) {
-                    if (["Choosing", "List"].contains(choosing)) {
-                      return const SizedBox(); // hide search bar
-                    }
-                    return Positioned(child: newsearchbar(context));
-                  },
-                ),
-              ),
-            ])));
+              ])));
+    
 
     // return;
   }
 }
 
 class ListSearchView extends StatefulWidget {
-  const ListSearchView({super.key, required this.miniBusinessLocationids});
+  const ListSearchView({
+    super.key,
+    required this.miniBusinessLocationids,
+  });
 
   final List<String> miniBusinessLocationids;
   @override

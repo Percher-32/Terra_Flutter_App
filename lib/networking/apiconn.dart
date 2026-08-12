@@ -9,7 +9,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 final log = Logger();
 
-final serverUrl = 'http://192.168.1.107:8000';
+const serverUrl = 'http://192.168.1.107:8000';
 
 class ServerConnect {
   // final serverUrl = 'http://192.168.1.106:8000';
@@ -302,6 +302,10 @@ class ServerConnect {
 
     return data;
   }
+
+  // Future<dynamic> getRecommendedPosts(){
+
+  // }
 
   String fullUrl(String url) {
     final retStr = '$serverUrl/image/$url';
