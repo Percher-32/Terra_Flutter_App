@@ -1377,6 +1377,7 @@ class SearchBarController {
 
 class TagController {
   static final ValueNotifier<bool> updateTagWidget = ValueNotifier(false);
+  static final ValueNotifier<bool> justExitedTagChoose = ValueNotifier(false);
 
   static void showChooseTagDropDown(BuildContext context) {
     final TextEditingController tagSearchBarController =
@@ -1558,7 +1559,9 @@ class TagController {
                       );
                     },
                   )));
-        });
+        }).then((_) {
+  justExitedTagChoose.value = !justExitedTagChoose.value;
+  });;
   }
 
   static Widget showChosenTagWidget(BuildContext context) {
@@ -1587,17 +1590,18 @@ class TagController {
                       padding:
                           const EdgeInsets.only(top: 10, bottom: 10, right: 30),
                       child: MyButton(
-                        width: 100,
-                        height: 100,
+                        width: 60,
+                        height: 30,
                         padding: const EdgeInsets.all(0),
                         onPressed: () {
                           showChooseTagDropDown(context);
                         },
+                        backgroundColor: AppColors.primary,
                         child: const Center(
-                            child: Icon(Icons.add,
+                            child: Icon(Icons.add_rounded,
                                 // fontWeight: FontWeight(10),
                                 color: Colors.white,
-                                size: 30)),
+                                size: 50)),
                       ));
                 } else {
                   final Tag tag = tagManager

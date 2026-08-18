@@ -553,7 +553,7 @@ class _MapSearchViewState extends State<MapSearchView>
                 top: 0,
                 width: size.width,
                 height: size.height,
-                child: Stack(
+                child: _markerOffsets.isNotEmpty ?  Stack(
                   children: List.generate(widget.miniBusinessLocationids.length,
                       (index) {
                     MiniBusinessLoc miniBusLoc =
@@ -585,7 +585,7 @@ class _MapSearchViewState extends State<MapSearchView>
                       },
                     );
                   }),
-                ),
+                ) : SizedBox(),
               ),
 
               ValueListenableBuilder<String>(
@@ -652,6 +652,10 @@ class _SearchPageState extends State<SearchPage> {
 
     mapMode.addListener(() {
       log.i("SEARCHPAGELOG : mapMode set to ${mapMode.value}");
+    });
+
+    TagController.justExitedTagChoose.addListener(() {
+      _reloadMapOnly();
     });
 
     _hasWifi = true;
@@ -1042,6 +1046,26 @@ class _SearchPageState extends State<SearchPage> {
                         right: 0,
                         bottom: 0,
                         child: newbottombar(context, index: 0));
+                  },
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 120,
+                child: ValueListenableBuilder<String>(
+                  valueListenable: mapMode,
+                  builder: (_, choosing, __) {
+                    if (["Choosing", "List"].contains(choosing)) {
+                      return const SizedBox(); // hide search bar
+                    }
+                    return Positioned(
+                        left: 0,
+                        right: 0,
+                        top: 120,
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: TagController.showChosenTagWidget(context)));
                   },
                 ),
               ),
