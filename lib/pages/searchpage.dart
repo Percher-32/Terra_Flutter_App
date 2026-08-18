@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:nextfind/networking/apiconn.dart';
-import 'package:nextfind/utils/businessManager.dart';
+import 'package:nextfind/utils/business_manager.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
-import 'package:nextfind/utils/locationmanager.dart';
+import 'package:nextfind/utils/location_manager.dart';
 import 'package:nextfind/utils/life_cycle_handler.dart';
 
 import 'package:logger/logger.dart';
@@ -433,7 +432,7 @@ class _MapSearchViewState extends State<MapSearchView>
                 //     "https://api.maptiler.com/maps/019fa3e4-e15f-7004-817f-b2c8f21d06d9/style.json?key=6qbiNDxrdNlr98KHQ1F9",
 
                 styleString:
-                    "https://api.maptiler.com/maps/streets/style.json?key=6qbiNDxrdNlr98KHQ1F9",
+                    "https://api.maptiler.com/maps/019fa3e4-e15f-7004-817f-b2c8f21d06d9/style.json?key=6qbiNDxrdNlr98KHQ1F9",
                 initialCameraPosition: map_gl.CameraPosition(
                   target: map_gl.LatLng(arbitStore.data["userLocation"][0],
                       arbitStore.data["userLocation"][1]),
@@ -564,8 +563,8 @@ class _MapSearchViewState extends State<MapSearchView>
                     return ValueListenableBuilder<Offset>(
                       valueListenable: _markerOffsets[index],
                       builder: (_, offset, __) {
-                        final dynamicSize = (40.0 * (16.0 / max(_mapZoom, 1.0)))
-                            .clamp(20.0, 60.0);
+                        // final dynamicSize = (40.0 * (16.0 / max(_mapZoom, 1.0)))
+                        //     .clamp(20.0, 60.0);
 
                         final nearestDist = _markerDist[index];
 
@@ -620,7 +619,7 @@ class _SearchPageState extends State<SearchPage> {
   late List<String> _miniBusinessLocationids;
 
   bool hasMapModeValue = false;
-  
+
   // log.i("SEARCHPAGELOG : INIT STATE RAN");
   late final ValueNotifier<String> mapMode;
   late final ValueNotifier<bool> shouldReloadMap;
@@ -635,16 +634,9 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
     WidgetsBinding.instance.addObserver(lifecycle);
 
-    
-
-    mapMode = ValueNotifier("Base");
+    mapMode = ValueNotifier("List");
     shouldReloadMap = ValueNotifier(false);
-    changeMapLocation =
-        ValueNotifier(arbitStore.data["userLocation"]);
-
-
-
-    
+    changeMapLocation = ValueNotifier(arbitStore.data["userLocation"]);
 
     log.i("SEARCHPAGELOG : INIT STATE LATE INITIALISED");
 
@@ -658,16 +650,12 @@ class _SearchPageState extends State<SearchPage> {
       }
     });
 
-    
-
     mapMode.addListener(() {
       log.i("SEARCHPAGELOG : mapMode set to ${mapMode.value}");
     });
 
     _hasWifi = true;
     hasMapModeValue = true;
-
-    
 
     _runSearchFunction();
   }
@@ -683,11 +671,10 @@ class _SearchPageState extends State<SearchPage> {
     log.i("SEARCHPAGELOG : RUNNING SEARCH START");
     _hasWifi = await serverconnect.isOnline();
 
-
     _miniBusinessLocationids =
         List<String>.from(await serverconnect.getNearbyBusinesses(
       location: arbitStore.data["userLocation"],
-      query: searchBarTextController.text,
+      query: SearchBarController.controller.text,
       elecSafeOnly: arbitStore.data["electricitySafeOnly"],
       gasSafeOnly: arbitStore.data["gasSafeOnly"],
       maxdist: arbitStore.data["distance"],
@@ -695,19 +682,14 @@ class _SearchPageState extends State<SearchPage> {
       idOnly: true,
     ));
 
-
     await businessManager.getBusinessLocationMini(_miniBusinessLocationids);
-
 
     isReady = true;
 
-
     if (!mounted) return;
-
 
     setState(() {});
 
-    
     log.i("SEARCHPAGELOG : RUNNING SEARCH END");
   }
 
@@ -734,8 +716,8 @@ class _SearchPageState extends State<SearchPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   MyButton(
-                    width: 50,
-                    height: 80,
+                    width: 300,
+                    height: 60,
                     onPressed: () async {
                       isReady = false;
                       await getLocation();
@@ -751,8 +733,8 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                   ),
                   MyButton(
-                    width: 50,
-                    height: 80,
+                    width: 300,
+                    height: 60,
                     onPressed: () {
                       isReady = false;
                       mapMode.value = "Choosing";
@@ -981,8 +963,8 @@ class _SearchPageState extends State<SearchPage> {
                 left: MediaQuery.of(context).size.width / 8,
                 child: Center(
                     child: MyButton(
-                  width: 20,
-                  height: 40,
+                  width: 300,
+                  height: 60,
                   padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8.0),
                   child: const MyText(
                     "Back",
@@ -1001,80 +983,81 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     log.i("SEARCHPAGELOG : RUNNING BUILD FUNCTION");
-      
-      log.i("SEARCHPAGELOG : mapModeFound $hasMapModeValue");
-      log.i("SEARCHPAGELOG : RUNNING BUILD FUNCTION -> HAS MADMODE VALUE");
-      return PopScope(
-          canPop: mapMode.value !=
-              "Thumbnail", // BLOCK back when thumbnail is showing
-          onPopInvokedWithResult: (didPop, result) {
-            if (mapMode.value == "Thumbnail") {
-              // Custom back behaviour
-              mapMode.value = "Base";
 
-              // DO NOT allow pop
-              return;
-            }
+    log.i("SEARCHPAGELOG : mapModeFound $hasMapModeValue");
+    log.i("SEARCHPAGELOG : RUNNING BUILD FUNCTION -> HAS MADMODE VALUE");
+    return PopScope(
+        canPop: mapMode.value !=
+            "Thumbnail", // BLOCK back when thumbnail is showing
+        onPopInvokedWithResult: (didPop, result) {
+          if (mapMode.value == "Thumbnail") {
+            // Custom back behaviour
+            mapMode.value = "Base";
 
-            // If didPop == true → the page already popped
-            // If didPop == false → canPop prevented the pop
-          },
-          child: Scaffold(
-              appBar: PreferredSize(
-                  preferredSize: const Size.fromHeight(84),
-                  child: Positioned(
-                    child: ValueListenableBuilder<String>(
-                      valueListenable: mapMode,
-                      builder: (_, choosing, __) {
-                        if (choosing != "List") {
-                          return const SizedBox(); // hide search bar
-                        }
-                        return Positioned(child: newsearchbar(context));
-                      },
-                    ),
-                  )),
-              bottomNavigationBar: ValueListenableBuilder<String>(
-                valueListenable: mapMode,
-                builder: (_, choosing, __) {
-                  if (choosing != "List") {
-                    return const SizedBox(); // hide search bar
-                  }
-                  return Positioned(child: newbottombar(context, index: 0));
-                },
-              ),
-              body: Stack(children: [
-                Positioned(child: buildPage(context)),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
+            // DO NOT allow pop
+            return;
+          }
+
+          // If didPop == true → the page already popped
+          // If didPop == false → canPop prevented the pop
+        },
+        child: Scaffold(
+            appBar: PreferredSize(
+                preferredSize: const Size.fromHeight(84),
+                child: Positioned(
                   child: ValueListenableBuilder<String>(
                     valueListenable: mapMode,
                     builder: (_, choosing, __) {
-                      if (["Choosing", "List"].contains(choosing)) {
+                      if (choosing != "List") {
                         return const SizedBox(); // hide search bar
                       }
                       return Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          child: newbottombar(context, index: 0));
+                          child: SearchBarController.createSearchBar(context));
                     },
                   ),
+                )),
+            bottomNavigationBar: ValueListenableBuilder<String>(
+              valueListenable: mapMode,
+              builder: (_, choosing, __) {
+                if (choosing != "List") {
+                  return const SizedBox(); // hide search bar
+                }
+                return Positioned(child: newbottombar(context, index: 0));
+              },
+            ),
+            body: Stack(children: [
+              Positioned(child: buildPage(context)),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: ValueListenableBuilder<String>(
+                  valueListenable: mapMode,
+                  builder: (_, choosing, __) {
+                    if (["Choosing", "List"].contains(choosing)) {
+                      return const SizedBox(); // hide search bar
+                    }
+                    return Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: newbottombar(context, index: 0));
+                  },
                 ),
-                Positioned(
-                  child: ValueListenableBuilder<String>(
-                    valueListenable: mapMode,
-                    builder: (_, choosing, __) {
-                      if (["Choosing", "List"].contains(choosing)) {
-                        return const SizedBox(); // hide search bar
-                      }
-                      return Positioned(child: newsearchbar(context));
-                    },
-                  ),
+              ),
+              Positioned(
+                child: ValueListenableBuilder<String>(
+                  valueListenable: mapMode,
+                  builder: (_, choosing, __) {
+                    if (["Choosing", "List"].contains(choosing)) {
+                      return const SizedBox(); // hide search bar
+                    }
+                    return Positioned(
+                        child: SearchBarController.createSearchBar(context));
+                  },
                 ),
-              ])));
-    
+              ),
+            ])));
 
     // return;
   }

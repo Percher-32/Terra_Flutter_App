@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:nextfind/utils/businessManager.dart';
+import 'package:nextfind/utils/business_manager.dart';
 // import 'package:nextfind/utils/arbitStore.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
 

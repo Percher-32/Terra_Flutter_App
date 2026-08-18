@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-
+  rapidfuzz: ^0.1.0
   connectivity_plus: ^6.0.0
   cached_network_image: ^3.3.1
   logger: ^2.0.2

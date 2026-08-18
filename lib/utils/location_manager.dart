@@ -1,5 +1,4 @@
 import 'package:geolocator/geolocator.dart';
-import 'package:nextfind/main.dart';
 import "package:nextfind/utils/arbitStore.dart";
 import 'package:logger/logger.dart';
 

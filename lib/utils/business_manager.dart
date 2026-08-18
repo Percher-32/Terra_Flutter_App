@@ -18,31 +18,60 @@ const businessTypeLookup = {
   9: "Travel",
 };
 
+const businessIconLookup = {
+  -1: "assets/icons/svg_logo.png",
+  0: "assets/icons/business_type_icons/food_and_dining_icon.png",
+  1: "assets/icons/business_type_icons/home_services_icon.png",
+  2: "assets/icons/business_type_icons/health_and_wellness_icon.png",
+  3: "assets/icons/business_type_icons/shopping_and_retail_icon.png",
+  4: "assets/icons/business_type_icons/proffesional_services_icon.png",
+  5: "assets/icons/business_type_icons/automotive_icon.png",
+  6: "assets/icons/business_type_icons/beauty_and_personal_care_icon.png",
+  7: "assets/icons/business_type_icons/entertainment_and_leisure_icon.png",
+  8: "assets/icons/business_type_icons/education_icon.png",
+  9: "assets/icons/business_type_icons/lodging_and_travel_icon.png",
+};
+
+const businessIconLookupAlt = {
+  -1: "assets/icons/svg_logo.png",
+  0: "assets/icons/business_type_icons/food_and_dining_icon_alt.png",
+  1: "assets/icons/business_type_icons/home_services_icon_alt.png",
+  2: "assets/icons/business_type_icons/health_and_wellness_icon_alt.png",
+  3: "assets/icons/business_type_icons/shopping_and_retail_icon_alt.png",
+  4: "assets/icons/business_type_icons/proffesional_services_icon_alt.png",
+  5: "assets/icons/business_type_icons/automotive_icon_alt.png",
+  6: "assets/icons/business_type_icons/beauty_and_personal_care_icon_alt.png",
+  7: "assets/icons/business_type_icons/entertainment_and_leisure_icon_alt.png",
+  8: "assets/icons/business_type_icons/education_icon_alt.png",
+  9: "assets/icons/business_type_icons/lodging_and_travel_icon_alt.png",
+};
+
 List<T> intersection<T>(List<T> a, List<T> b) {
   return a.toSet().intersection(b.toSet()).toList();
 }
 
 class BusinessLocation {
-  BusinessLocation(
-      {required this.locationId,
-      required this.location,
-      required this.businessId,
-      required this.name,
-      required this.type,
-      required this.address,
-      required this.verified,
-      // required this.distance,
-      this.openHours,
-      this.averageRating,
-      this.thumbnailPath,
-      this.numRatings,
-      this.over18 = false,
-      this.website,
-      this.links,
-      this.description,
-      this.phoneNumber,
-      this.timeZone = "Europe/London",
-      this.imagePaths = const [],});
+  BusinessLocation({
+    required this.locationId,
+    required this.location,
+    required this.businessId,
+    required this.name,
+    required this.type,
+    required this.address,
+    required this.verified,
+    // required this.distance,
+    this.openHours,
+    this.averageRating,
+    this.thumbnailPath,
+    this.numRatings,
+    this.over18 = false,
+    this.website,
+    this.links,
+    this.description,
+    this.phoneNumber,
+    this.timeZone = "Europe/London",
+    this.imagePaths = const [],
+  });
 
   final String locationId;
   final String businessId;
@@ -79,7 +108,8 @@ class MiniBusinessLoc {
       this.averageRating,
       this.thumbnailPath,
       this.numRatings,
-      this.over18 = false,required this.buildingNumber});
+      this.over18 = false,
+      required this.buildingNumber});
 
   final String locationId;
   final String businessId;
@@ -94,7 +124,7 @@ class MiniBusinessLoc {
   final int? numRatings;
   final String? thumbnailPath;
   final bool over18;
-  
+
   final int buildingNumber;
 }
 
@@ -359,7 +389,8 @@ class Businessmanager {
           averageRating: locationData["rating_average"],
           over18: locationData["over_18"],
           numRatings: locationData["rating_count"],
-          thumbnailPath: locationData["thumbnail_path"],buildingNumber: locationData["building_number"]);
+          thumbnailPath: locationData["thumbnail_path"],
+          buildingNumber: locationData["building_number"]);
 
       miniBusinessLocLookup[locationData["business_location_id"]] =
           newMiniBusiness;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:logger/logger.dart';
-import 'package:nextfind/utils/businessManager.dart';
+import 'package:nextfind/utils/business_manager.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
 // import 'package:nextfind/theme/app_theme.dart';
 
@@ -165,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: newsearchbar(context),
+        appBar: SearchBarController.createSearchBar(context),
         bottomNavigationBar: newbottombar(context),
         body: myBody(context));
   }

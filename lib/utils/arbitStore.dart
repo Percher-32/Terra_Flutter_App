@@ -32,6 +32,7 @@ void Arbitfallbacks() {
   arbitStore.fallback("categoryINDEX", -1);
   arbitStore.fallback("sorting", "DST");
   arbitStore.fallback("sortingINDEX", 0);
+  arbitStore.fallback("searchTags", []);
   arbitStore.fallback("userLocation", [53.7444,-0.3324]);
 }
 

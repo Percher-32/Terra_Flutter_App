@@ -1,16 +1,20 @@
+import 'package:flutter/foundation.dart';
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/pages/focusedviewed.dart';
 import 'package:nextfind/pages/homepage.dart';
 import 'package:nextfind/pages/userpage.dart';
-import 'package:nextfind/utils/businessManager.dart';
+import 'package:nextfind/utils/business_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:nextfind/pages/searchpage.dart';
+import 'package:rapidfuzz/rapidfuzz.dart' as fuzz;
 import 'package:intl/intl.dart';
+import 'package:nextfind/utils/tag_manager.dart';
 
 final mlog = Logger();
-final searchBarTextController = TextEditingController();
+
+// final searchBarTextController = TextEditingController();
 
 bool isBetween(DateTime start, DateTime end, DateTime now) {
   return now.isAfter(start) && now.isBefore(end);
@@ -176,8 +180,8 @@ class MyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 300,
-      height: 60,
+      width: width,
+      height: height,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -783,7 +787,7 @@ class MyMainSliderState extends State<MyMainSlider> {
   Widget build(BuildContext context) {
     final List<int> distances = widget.distances;
 
-    final bool isOne = (distances[sliderValue.toInt()] == 1);
+    // final bool isOne = (distances[sliderValue.toInt()] == 1);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       spacing: 5,
@@ -1163,13 +1167,17 @@ class CustomDropDown extends StatefulWidget {
       {super.key,
       this.values = const [],
       this.widgetAppend = const [],
+      this.selectedWidgetAppend = const [],
       this.startIndex = 0,
-      this.numColumns = 3});
+      this.numColumns = 3,
+      this.onChanged});
 
   final List values;
   final int startIndex;
   final int numColumns;
   final List<Widget> widgetAppend;
+  final List<Widget> selectedWidgetAppend;
+  final ValueChanged<int>? onChanged;
 
   @override
   State<CustomDropDown> createState() => _CustomDropDownState();
@@ -1190,30 +1198,50 @@ class _CustomDropDownState extends State<CustomDropDown> {
     for (int itemIndex = 0; itemIndex < widget.values.length; itemIndex++) {
       final itemValue = widget.values[itemIndex];
 
-      Widget itemWidget = SizedBox();
-      if (itemIndex < widget.widgetAppend.length) {
-        itemWidget = widget.widgetAppend[itemIndex];
-      }
-
       final bool isChosen = _currentIndex.value == itemIndex;
 
-      final gridWidget = MyButton(
-        width: 50,
-        height: 50,
-        // backgroundColor: isChosen ? AppColors.primary : AppColors.leveled,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Center(
-            child: Row(
-          children: [
-            MyText(
-              itemValue.toString(),
-              color: isChosen ? AppColors.background : AppColors.text,
-              textAlign: TextAlign.center,
-              size: 20,
+      Widget itemWidget = const SizedBox();
+      if (itemIndex < widget.widgetAppend.length) {
+        if (isChosen) {
+          itemWidget = widget.selectedWidgetAppend[itemIndex];
+        } else {
+          itemWidget = widget.widgetAppend[itemIndex];
+        }
+      }
+
+      final gridWidget = SizedBox(
+        width: 300,
+        height: 60,
+        child: ElevatedButton(
+          onPressed: () {
+            if (widget.onChanged != null) {
+              widget.onChanged!(itemIndex);
+            }
+            _currentIndex.value = itemIndex;
+            Navigator.pop(context);
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            itemWidget
-          ],
-        )),
+            backgroundColor:
+                isChosen ? AppColors.primary : AppColors.background,
+          ),
+          child: Positioned(
+              child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              itemWidget,
+              MyText(
+                itemValue.toString(),
+                color: isChosen ? AppColors.background : AppColors.text,
+                textAlign: TextAlign.center,
+                size: 13,
+              ),
+            ],
+          )),
+        ),
       );
 
       gridItems.add(gridWidget);
@@ -1223,28 +1251,38 @@ class _CustomDropDownState extends State<CustomDropDown> {
       context: context,
       builder: (context) {
         return Dialog(
-          insetPadding: EdgeInsets.all(20),
-          child: SizedBox(
-              height: 500, // limit height
-              // width: ,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // how wide each item should be
-                  const itemWidth = 140.0;
+            insetPadding: const EdgeInsets.all(10),
+            backgroundColor: AppColors.leveled,
+            child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const SizedBox(height: 16),
+                  const MyText(
+                    "Choose a category",
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                      height: 500, // limit height
+                      // width: ,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          // how wide each item should be
+                          const itemWidth = 110.0;
 
-                  // calculate how many items fit
-                  final columns = (constraints.maxWidth / itemWidth).floor();
+                          // calculate how many items fit
+                          final columns =
+                              (constraints.maxWidth / itemWidth).floor();
 
-                  return GridView.count(
-                    padding: EdgeInsets.all(20),
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    crossAxisCount: columns,
-                    children: gridItems,
-                  );
-                },
-              )),
-        );
+                          return GridView.count(
+                            padding: const EdgeInsets.all(10),
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            crossAxisCount: columns,
+                            children: gridItems,
+                          );
+                        },
+                      )),
+                ])));
       },
     );
   }
@@ -1257,11 +1295,11 @@ class _CustomDropDownState extends State<CustomDropDown> {
           return MyButton(
             width: 300,
             height: 60,
-            padding: const EdgeInsets.only(),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Stack(clipBehavior: Clip.none, children: [
               Positioned(
-                left: -10,
-                top: -3,
+                left: 0,
+                top: 15,
                 child: MyText(
                   widget.values[_currentIndex.value].toString(),
                   textAlign: TextAlign.center,
@@ -1269,8 +1307,8 @@ class _CustomDropDownState extends State<CustomDropDown> {
                 ),
               ),
               const Positioned(
-                right: -30,
-                top: -8,
+                right: 0,
+                top: 10,
                 child: Icon(
                   Icons.arrow_drop_down,
                   size: 40,
@@ -1283,6 +1321,281 @@ class _CustomDropDownState extends State<CustomDropDown> {
             },
           );
         });
+  }
+}
+
+class SearchBarController {
+  static final TextEditingController controller = TextEditingController();
+
+  static PreferredSize createSearchBar(BuildContext context) {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(84),
+      child: Column(
+        children: [
+          const SizedBox(height: 30),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                color: AppColors.primary,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  // mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(width: 10),
+                    const Icon(Icons.search, color: Colors.white, size: 40),
+                    Expanded(
+                      child: HeaderInput(
+                        hint: "find a businesses",
+                        controller: controller,
+                        onSubmitted: (value) => goToSearchPage(context),
+                      ),
+                    ),
+                    IconButton(
+                      icon:
+                          const Icon(Icons.tune, color: Colors.white, size: 40),
+                      iconSize: 35,
+                      onPressed: () => filterDropDown(context),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class TagChooseController {
+  static final ValueNotifier<bool> updateTagWidget = ValueNotifier(false);
+
+  static void showChooseTagDropDown(BuildContext context) {
+    final TextEditingController tagSearchBarController =
+        TextEditingController();
+
+    double forgivingScore(String a, String b) {
+      final r1 = fuzz.ratio(a, b);
+      final r2 = fuzz.partialRatio(a, b);
+      final r3 = fuzz.tokenSortRatio(a, b);
+      final r4 = fuzz.tokenSetRatio(a, b);
+      return [r1, r2, r3, r4].reduce((a, b) => a > b ? a : b);
+    }
+
+    List<Tag> searchSimilarTags(String query, List<Tag> tags) {
+      final lowerQuery = query.toLowerCase().trim();
+
+      final scored = tags.map((tag) {
+        final name = tag.name.toLowerCase();
+
+        final r1 = fuzz.ratio(lowerQuery, name); // strict
+        final r2 = fuzz.partialRatio(lowerQuery, name); // forgiving
+
+        final score = ((r1 * 0.7) + (r2 * 0.3)).round();
+
+        return {"tag": tag, "score": score};
+      }).toList();
+
+      scored.sort((a, b) {
+        final sb = b["score"] as int;
+        final sa = a["score"] as int;
+        return sb.compareTo(sa);
+      });
+
+      return scored
+          .where((e) => (e["score"] as int) >= 40) // ← threshold here
+          .map((e) => e["tag"] as Tag)
+          .toList();
+    }
+
+    Future<List<Tag>> getSimilarTags() async {
+      Map<int, Tag> allTags = await tagManager.getAllTags();
+
+      List<Tag> allTagsList = [];
+      for (Tag tag in allTags.values) {
+        if (List.from(arbitStore.data["searchTags"]!).contains(tag.id)) {
+          if (arbitStore.data["categoryINDEX"] != -1) {
+            if (tag.category != arbitStore.data["categoryINDEX"]) {
+              continue;
+            }
+          }
+          allTagsList.add(tag);
+        }
+      }
+      for (Tag tag in allTags.values) {
+        if (!List.from(arbitStore.data["searchTags"]!).contains(tag.id)) {
+          if (arbitStore.data["categoryINDEX"] != -1) {
+            if (tag.category != arbitStore.data["categoryINDEX"]) {
+              continue;
+            }
+          }
+          allTagsList.add(tag);
+        }
+      }
+
+      if (tagSearchBarController.text != "") {
+        allTagsList =
+            searchSimilarTags(tagSearchBarController.text, allTagsList);
+      }
+
+      return allTagsList;
+    }
+
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+              insetPadding: const EdgeInsets.all(10),
+              backgroundColor: AppColors.leveled,
+              child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: ValueListenableBuilder(
+                    valueListenable: tagSearchBarController,
+                    builder: (_, __, ___) {
+                      return FutureBuilder(
+                        future: getSimilarTags(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const MyText("GETTING TAGS");
+                          }
+
+                          if (snapshot.hasError) {
+                            return MyText("${snapshot.error}");
+                          }
+
+                          List<Widget> allTagWidgets = [];
+
+                          for (Tag tag in snapshot.data!) {
+                            final tagWidget = ValueListenableBuilder(
+                                valueListenable: updateTagWidget,
+                                builder: (_, __, ___) {
+                                  final selected =
+                                      List.from(arbitStore.data["searchTags"])
+                                          .contains(tag.id);
+
+                                  return SizedBox(
+                                    width: 300,
+                                    height: 200,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        if (selected) {
+                                          arbitStore.data["searchTags"]
+                                              .remove(tag.id);
+                                        } else {
+                                          arbitStore.data["searchTags"]
+                                              .add(tag.id);
+                                        }
+                                        updateTagWidget.value =
+                                            !updateTagWidget.value;
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.all(10),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        backgroundColor: selected
+                                            ? AppColors.primary
+                                            : AppColors.background,
+                                      ),
+                                      child: MyText(
+                                        tag.name,
+                                        size: 13,
+                                        textAlign: TextAlign.center,
+                                        color: selected
+                                            ? AppColors.background
+                                            : AppColors.text,
+                                      ),
+                                    ),
+                                  );
+                                });
+
+                            allTagWidgets.add(tagWidget);
+                          }
+
+                          return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SizedBox(height: 16),
+                                MyInputField(
+                                  hint: "search for tags ",
+                                  textColor: AppColors.background,
+                                  controller: tagSearchBarController,
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                    height: 300, // limit height
+                                    // width: ,
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        // how wide each item should be
+                                        const itemWidth = 110.0;
+
+                                        // calculate how many items fit
+                                        final columns =
+                                            (constraints.maxWidth / itemWidth)
+                                                .floor();
+
+                                        return GridView.count(
+                                          padding: const EdgeInsets.all(10),
+                                          mainAxisSpacing: 10,
+                                          crossAxisSpacing: 10,
+                                          crossAxisCount: columns,
+                                          children: allTagWidgets,
+                                        );
+                                      },
+                                    )),
+                              ]);
+                        },
+                      );
+                    },
+                  )));
+        });
+  }
+
+  static Widget showChosenTagWidget(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: updateTagWidget,
+      builder: (_, __, ___) {
+        List<Widget> allWidgets = [];
+        for (int tagId in arbitStore.data["searchTags"]) {
+          final Tag tag = tagManager.tagLookup[tagId]!;
+          final Widget newWidget = SizedBox(
+            width: 100,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: AppColors.primary,
+              ),
+              child: MyText(
+                tag.name,
+                size: 13,
+                textAlign: TextAlign.center,
+                color: AppColors.background,
+              ),
+            ),
+          );
+          allWidgets.add(newWidget);
+        }
+
+        return Container(
+            decoration: BoxDecoration(
+                color: AppColors.leveled,
+                borderRadius: BorderRadius.circular(20)),
+            width: 500,
+            height: 80,
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Center(child: Row(spacing: 20, children: allWidgets)));
+      },
+    );
   }
 }
 
@@ -1444,54 +1757,34 @@ void goToUserPage(BuildContext context, {bool canGoBack = true}) {
   }
 }
 
-PreferredSize newsearchbar(BuildContext context) {
-  return PreferredSize(
-    preferredSize: const Size.fromHeight(84),
-    child: Column(
-      children: [
-        const SizedBox(height: 30),
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              color: AppColors.primary,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                // mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(width: 10),
-                  const Icon(Icons.search, color: Colors.white, size: 40),
-                  Expanded(
-                    child: HeaderInput(
-                      hint: "find a businesses",
-                      controller: searchBarTextController,
-                      onSubmitted: (value) => goToSearchPage(context),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.tune, color: Colors.white, size: 40),
-                    iconSize: 35,
-                    onPressed: () => filterDropDown(context),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-// Widget categoryPicker(){
-//   return
-// }
-
 void filterDropDown(BuildContext context) {
   Arbitfallbacks();
   final distances = [1, 3, 5, 10, 15, 20, 30, 50];
+
+  List<Widget> allIcons = [];
+  List<Widget> allIconsAlt = [];
+
+  for (int index in businessIconLookup.keys) {
+    Widget widget = const SizedBox();
+    Widget widgetAlt = const SizedBox();
+    if (index != -1) {
+      widget = Image.asset(
+        businessIconLookup[index]!,
+        width: 32,
+        height: 32,
+      );
+
+      widgetAlt = Image.asset(
+        businessIconLookupAlt[index]!,
+        width: 32,
+        height: 32,
+      );
+    }
+
+    allIcons.add(widget);
+    allIconsAlt.add(widgetAlt);
+  }
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -1510,7 +1803,9 @@ void filterDropDown(BuildContext context) {
               color: AppColors.text,
               size: 30,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
+            //TTILE DONE
+
             MyMainSlider(
               distances: distances,
               onChanged: (distance) {
@@ -1521,20 +1816,35 @@ void filterDropDown(BuildContext context) {
               },
               startValue: arbitStore.data["distance_index"],
             ),
-            const SizedBox(height: 30),
-            // MainDropdown(
-            //   items: businessTypeLookup.keys.toList(),
-            //   initialValue: arbitStore.data["categoryINDEX"],
-            //   label: "Business Category",
-            //   display: (value) => businessTypeLookup[value]!,
-            //   onChanged: (value) {
-            //     arbitStore.data["categoryINDEX"] = value;
-            //   },
-            // ),
+            const SizedBox(height: 10),
+            //TTILE SLIDER DONE
+
+            const Body(
+              "Category",
+              color: AppColors.text,
+            ),
+            const SizedBox(height: 10),
             CustomDropDown(
               values: businessTypeLookup.values.toList(),
+              onChanged: (value) {
+                log.i(
+                    "CATEGORY CHANGE : BEFORE -> ${arbitStore.data["categoryINDEX"]}");
+                arbitStore.data["categoryINDEX"] = value - 1;
+                log.i(
+                    "CATEGORY CHANGE : AFTER -> ${arbitStore.data["categoryINDEX"]}");
+              },
+              startIndex: arbitStore.data["categoryINDEX"] + 1,
+              widgetAppend: allIconsAlt,
+              selectedWidgetAppend: allIcons,
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 20),
+            //TTILE DROPDOWN DONE
+
+            const Body(
+              "Sort By",
+              color: AppColors.text,
+            ),
+            const SizedBox(height: 10),
             MyMultiToggle(
               initial: arbitStore.data["sortingINDEX"],
               options: const [
@@ -1547,7 +1857,6 @@ void filterDropDown(BuildContext context) {
                 if (val == 1) {
                   arbitStore.data["sorting"] = "DST";
                 }
-
                 if (val == 2) {
                   arbitStore.data["sorting"] = "RAT";
                 }
@@ -1557,9 +1866,28 @@ void filterDropDown(BuildContext context) {
               },
             ),
             const SizedBox(height: 20),
+            //TTILE SEARCH POWER DONE
+
+            const Body(
+              "Tags",
+              color: AppColors.text,
+            ),
+            const SizedBox(height: 10),
             MyButton(
               height: 60,
-              width: 60,
+              width: 300,
+              padding: EdgeInsets.symmetric(vertical: 5),
+              child: const Body("choose tags", color: AppColors.background),
+              onPressed: () {
+                showChooseTagDropDown(context);
+              },
+            ),
+            TagChooseController.showChosenTagWidget(context),
+            const SizedBox(height: 40),
+
+            MyButton(
+              height: 60,
+              width: 300,
               child: const Body("Search", color: AppColors.background),
               onPressed: () {
                 goToSearchPage(context);
@@ -1570,4 +1898,187 @@ void filterDropDown(BuildContext context) {
       );
     },
   );
+}
+
+void showChooseTagDropDown(BuildContext context) {
+  final ValueNotifier<bool> updateTagWidget = ValueNotifier(false);
+
+  final TextEditingController tagSearchBarController = TextEditingController();
+
+  double forgivingScore(String a, String b) {
+    final r1 = fuzz.ratio(a, b);
+    final r2 = fuzz.partialRatio(a, b);
+    final r3 = fuzz.tokenSortRatio(a, b);
+    final r4 = fuzz.tokenSetRatio(a, b);
+    return [r1, r2, r3, r4].reduce((a, b) => a > b ? a : b);
+  }
+
+  List<Tag> searchSimilarTags(String query, List<Tag> tags) {
+    final lowerQuery = query.toLowerCase().trim();
+
+    final scored = tags.map((tag) {
+      final name = tag.name.toLowerCase();
+
+      final r1 = fuzz.ratio(lowerQuery, name); // strict
+      final r2 = fuzz.partialRatio(lowerQuery, name); // forgiving
+
+      final score = ((r1 * 0.7) + (r2 * 0.3)).round();
+
+      return {"tag": tag, "score": score};
+    }).toList();
+
+    scored.sort((a, b) {
+      final sb = b["score"] as int;
+      final sa = a["score"] as int;
+      return sb.compareTo(sa);
+    });
+
+    return scored
+        .where((e) => (e["score"] as int) >= 40) // ← threshold here
+        .map((e) => e["tag"] as Tag)
+        .toList();
+  }
+
+  Future<List<Tag>> getSimilarTags() async {
+    Map<int, Tag> allTags = await tagManager.getAllTags();
+
+    List<Tag> allTagsList = [];
+    for (Tag tag in allTags.values) {
+      if (List.from(arbitStore.data["searchTags"]!).contains(tag.id)) {
+        if (arbitStore.data["categoryINDEX"] != -1) {
+          if (tag.category != arbitStore.data["categoryINDEX"]) {
+            continue;
+          }
+        }
+        allTagsList.add(tag);
+      }
+    }
+    for (Tag tag in allTags.values) {
+      if (!List.from(arbitStore.data["searchTags"]!).contains(tag.id)) {
+        if (arbitStore.data["categoryINDEX"] != -1) {
+          if (tag.category != arbitStore.data["categoryINDEX"]) {
+            continue;
+          }
+        }
+        allTagsList.add(tag);
+      }
+    }
+
+    if (tagSearchBarController.text != "") {
+      allTagsList = searchSimilarTags(tagSearchBarController.text, allTagsList);
+    }
+
+    return allTagsList;
+  }
+
+  showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+            insetPadding: const EdgeInsets.all(10),
+            backgroundColor: AppColors.leveled,
+            child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: ValueListenableBuilder(
+                  valueListenable: tagSearchBarController,
+                  builder: (_, __, ___) {
+                    return FutureBuilder(
+                      future: getSimilarTags(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const MyText("GETTING TAGS");
+                        }
+
+                        if (snapshot.hasError) {
+                          return MyText("${snapshot.error}");
+                        }
+
+                        List<Widget> allTagWidgets = [];
+
+                        for (Tag tag in snapshot.data!) {
+                          final tagWidget = ValueListenableBuilder(
+                              valueListenable: updateTagWidget,
+                              builder: (_, __, ___) {
+                                final selected =
+                                    List.from(arbitStore.data["searchTags"])
+                                        .contains(tag.id);
+
+                                return SizedBox(
+                                  width: 300,
+                                  height: 200,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      updateTagWidget.value =
+                                          !updateTagWidget.value;
+
+                                      if (selected) {
+                                        arbitStore.data["searchTags"]
+                                            .remove(tag.id);
+                                      } else {
+                                        arbitStore.data["searchTags"]
+                                            .add(tag.id);
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.all(10),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      backgroundColor: selected
+                                          ? AppColors.primary
+                                          : AppColors.background,
+                                    ),
+                                    child: MyText(
+                                      tag.name,
+                                      size: 13,
+                                      textAlign: TextAlign.center,
+                                      color: selected
+                                          ? AppColors.background
+                                          : AppColors.text,
+                                    ),
+                                  ),
+                                );
+                              });
+
+                          allTagWidgets.add(tagWidget);
+                        }
+
+                        return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 16),
+                              MyInputField(
+                                hint: "search for tags ",
+                                textColor: AppColors.background,
+                                controller: tagSearchBarController,
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                  height: 300, // limit height
+                                  // width: ,
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      // how wide each item should be
+                                      const itemWidth = 110.0;
+
+                                      // calculate how many items fit
+                                      final columns =
+                                          (constraints.maxWidth / itemWidth)
+                                              .floor();
+
+                                      return GridView.count(
+                                        padding: const EdgeInsets.all(10),
+                                        mainAxisSpacing: 10,
+                                        crossAxisSpacing: 10,
+                                        crossAxisCount: columns,
+                                        children: allTagWidgets,
+                                      );
+                                    },
+                                  )),
+                            ]);
+                      },
+                    );
+                  },
+                )));
+      });
 }

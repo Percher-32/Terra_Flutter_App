@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:nextfind/networking/newtokenmanager.dart';
-import 'package:nextfind/utils/businessManager.dart';
+import 'package:nextfind/utils/business_manager.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:logger/logger.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -76,6 +76,10 @@ class ServerConnect {
     } else {
       url =
           '$serverUrl/nearbybusinesses?query=$query&maxdist=$maxdist&sort=$sort&gas_safe_only=$gasSafeOnly&electricity_safe_only=$elecSafeOnly&just_id=$idOnly&allow_base=$macroTypes';
+    }
+
+    for (int tagId in arbitStore.data["searchTags"]) {
+      url += "&tags=$tagId";
     }
 
     log.d("FUNCTION : getNearbyBusinesses | URL = $url");
@@ -303,9 +307,25 @@ class ServerConnect {
     return data;
   }
 
-  // Future<dynamic> getRecommendedPosts(){
+  Future<dynamic> getRawTagData() async {
+    const String tagGetEndpoint = '$serverUrl/tags/get';
 
-  // }
+    final response = await http.get(
+      Uri.parse(tagGetEndpoint),
+    );
+
+    final dynamic data = jsonDecode(response.body);
+
+    log.i("GET TAG DATA RESP || $data");
+
+    if (data["worked"]) {
+      log.i("Tag Data Endpoint Sussess");
+
+      return data["reason"];
+    } else {
+      log.e("Tag Data Enpoint Failed , REASON -> ${data["reason"]}");
+    }
+  }
 
   String fullUrl(String url) {
     final retStr = '$serverUrl/image/$url';
