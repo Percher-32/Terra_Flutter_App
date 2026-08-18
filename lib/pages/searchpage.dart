@@ -553,39 +553,41 @@ class _MapSearchViewState extends State<MapSearchView>
                 top: 0,
                 width: size.width,
                 height: size.height,
-                child: _markerOffsets.isNotEmpty ?  Stack(
-                  children: List.generate(widget.miniBusinessLocationids.length,
-                      (index) {
-                    MiniBusinessLoc miniBusLoc =
-                        businessManager.miniBusinessLocLookup[
-                            widget.miniBusinessLocationids[index]]!;
+                child: _markerOffsets.length == widget.miniBusinessLocationids.length
+                    ? Stack(
+                        children: List.generate(
+                            widget.miniBusinessLocationids.length, (index) {
+                          MiniBusinessLoc miniBusLoc =
+                              businessManager.miniBusinessLocLookup[
+                                  widget.miniBusinessLocationids[index]]!;
 
-                    return ValueListenableBuilder<Offset>(
-                      valueListenable: _markerOffsets[index],
-                      builder: (_, offset, __) {
-                        // final dynamicSize = (40.0 * (16.0 / max(_mapZoom, 1.0)))
-                        //     .clamp(20.0, 60.0);
+                          return ValueListenableBuilder<Offset>(
+                            valueListenable: _markerOffsets[index],
+                            builder: (_, offset, __) {
+                              // final dynamicSize = (40.0 * (16.0 / max(_mapZoom, 1.0)))
+                              //     .clamp(20.0, 60.0);
 
-                        final nearestDist = _markerDist[index];
+                              final nearestDist = _markerDist[index];
 
-                        return Positioned(
-                          left: offset.dx - 20,
-                          top: offset.dy - 20,
-                          child: RepaintBoundary(
-                            child: Transform.rotate(
-                              angle: _mapBearing * pi / 180,
-                              child: Transform.scale(
-                                scale: 16.0 / max(_mapZoom, 1.0),
-                                child: createBusinessMapIcon(
-                                    context, miniBusLoc, nearestDist, index),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  }),
-                ) : SizedBox(),
+                              return Positioned(
+                                left: offset.dx - 20,
+                                top: offset.dy - 20,
+                                child: RepaintBoundary(
+                                  child: Transform.rotate(
+                                    angle: _mapBearing * pi / 180,
+                                    child: Transform.scale(
+                                      scale: 16.0 / max(_mapZoom, 1.0),
+                                      child: createBusinessMapIcon(context,
+                                          miniBusLoc, nearestDist, index),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        }),
+                      )
+                    : SizedBox(),
               ),
 
               ValueListenableBuilder<String>(
@@ -1065,7 +1067,8 @@ class _SearchPageState extends State<SearchPage> {
                         top: 120,
                         child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: TagController.showChosenTagWidget(context)));
+                            child: TagController.showChosenTagWidget(context,
+                                leveled: false)));
                   },
                 ),
               ),

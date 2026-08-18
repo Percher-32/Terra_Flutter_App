@@ -1560,11 +1560,13 @@ class TagController {
                     },
                   )));
         }).then((_) {
-  justExitedTagChoose.value = !justExitedTagChoose.value;
-  });;
+      justExitedTagChoose.value = !justExitedTagChoose.value;
+    });
+    ;
   }
 
-  static Widget showChosenTagWidget(BuildContext context) {
+  static Widget showChosenTagWidget(BuildContext context,
+      {bool leveled = true}) {
     return ValueListenableBuilder<bool>(
       valueListenable: updateTagWidget,
       builder: (_, __, ___) {
@@ -1573,11 +1575,11 @@ class TagController {
         return Container(
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: AppColors.leveled,
+            color: leveled ? AppColors.leveled : Colors.white,
             borderRadius: BorderRadius.circular(20),
           ),
           width: 500,
-          height: 90,
+          height: 60,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Center(
             child: ListView.builder(
@@ -1601,7 +1603,7 @@ class TagController {
                             child: Icon(Icons.add_rounded,
                                 // fontWeight: FontWeight(10),
                                 color: Colors.white,
-                                size: 50)),
+                                size: 40)),
                       ));
                 } else {
                   final Tag tag = tagManager
@@ -1609,25 +1611,35 @@ class TagController {
                   return Padding(
                     padding:
                         const EdgeInsets.only(top: 10, bottom: 10, right: 10),
-                    child: SizedBox(
-                      width: 100,
-                      height: 60,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.all(10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(10)),
+                      constraints: const BoxConstraints(
+                          minWidth: 50,
+                          maxWidth: 300,
+                          minHeight: 50,
+                          maxHeight: 200,
                           ),
-                          backgroundColor: AppColors.primary,
-                        ),
-                        child: MyText(
-                          tag.name,
-                          size: 13,
-                          textAlign: TextAlign.center,
-                          color: AppColors.background,
-                        ),
-                      ),
+                      child:
+                          Stack(alignment: AlignmentGeometry.center, children: [
+                        Positioned(
+                            left: 20,
+                            child: MyText(
+                              tag.name,
+                              size: 13,
+                              textAlign: TextAlign.center,
+                              color: AppColors.background,
+                            )),
+                        Positioned(
+                            right: 10,
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: Icon(Icons.cancel_outlined),
+                              iconSize: 30,
+                              color: Colors.white,
+                            ))
+                      ]),
                     ),
                   );
                 }
