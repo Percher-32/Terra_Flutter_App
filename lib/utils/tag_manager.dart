@@ -26,5 +26,5 @@ class Tag {
 
   final int id;
   final int category;
-  final String name;
+final String name;
 }

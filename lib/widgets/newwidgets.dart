@@ -97,7 +97,12 @@ List<double> nearestDistances(List<Point> points) {
 
 class AppColors {
   static const background = Color.fromARGB(255, 255, 255, 255);
-  static const leveled = Color.fromARGB(255, 230, 230, 230);
+  final a = const Color.fromRGBO(237, 231, 246, 1);
+  static const leveled = Color.fromRGBO(237, 231, 246, 1);
+  // fromARGB(255, 255, 255, 255);
+
+  static const halfLeveled = Color.fromRGBO(251, 248, 255, 1);
+
   static const text = Color.fromARGB(255, 0, 0, 0);
   static const primary = Color.fromARGB(255, 252, 130, 74);
   static const secondary = Color.fromARGB(255, 101, 44, 145);
@@ -1370,7 +1375,7 @@ class SearchBarController {
   }
 }
 
-class TagChooseController {
+class TagController {
   static final ValueNotifier<bool> updateTagWidget = ValueNotifier(false);
 
   static void showChooseTagDropDown(BuildContext context) {
@@ -1499,7 +1504,7 @@ class TagChooseController {
                                         ),
                                         backgroundColor: selected
                                             ? AppColors.primary
-                                            : AppColors.background,
+                                            : AppColors.halfLeveled,
                                       ),
                                       child: MyText(
                                         tag.name,
@@ -1557,43 +1562,75 @@ class TagChooseController {
   }
 
   static Widget showChosenTagWidget(BuildContext context) {
-    return ValueListenableBuilder(
+    return ValueListenableBuilder<bool>(
       valueListenable: updateTagWidget,
       builder: (_, __, ___) {
-        List<Widget> allWidgets = [];
-        for (int tagId in arbitStore.data["searchTags"]) {
-          final Tag tag = tagManager.tagLookup[tagId]!;
-          final Widget newWidget = SizedBox(
-            width: 100,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                backgroundColor: AppColors.primary,
-              ),
-              child: MyText(
-                tag.name,
-                size: 13,
-                textAlign: TextAlign.center,
-                color: AppColors.background,
-              ),
-            ),
-          );
-          allWidgets.add(newWidget);
-        }
+        // setState((){});
 
         return Container(
-            decoration: BoxDecoration(
-                color: AppColors.leveled,
-                borderRadius: BorderRadius.circular(20)),
-            width: 500,
-            height: 80,
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Center(child: Row(spacing: 20, children: allWidgets)));
+          clipBehavior: Clip.hardEdge,
+          decoration: BoxDecoration(
+            color: AppColors.leveled,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          width: 500,
+          height: 90,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Center(
+            child: ListView.builder(
+              clipBehavior: Clip.none,
+              scrollDirection: Axis.horizontal,
+              itemCount: List.from(arbitStore.data["searchTags"]).length + 1,
+              itemBuilder: (_, tagId) {
+                if (List.from(arbitStore.data["searchTags"]).length == tagId) {
+                  return Padding(
+                      padding:
+                          const EdgeInsets.only(top: 10, bottom: 10, right: 30),
+                      child: MyButton(
+                        width: 100,
+                        height: 100,
+                        padding: const EdgeInsets.all(0),
+                        onPressed: () {
+                          showChooseTagDropDown(context);
+                        },
+                        child: const Center(
+                            child: Icon(Icons.add,
+                                // fontWeight: FontWeight(10),
+                                color: Colors.white,
+                                size: 30)),
+                      ));
+                } else {
+                  final Tag tag = tagManager
+                      .tagLookup[arbitStore.data["searchTags"][tagId]]!;
+                  return Padding(
+                    padding:
+                        const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                    child: SizedBox(
+                      width: 100,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.all(10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          backgroundColor: AppColors.primary,
+                        ),
+                        child: MyText(
+                          tag.name,
+                          size: 13,
+                          textAlign: TextAlign.center,
+                          color: AppColors.background,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        );
       },
     );
   }
@@ -1787,6 +1824,7 @@ void filterDropDown(BuildContext context) {
 
   showModalBottomSheet(
     context: context,
+    // backgroundColor: Colors.deepPurple.shade50,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -1873,16 +1911,8 @@ void filterDropDown(BuildContext context) {
               color: AppColors.text,
             ),
             const SizedBox(height: 10),
-            MyButton(
-              height: 60,
-              width: 300,
-              padding: EdgeInsets.symmetric(vertical: 5),
-              child: const Body("choose tags", color: AppColors.background),
-              onPressed: () {
-                showChooseTagDropDown(context);
-              },
-            ),
-            TagChooseController.showChosenTagWidget(context),
+
+            TagController.showChosenTagWidget(context),
             const SizedBox(height: 40),
 
             MyButton(
@@ -1898,187 +1928,4 @@ void filterDropDown(BuildContext context) {
       );
     },
   );
-}
-
-void showChooseTagDropDown(BuildContext context) {
-  final ValueNotifier<bool> updateTagWidget = ValueNotifier(false);
-
-  final TextEditingController tagSearchBarController = TextEditingController();
-
-  double forgivingScore(String a, String b) {
-    final r1 = fuzz.ratio(a, b);
-    final r2 = fuzz.partialRatio(a, b);
-    final r3 = fuzz.tokenSortRatio(a, b);
-    final r4 = fuzz.tokenSetRatio(a, b);
-    return [r1, r2, r3, r4].reduce((a, b) => a > b ? a : b);
-  }
-
-  List<Tag> searchSimilarTags(String query, List<Tag> tags) {
-    final lowerQuery = query.toLowerCase().trim();
-
-    final scored = tags.map((tag) {
-      final name = tag.name.toLowerCase();
-
-      final r1 = fuzz.ratio(lowerQuery, name); // strict
-      final r2 = fuzz.partialRatio(lowerQuery, name); // forgiving
-
-      final score = ((r1 * 0.7) + (r2 * 0.3)).round();
-
-      return {"tag": tag, "score": score};
-    }).toList();
-
-    scored.sort((a, b) {
-      final sb = b["score"] as int;
-      final sa = a["score"] as int;
-      return sb.compareTo(sa);
-    });
-
-    return scored
-        .where((e) => (e["score"] as int) >= 40) // ← threshold here
-        .map((e) => e["tag"] as Tag)
-        .toList();
-  }
-
-  Future<List<Tag>> getSimilarTags() async {
-    Map<int, Tag> allTags = await tagManager.getAllTags();
-
-    List<Tag> allTagsList = [];
-    for (Tag tag in allTags.values) {
-      if (List.from(arbitStore.data["searchTags"]!).contains(tag.id)) {
-        if (arbitStore.data["categoryINDEX"] != -1) {
-          if (tag.category != arbitStore.data["categoryINDEX"]) {
-            continue;
-          }
-        }
-        allTagsList.add(tag);
-      }
-    }
-    for (Tag tag in allTags.values) {
-      if (!List.from(arbitStore.data["searchTags"]!).contains(tag.id)) {
-        if (arbitStore.data["categoryINDEX"] != -1) {
-          if (tag.category != arbitStore.data["categoryINDEX"]) {
-            continue;
-          }
-        }
-        allTagsList.add(tag);
-      }
-    }
-
-    if (tagSearchBarController.text != "") {
-      allTagsList = searchSimilarTags(tagSearchBarController.text, allTagsList);
-    }
-
-    return allTagsList;
-  }
-
-  showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-            insetPadding: const EdgeInsets.all(10),
-            backgroundColor: AppColors.leveled,
-            child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: ValueListenableBuilder(
-                  valueListenable: tagSearchBarController,
-                  builder: (_, __, ___) {
-                    return FutureBuilder(
-                      future: getSimilarTags(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return const MyText("GETTING TAGS");
-                        }
-
-                        if (snapshot.hasError) {
-                          return MyText("${snapshot.error}");
-                        }
-
-                        List<Widget> allTagWidgets = [];
-
-                        for (Tag tag in snapshot.data!) {
-                          final tagWidget = ValueListenableBuilder(
-                              valueListenable: updateTagWidget,
-                              builder: (_, __, ___) {
-                                final selected =
-                                    List.from(arbitStore.data["searchTags"])
-                                        .contains(tag.id);
-
-                                return SizedBox(
-                                  width: 300,
-                                  height: 200,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      updateTagWidget.value =
-                                          !updateTagWidget.value;
-
-                                      if (selected) {
-                                        arbitStore.data["searchTags"]
-                                            .remove(tag.id);
-                                      } else {
-                                        arbitStore.data["searchTags"]
-                                            .add(tag.id);
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.all(10),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      backgroundColor: selected
-                                          ? AppColors.primary
-                                          : AppColors.background,
-                                    ),
-                                    child: MyText(
-                                      tag.name,
-                                      size: 13,
-                                      textAlign: TextAlign.center,
-                                      color: selected
-                                          ? AppColors.background
-                                          : AppColors.text,
-                                    ),
-                                  ),
-                                );
-                              });
-
-                          allTagWidgets.add(tagWidget);
-                        }
-
-                        return Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const SizedBox(height: 16),
-                              MyInputField(
-                                hint: "search for tags ",
-                                textColor: AppColors.background,
-                                controller: tagSearchBarController,
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                  height: 300, // limit height
-                                  // width: ,
-                                  child: LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      // how wide each item should be
-                                      const itemWidth = 110.0;
-
-                                      // calculate how many items fit
-                                      final columns =
-                                          (constraints.maxWidth / itemWidth)
-                                              .floor();
-
-                                      return GridView.count(
-                                        padding: const EdgeInsets.all(10),
-                                        mainAxisSpacing: 10,
-                                        crossAxisSpacing: 10,
-                                        crossAxisCount: columns,
-                                        children: allTagWidgets,
-                                      );
-                                    },
-                                  )),
-                            ]);
-                      },
-                    );
-                  },
-                )));
-      });
 }
