@@ -1,27 +1,3 @@
-- add the ability to get full business data
-- fix search function:
-    - make extra searhes use concatenated version
+FIX THE CHOOSE LOCATION BUTTON
 
-- add house numbers
-
-- add the ability to get location images and to save it - DO NOW!
-
-- add the storing of search ranking data - NOT A PRIORITY
-
-
-- add a function to add a new user
-
-
-
-64c5c3d0-f566-4a89-a43c-fb2eb15a0c9d
-eaae6023-4cff-4447-8c02-c365b3486b1a
-
-
-
-
-
-
-
-Ok so heres the issue.
-Rn the just_id function doesnt in the api returns a list of lists like [id , score]. but dart expects just a list of id's.
-fix it or sum
+FIX OTHER BUGS LIKE WHEN I SEARCH TOO MANY TIMES

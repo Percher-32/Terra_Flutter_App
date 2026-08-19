@@ -451,6 +451,10 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
   Widget buildWidget(BuildContext context,
       AsyncSnapshot<Map<String, MiniBusinessLoc>> snapshot) {
     if (snapshot.hasData) {
+      // if (snapshot.data.runtimeType != Map) {
+      //   return SizedBox();
+      // }
+
       final minibusinessLocation = snapshot.data![widget.locationId]!;
       String ratings = "No Ratings";
       if (minibusinessLocation.numRatings != null) {
@@ -1609,39 +1613,33 @@ class TagController {
                   final Tag tag = tagManager
                       .tagLookup[arbitStore.data["searchTags"][tagId]]!;
                   return Padding(
-                    padding:
-                        const EdgeInsets.only(top: 10, bottom: 10, right: 10),
-                    child: Container(
-                      decoration: BoxDecoration(
+                      padding:
+                          const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                      child: Container(
+                        decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(10)),
-                      constraints: const BoxConstraints(
-                          minWidth: 50,
-                          maxWidth: 300,
-                          minHeight: 50,
-                          maxHeight: 200,
-                          ),
-                      child:
-                          Stack(alignment: AlignmentGeometry.center, children: [
-                        Positioned(
-                            left: 20,
-                            child: MyText(
-                              tag.name,
-                              size: 13,
-                              textAlign: TextAlign.center,
-                              color: AppColors.background,
-                            )),
-                        Positioned(
-                            right: 10,
-                            child: IconButton(
-                              onPressed: () {},
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(width: 10),
+                            MyText(tag.name,
+                                size: 13, color: AppColors.background),
+                            SizedBox(width: 20),
+                            IconButton(
+                              onPressed: () {
+                                arbitStore.data["searchTags"].remove(tag.id);
+
+                                updateTagWidget.value = !updateTagWidget.value;
+                              },
                               icon: Icon(Icons.cancel_outlined),
-                              iconSize: 30,
                               color: Colors.white,
-                            ))
-                      ]),
-                    ),
-                  );
+                            ),
+                          ],
+                        ),
+                      ));
                 }
               },
             ),
