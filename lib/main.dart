@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:nextfind/networking/apiconn.dart';
 // import 'package:nextfind/pages/searchpage.dart';
-// import 'package:nextfind/pages/searchpage.dart';
+import 'dart:io';
+
 import 'pages/homepage.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 
 void main() {
   Arbitfallbacks();
+  HttpOverrides.global = MyHttpOverrides();
   runApp(const MyApp());
 }
 

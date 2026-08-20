@@ -11,6 +11,15 @@ final log = Logger();
 
 const serverUrl = 'http://192.168.1.107:8000';
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    final client = super.createHttpClient(context);
+    client.connectionTimeout = const Duration(seconds: 20); // increase wait time
+    return client;
+  }
+}
+
 class ServerConnect {
   // final serverUrl = 'http://192.168.1.106:8000';
   // final serverUrl = 'http://10.0.1.140:8000';
@@ -93,8 +102,8 @@ class ServerConnect {
 
     log.d("FUNCTION : getNearbyBusinesses | DATA COLLECTION COMPLETE");
 
-    final data = jsonDecode(response.body);
     if (response.statusCode == 200) {
+     final data = jsonDecode(response.body);
       if (!idOnly) {
         List<int> returnedBusinessesLocationIds = [];
         List<MiniBusinessLoc> returnedBusinessesLocations = [];
@@ -130,7 +139,7 @@ class ServerConnect {
         }
       }
     } else {
-      log.e("FUNCTION : getNearbyBusinesses | Error Occured $data");
+      log.e("FUNCTION : getNearbyBusinesses | Error Occured ${response.body}");
       return null;
     }
   }

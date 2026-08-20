@@ -451,9 +451,14 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
   Widget buildWidget(BuildContext context,
       AsyncSnapshot<Map<String, MiniBusinessLoc>> snapshot) {
     if (snapshot.hasData) {
-      // if (snapshot.data.runtimeType != Map) {
-      //   return SizedBox();
-      // }
+
+
+      if (snapshot.data is! Map) {
+        // log.i("SNAPSHOTRUNT ISNT Map ITS  : ${snapshot.data.runtimeType}");
+        return SizedBox();
+      }
+
+      log.i("SNAPSHOTRUNT : ${snapshot.data!} || ${widget.locationId} ");
 
       final minibusinessLocation = snapshot.data![widget.locationId]!;
       String ratings = "No Ratings";
