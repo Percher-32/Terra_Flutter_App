@@ -556,69 +556,7 @@ class _MapSearchViewState extends State<MapSearchView>
                 onStyleLoadedCallback: () async {
                   if (!lifecycle.isPaused) {
                     _mapReady = true;
-
-                    // // await _addSearchRadiusPolygon();
-
-                    // if (_radiusSourceAdded) {
-                    //   // _refreshOverlayPositions();
-                    //   return;
-                    // }
-
-                    // // final polygon = generateCirclePolygon(
-                    // //   53.7443,
-                    // //   -0.33515,
-                    // //   100,
-                    // // );
-                    // log.i(
-                    //     "PLAX : BUILD MAP ULOC -> ${arbitStore.data["userLocation"]}");
-                    // mapController!.addCircle(
-                    //   map_gl.CircleOptions(
-                    //     geometry: map_gl.LatLng(
-                    //         arbitStore.data["userLocation"][0],
-                    //         arbitStore.data["userLocation"][1]),
-                    //     circleRadius: 13.0,
-                    //     circleColor: AppColors.primary.toHexStringRGB(),
-                    //     circleOpacity: 1,
-                    //   ),
-                    // );
-
-                    // mapController!.addCircle(
-                    //   map_gl.CircleOptions(
-                    //     geometry: map_gl.LatLng(
-                    //         arbitStore.data["userLocation"][0],
-                    //         arbitStore.data["userLocation"][1]),
-                    //     circleRadius: 7.0,
-                    //     circleColor: AppColors.background.toHexStringRGB(),
-                    //     circleOpacity: 1,
-                    //   ),
-                    // );
-
-                    // // await mapController!.addSource(
-                    // //   "search-radius-source",
-                    // //   map_gl.GeojsonSourceProperties(
-                    // //     data: {
-                    // //       "type": "Feature",
-                    // //       "geometry": {
-                    // //         "type": "Polygon",
-                    // //         "coordinates": [polygon],
-                    // //       }
-                    // //     },
-                    // //   ),
-                    // // );
-
-                    // // await mapController!.addLayer(
-                    // //   "search-radius-source",
-                    // //   "search-radius-layer",
-                    // //   const map_gl.FillLayerProperties(
-                    // //     fillColor: "#296CA8",
-                    // //     fillOpacity: 0.2,
-                    // //     fillOutlineColor: "#296CA8",
-                    // //   ),
-                    // // );
-
-                    // _radiusSourceAdded = true;
                   }
-                  // _refreshOverlayPositions();
                 },
                 onCameraMove: (cameraPosition) {
                   _mapZoom = cameraPosition.zoom;
@@ -632,10 +570,9 @@ class _MapSearchViewState extends State<MapSearchView>
 
                     // Example: update your userLocation
                     arbitStore.data["userLocation"] = [tappedLat, tappedLng];
+                    widget.userLocation.value = arbitStore.data["userLocation"];
 
                     log.i("SEARCHPAGELOG : MAP TAPPED RELOADING MARKERS");
-                    widget.shouldReloadMap.value =
-                        !widget.shouldReloadMap.value;
 
                     widget.mapMode.value = "Base";
                   } else {
@@ -892,7 +829,7 @@ class _SearchPageState extends State<SearchPage> {
                       await getLocation();
                       log.i("PLAX : GOTTEN USER LOCATION");
                       userLocationForMap.value =
-                        List<double>.from(arbitStore.data["userLocation"]);
+                          List<double>.from(arbitStore.data["userLocation"]);
                       Navigator.pop(sheetContext);
                     },
                     padding: const EdgeInsets.symmetric(
