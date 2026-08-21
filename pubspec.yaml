@@ -34,8 +34,15 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+
+
+    - assets/icons/business_icons/
+    - assets/icons/business_icons/distance_icon.png
+    - assets/icons/business_icons/rating_star.png
+    - assets/icons/business_icons/unverified_badge_mini.png
+    - assets/icons/business_icons/unverified_badge.png
+
     - assets/img/
-    # - assets/icons/
     - assets/icons/business_type_icons/
     
     - assets/icons/business_type_icons/food_and_dining_icon.png

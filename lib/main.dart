@@ -7,7 +7,7 @@ import 'pages/homepage.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 
 void main() {
-  Arbitfallbacks();
+  arbitfallbacks();
   HttpOverrides.global = MyHttpOverrides();
   runApp(const MyApp());
 }

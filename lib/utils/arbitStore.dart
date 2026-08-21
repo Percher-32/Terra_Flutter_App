@@ -21,10 +21,11 @@ const base_types = {
   9: "Lodging & Travel",
 };
 
-void Arbitfallbacks() {
+void arbitfallbacks() {
   arbitStore.fallback("distance_index", 3.toInt());
   arbitStore.fallback("userLocationChooseIndex", 1.toInt());
   arbitStore.fallback("distance", milesToKm(10).toInt());
+  arbitStore.fallback("metric?", true);
   arbitStore.fallback("gasSafeOnly", false);
   arbitStore.fallback("electricitySafeOnly", false);
   arbitStore.fallback("allowedBtypes", "Both");
@@ -37,6 +38,6 @@ void Arbitfallbacks() {
 }
 
 double milesToKm(double miles) => miles * 1.60934;
-double KmTomiles(double miles) => miles / 1.60934;
+double kmToMiles(double miles) => miles / 1.60934;
 
 ArbitStore arbitStore = ArbitStore();

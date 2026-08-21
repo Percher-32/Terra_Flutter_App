@@ -358,25 +358,16 @@ class _MapSearchViewState extends State<MapSearchView>
       normDist += 0.1 / 2;
     }
 
-    if (verified) {
+    if (!verified) {
       normDist += 0.2 / 2;
       veriBadge = Positioned(
           right: -5,
           bottom: -5,
-          child: Container(
-              width: 15,
-              height: 15,
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: const Color.fromARGB(255, 0, 255, 110)),
-              child: const Center(
-                  child: Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 12,
-                weight: 400,
-                fontWeight: FontWeight.w900,
-              ))));
+          child: Image.asset(
+                  "assets/icons/business_icons/unverified_badge_mini.png",
+                  width: 15,
+                  height: 15,
+                ),);
     }
 
     if (normDist <= 0.4) {
@@ -585,91 +576,74 @@ class _MapSearchViewState extends State<MapSearchView>
                 compassEnabled: false,
               ),
 
-              // OVERLAY (same size as map)
               RepaintBoundary(
                 child: ValueListenableBuilder(
                   valueListenable: widget.shouldReloadMapSearchComplete,
                   builder: (_, __, ___) {
-                    log.d("SEARCHPAGELOG : VALUELISTENABLE RELOAD HIT");
-                    log.d("SEARCHPAGELOG : markerPos -> $_markerPositions");
-                    log.d("SEARCHPAGELOG : markerOff -> $_markerOffsets");
-                    log.d("SEARCHPAGELOG : markerDist -> $_markerDist");
-
-                    // Safety check: only build overlay if lists are synced
                     if (_markerOffsets.length !=
                         miniBusinessLocationids.length) {
                       return const SizedBox();
                     }
 
-                    return Positioned(
-                      left: 0,
-                      top: 0,
-                      width: size.width,
-                      height: size.height,
-                      child: Stack(
-                        children: List.generate(miniBusinessLocationids.length,
-                            (index) {
-                          final miniBusLoc =
-                              businessManager.miniBusinessLocLookup[
-                                  miniBusinessLocationids[index]]!;
+                    return Stack(
+                      // ✔ now Positioned children are legal
+                      children: List.generate(miniBusinessLocationids.length,
+                          (index) {
+                        final miniBusLoc =
+                            businessManager.miniBusinessLocLookup[
+                                miniBusinessLocationids[index]]!;
 
-                          return ValueListenableBuilder<Offset>(
-                            valueListenable: _markerOffsets[index],
-                            builder: (_, offset, __) {
-                              final nearestDist = _markerDist[index];
+                        return ValueListenableBuilder<Offset>(
+                          valueListenable: _markerOffsets[index],
+                          builder: (_, offset, __) {
+                            final nearestDist = _markerDist[index];
 
-                              return Positioned(
-                                left: offset.dx - 20,
-                                top: offset.dy - 20,
-                                child: RepaintBoundary(
-                                  child:
-                                      getIcon(miniBusLoc, nearestDist, index),
-                                ),
-                              );
-                            },
-                          );
-                        }),
-                      ),
+                            return Positioned(
+                              left: offset.dx - 20,
+                              top: offset.dy - 20,
+                              child: RepaintBoundary(
+                                child: getIcon(miniBusLoc, nearestDist, index),
+                              ),
+                            );
+                          },
+                        );
+                      }),
                     );
                   },
                 ),
               ),
 
-              // RepaintBoundary(
+              // USER LOCATION PIN
               ValueListenableBuilder(
                 valueListenable: userOffset,
                 builder: (_, __, ___) {
-                  log.i("REBUILDING THE POSITION");
                   return Positioned(
-                      left: 0,
-                      top: 0,
-                      width: size.width,
-                      height: size.height,
-                      child: Positioned(
-                        left: userOffset.value.dx - 20,
-                        top: userOffset.value.dy - 20,
-                        child: const RepaintBoundary(
-                            child: Icon(
-                          Icons.location_pin,
-                          color: AppColors.primary,
-                          size: 40,
-                        )),
-                      ));
+                    left: userOffset.value.dx - 20,
+                    top: userOffset.value.dy - 20,
+                    child: const RepaintBoundary(
+                      child: Icon(
+                        Icons.location_pin,
+                        color: AppColors.primary,
+                        size: 40,
+                      ),
+                    ),
+                  );
                 },
               ),
-              // ),
 
-              //Thumbnial Overlay
+              // THUMBNAIL OVERLAY
               ValueListenableBuilder<String>(
                 valueListenable: widget.mapMode,
                 builder: (_, choosing, __) {
                   if (choosing != "Thumbnail") return const SizedBox();
                   if (miniBusinessId == null) return const SizedBox();
+
                   return Positioned(
-                      bottom: 40,
-                      left: 20,
-                      child: BusinessLocationThumbnail(
-                          locationId: miniBusinessId!));
+                    bottom: 40,
+                    left: 20,
+                    child:
+                        BusinessLocationThumbnail(locationId: miniBusinessId!),
+                  );
                 },
               ),
             ],
@@ -1262,7 +1236,7 @@ class _SearchPageState extends State<SearchPage> {
                 if (choosing != "List") {
                   return const SizedBox(); // hide search bar
                 }
-                return Positioned(child: newbottombar(context, index: 0));
+                return newbottombar(context, index: 0);
               },
             ),
             body: Stack(children: [
@@ -1277,11 +1251,7 @@ class _SearchPageState extends State<SearchPage> {
                     if (["Choosing", "List"].contains(choosing)) {
                       return const SizedBox(); // hide search bar
                     }
-                    return Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: newbottombar(context, index: 0));
+                    return newbottombar(context, index: 0);
                   },
                 ),
               ),
@@ -1295,14 +1265,10 @@ class _SearchPageState extends State<SearchPage> {
                     if (["Choosing", "List"].contains(choosing)) {
                       return const SizedBox(); // hide search bar
                     }
-                    return Positioned(
-                        left: 0,
-                        right: 0,
-                        top: 120,
-                        child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: TagController.showChosenTagWidget(context,
-                                leveled: false)));
+                    return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: TagController.showChosenTagWidget(context,
+                            leveled: false));
                   },
                 ),
               ),
@@ -1313,8 +1279,7 @@ class _SearchPageState extends State<SearchPage> {
                     if (["Choosing", "List"].contains(choosing)) {
                       return const SizedBox(); // hide search bar
                     }
-                    return Positioned(
-                        child: SearchBarController.createSearchBar(context));
+                    return SearchBarController.createSearchBar(context);
                   },
                 ),
               ),

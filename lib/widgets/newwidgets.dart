@@ -451,8 +451,6 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
   Widget buildWidget(BuildContext context,
       AsyncSnapshot<Map<String, MiniBusinessLoc>> snapshot) {
     if (snapshot.hasData) {
-
-
       if (snapshot.data is! Map) {
         // log.i("SNAPSHOTRUNT ISNT Map ITS  : ${snapshot.data.runtimeType}");
         return SizedBox();
@@ -501,6 +499,14 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
             openString = "Closed - Opens $signTime";
           }
         }
+      }
+
+      Widget unVerifiedBadge = const SizedBox();
+
+      if (!minibusinessLocation.verified) {
+        unVerifiedBadge = Image.asset(
+            "assets/icons/business_icons/unverified_badge.png",
+            scale: 3);
       }
 
       String iconPath = "assets/icons/svg_logo.png";
@@ -594,7 +600,8 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                                   constraints: const BoxConstraints(
                                       minWidth: 150,
                                       maxWidth: 150,
-                                      minHeight: 40),
+                                      minHeight: 30,
+                                      maxHeight: 100),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -607,7 +614,7 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                                       ),
                                       SizedBox(
                                           width: 200,
-                                          height: 50,
+                                          height: 50 - 13,
                                           child: Stack(
                                               alignment:
                                                   AlignmentGeometry.center,
@@ -629,23 +636,73 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                                     ],
                                   ),
                                 ),
-                                Small(ratings),
-                                MyText(
-                                  parseAddress(minibusinessLocation.address,
-                                      minibusinessLocation.buildingNumber),
-                                  size: 13,
+                                Stack(
+                                    alignment: AlignmentDirectional.center,
+                                    // fit: StackFit.expand,
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Positioned(
+                                          child: Image.asset(
+                                              "assets/icons/business_icons/rating_star.png")),
+                                      Positioned(
+                                          top: -1,
+                                          left: 30,
+                                          child: Small(ratings))
+                                    ]),
+                                Stack(
+                                    alignment: AlignmentDirectional.center,
+                                    // fit: StackFit.expand,
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      const Positioned(
+                                          // left: 0,
+                                          // top: 0,
+                                          child: Icon(Icons.location_on_sharp)),
+                                      Positioned(
+                                          top: -1,
+                                          left: 30,
+                                          child: MyText(
+                                            parseAddress(
+                                                minibusinessLocation.address,
+                                                minibusinessLocation
+                                                    .buildingNumber),
+                                            size: 13,
+                                          ))
+                                    ]),
+                                const SizedBox(
+                                  height: 15,
                                 ),
-                                Row(
+                                Stack(
+                                  alignment: AlignmentDirectional.center,
+                                  clipBehavior: Clip.none,
                                   children: [
-                                    Small(
-                                      "${minibusinessLocation.distance.toStringAsFixed(2)} km",
-                                    ),
+                                    Positioned(
+                                        child: Image.asset(
+                                            "assets/icons/business_icons/distance_icon.png")),
+                                    Positioned(
+                                      top: -10,
+                                      left: 30,
+                                      child: ValueListenableBuilder(
+                                          valueListenable:
+                                              DistanceMeasurmentChangedHolder
+                                                  .distanceMeasurmentChanged,
+                                          builder: (_, __, ___) {
+                                            return Small(arbitStore
+                                                    .data["metric?"]
+                                                ? "${minibusinessLocation.distance.toStringAsFixed(2)} km"
+                                                : "${kmToMiles(minibusinessLocation.distance).toStringAsFixed(2)} miles");
+                                          }),
+                                    )
                                   ],
                                 ),
                               ],
                             ),
                           ),
                         ),
+
+                        // UNVERIFIED BADGE
+                        Positioned(
+                            bottom: 10, right: 10, child: unVerifiedBadge),
 
                         // LEFT SIDE IMAGE + STATUS
                         Positioned(
@@ -807,9 +864,11 @@ class MyMainSliderState extends State<MyMainSlider> {
       spacing: 5,
       children: [
         Body(
-          (distances[sliderValue.toInt()] == 1)
-              ? "Search within ${distances[sliderValue.toInt()]} mile"
-              : "Search within ${distances[sliderValue.toInt()]} miles",
+          arbitStore.data["metric?"]
+              ? "Search within ${milesToKm(distances[sliderValue.toInt()].toDouble()).round()} Kilometers"
+              : (distances[sliderValue.toInt()] == 1)
+                  ? "Search within ${distances[sliderValue.toInt()]} mile"
+                  : "Search within ${distances[sliderValue.toInt()]} miles",
           color: AppColors.text,
         ),
         Slider(
@@ -1361,7 +1420,7 @@ class SearchBarController {
                     const Icon(Icons.search, color: Colors.white, size: 40),
                     Expanded(
                       child: HeaderInput(
-                        hint: "find a businesses",
+                        hint: "find a business",
                         controller: controller,
                         onSubmitted: (value) => goToSearchPage(context),
                       ),
@@ -1655,6 +1714,11 @@ class TagController {
   }
 }
 
+class DistanceMeasurmentChangedHolder {
+  static final ValueNotifier<bool> distanceMeasurmentChanged =
+      ValueNotifier(false);
+}
+
 Widget newbottombar(BuildContext context, {int index = 2}) {
   void homePageButtonLogic(BuildContext context) {
     goToHomePage(context);
@@ -1814,7 +1878,7 @@ void goToUserPage(BuildContext context, {bool canGoBack = true}) {
 }
 
 void filterDropDown(BuildContext context) {
-  Arbitfallbacks();
+  arbitfallbacks();
   final distances = [1, 3, 5, 10, 15, 20, 30, 50];
 
   List<Widget> allIcons = [];
@@ -1863,18 +1927,65 @@ void filterDropDown(BuildContext context) {
             const SizedBox(height: 30),
             //TTILE DONE
 
-            MyMainSlider(
-              distances: distances,
-              onChanged: (distance) {
-                arbitStore.data["distance_index"] = distances.indexOf(distance);
-                arbitStore.data["distance"] = milesToKm(
-                  distance.toDouble(),
-                ).toInt();
+            Container(
+                decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(20)),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: HeaderInput(
+                  hint: "find a business",
+                  controller: SearchBarController.controller,
+                  onSubmitted: (value) => goToSearchPage(context),
+                )),
+
+            const SizedBox(height: 20),
+
+            ValueListenableBuilder(
+              valueListenable:
+                  DistanceMeasurmentChangedHolder.distanceMeasurmentChanged,
+              builder: (_, __, ___) {
+                return MyMainSlider(
+                  distances: distances,
+                  onChanged: (distance) {
+                    arbitStore.data["distance_index"] =
+                        distances.indexOf(distance);
+                    arbitStore.data["distance"] = milesToKm(
+                      distance.toDouble(),
+                    ).toInt();
+                  },
+                  startValue: arbitStore.data["distance_index"],
+                );
               },
-              startValue: arbitStore.data["distance_index"],
             ),
             const SizedBox(height: 10),
             //TTILE SLIDER DONE
+
+            // const Body(
+            //   "Measure",
+            //   color: AppColors.text,
+            // ),
+            // const SizedBox(height: 10),
+            MyMultiToggle(
+              initial: arbitStore.data["metric?"] ? 0 : 1,
+              options: const [
+                "Kilometers",
+                "Miles",
+              ],
+              onChanged: (val) {
+                DistanceMeasurmentChangedHolder
+                        .distanceMeasurmentChanged.value =
+                    !DistanceMeasurmentChangedHolder
+                        .distanceMeasurmentChanged.value;
+                if (val == 0) {
+                  arbitStore.data["metric?"] = true;
+                }
+                if (val == 1) {
+                  arbitStore.data["metric?"] = false;
+                }
+              },
+            ),
+            const SizedBox(height: 20),
+            //Choose Units Done
 
             const Body(
               "Category",
@@ -1930,9 +2041,9 @@ void filterDropDown(BuildContext context) {
               color: AppColors.text,
             ),
             const SizedBox(height: 10),
-
             TagController.showChosenTagWidget(context),
             const SizedBox(height: 40),
+            //Tag Chooser Done
 
             MyButton(
               height: 60,
