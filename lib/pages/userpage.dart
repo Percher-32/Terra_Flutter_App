@@ -25,15 +25,15 @@ class _UserPageState extends State<UserPage> {
         onPressed: () async {
           final loggedOut = await tokenMaster.userLogout();
 
+          if (!mounted) {
+            return;
+          }
           if (loggedOut) {
             ulog.i("LOGOUT || SUCCESS FROM UI SIDE");
             goToHomePage(context);
           } else {
             ulog.e("LOGOUT || ERROR FROM UI SIDE");
-            showDialog(
-              context: context,
-              builder: (context) => MyText("ERROR IN LOGOUT"),
-            );
+            showErrorMessage(context, "Error In Logout");
           }
         },
       )

@@ -1829,6 +1829,27 @@ void goToHomePage(BuildContext context) {
   );
 }
 
+void showErrorMessage(BuildContext context, dynamic message) {
+  showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: AppColors.background,
+          constraints:
+              const BoxConstraints(minHeight: 100, minWidth: 200, maxHeight: 300),
+          child: Center(
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: SizedBox(
+                      // width: 200,
+                      child: MyText(
+                          textAlign: TextAlign.center,
+                          message.toString(),
+                          size: 25)))),
+        );
+      });
+}
+
 void goToBusinessPage(BuildContext context, String locationId,
     {bool canGoBack = true}) {
   final router = PageRouteBuilder(

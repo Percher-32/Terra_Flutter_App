@@ -20,7 +20,7 @@ class LoginOrSignupPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const MyText("Next find"),
+        const MyText("Next find", size: 40),
         const SizedBox(
           height: 30,
         ),
@@ -45,7 +45,7 @@ class LoginOrSignupPage extends StatelessWidget {
         MyButton(
           width: 300,
           height: 60,
-          child: const MyText("Sign Up", size: 20),
+          child: const MyText("Sign Up", size: 20, color: AppColors.background),
           onPressed: () async {
             Navigator.push(
                 context,
@@ -90,10 +90,10 @@ class _UserSignupPageState extends State<UserSignupPage> {
     } else {
       log.e("SIGNUP || ERROR -> $message");
       if (message == 'User already exists') {
-        showDialog(
-          context: context,
-          builder: (context) => MyText(message),
-        );
+        if (!mounted) {
+          return;
+        }
+        showErrorMessage(context, message);
       }
       return;
     }
@@ -162,15 +162,13 @@ class _LoginPageState extends State<LoginPage> {
       log.i("devicename : $devicename");
 
       log.i("LOGIN SUCCESS");
-      if (mounted) {
-        goToHomePage(context);
-      }
+      if (!context.mounted) return;
+      goToUserPage(context);
     } else {
       log.e("LOGIN FAILED");
-      showDialog(
-        context: context,
-        builder: (context) => MyText(loginSuccess.$2.toString()),
-      );
+
+      if (!context.mounted) return;
+      showErrorMessage(context, loginSuccess.$2["detail"]);
     }
   }
 
