@@ -1,6 +1,0 @@
-FIX THE BUG WHERE WHEN I:
-    - GO TO MAP 
-    - GO TO HOME
-    - GO TO MAP
-
-    -> it puases

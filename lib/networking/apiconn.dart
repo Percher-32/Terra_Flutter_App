@@ -15,7 +15,8 @@ class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     final client = super.createHttpClient(context);
-    client.connectionTimeout = const Duration(seconds: 20); // increase wait time
+    client.connectionTimeout =
+        const Duration(seconds: 20); // increase wait time
     return client;
   }
 }
@@ -103,7 +104,7 @@ class ServerConnect {
     log.d("FUNCTION : getNearbyBusinesses | DATA COLLECTION COMPLETE");
 
     if (response.statusCode == 200) {
-     final data = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
       if (!idOnly) {
         List<int> returnedBusinessesLocationIds = [];
         List<MiniBusinessLoc> returnedBusinessesLocations = [];
@@ -145,43 +146,43 @@ class ServerConnect {
   }
 
   Future<dynamic> getFullLocationData(String locationId) async {
-    log.i("FUNCTION : getFullLocationData | START");
 
     final response = await http
         .get(Uri.parse('$serverUrl/business_location?location_id=$locationId'));
-    final dataFromResp = jsonDecode(response.body);
+        
+    final businessLocationResponseData = jsonDecode(response.body);
 
-    if (response.statusCode == 200) {
-      final businessLocation =
-          businessManager.addBusinessLocation(dataFromResp);
-
-      final galleryResponse = await http.get(Uri.parse(
-          '$serverUrl/location_image_paths?location_ids=$locationId'));
-
-      final Map gallerydataFromResp = jsonDecode(galleryResponse.body);
-
-      if (galleryResponse.statusCode == 200) {
-        log.i(
-            "FUNCTION : getFullLocationData | Contains key? | ${businessManager.businessLocationLookup.containsKey(locationId)}");
-
-        if (gallerydataFromResp.containsKey(locationId)) {
-          businessManager.businessLocationLookup[locationId]!.imagePaths =
-              List<String>.from(gallerydataFromResp[locationId]);
-        } else {
-          log.i("FUNCTION : getFullLocationData | No Image Data");
-        }
-      } else {
-        log.e(
-            "FUNCTION : getFullLocationData | GETTING PATHS | Error Occured |$gallerydataFromResp");
-        // return null;
-      }
-
-      return businessLocation;
-    } else {
+    if (response.statusCode != 200) {
       log.e(
-          "FUNCTION : getFullLocationData | GETTING DATA | Error Occured $dataFromResp");
+          "FUNCTION : getFullLocationData | GETTING DATA | Error Occured $businessLocationResponseData");
       return null;
     }
+
+    final businessLocation =
+        businessManager.addBusinessLocation(businessLocationResponseData);
+
+    final galleryResponse = await http.get(
+        Uri.parse('$serverUrl/location_image_paths?location_ids=$locationId'));
+
+    final Map gallerydataFromResp = jsonDecode(galleryResponse.body);
+
+    if (galleryResponse.statusCode == 200) {
+      log.i(
+          "FUNCTION : getFullLocationData | Contains key? | ${businessManager.businessLocationLookup.containsKey(locationId)}");
+
+      if (gallerydataFromResp.containsKey(locationId)) {
+        businessManager.businessLocationLookup[locationId]!.imagePaths =
+            List<String>.from(gallerydataFromResp[locationId]);
+      } else {
+        log.i("FUNCTION : getFullLocationData | No Image Data");
+      }
+    } else {
+      log.e(
+          "FUNCTION : getFullLocationData | GETTING PATHS | Error Occured |$gallerydataFromResp");
+      // return null;
+    }
+
+    return businessLocation;
   }
 
   Future<dynamic> getTrendingBusinessIds(
@@ -265,13 +266,13 @@ class ServerConnect {
     }
   }
 
-  Future<dynamic> signupUser({
+  Future<(dynamic, int)> signupUser({
     required String email,
     required String password,
   }) async {
     final response = await http.post(
       Uri.parse(
-        '$serverUrl/new_user',
+        '$serverUrl/auth/new_user',
       ),
       headers: {
         'Content-Type': 'application/json',
@@ -282,14 +283,14 @@ class ServerConnect {
       }),
     );
     final dynamic data = jsonDecode(response.body);
-    return data;
+    return (data, response.statusCode);
   }
 
   Future<dynamic> getUserData() async {
     if (userData != null) {
       return userData;
     } else {
-      userData = await tokenMaster.userGet("me/data");
+      userData = await tokenMaster.userGet("user/data");
       return userData;
     }
   }

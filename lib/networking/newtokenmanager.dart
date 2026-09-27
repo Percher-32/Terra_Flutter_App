@@ -22,7 +22,7 @@ class TokenMaster {
   Future<(bool,dynamic)> userLogin(
       {required String email, required String password}) async {
     final response = await http.post(
-      Uri.parse('${serverUrl}/login'),
+      Uri.parse('$serverUrl/auth/login'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "username": email,
@@ -49,7 +49,7 @@ class TokenMaster {
   Future<bool> userLogout() async {
     final deviceName = await getDeviceDetails();
     final response = await http.post(
-      Uri.parse('${serverUrl}/logout?device=$deviceName'),
+      Uri.parse('${serverUrl}/auth/logout?device=$deviceName'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ class TokenMaster {
 
     if (refToken != null) {
       final response = await http.post(
-        Uri.parse('${serverUrl}/refresh'),
+        Uri.parse('${serverUrl}/auth/refresh'),
         body: jsonEncode({
           'refresh_token': refToken,
         }),
@@ -108,7 +108,9 @@ class TokenMaster {
   }
 
   Future<dynamic> userGet(String query) async {
-    log.d("USERGET FUNCTION START");
+
+      
+
     final response = await http.get(
       Uri.parse('${serverUrl}/$query'),
       headers: {

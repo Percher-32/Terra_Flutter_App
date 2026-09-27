@@ -9,7 +9,9 @@ import 'package:logger/logger.dart';
 import 'package:nextfind/utils/arbitStore.dart';
 import 'package:nextfind/pages/searchpage.dart';
 import 'package:rapidfuzz/rapidfuzz.dart' as fuzz;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:nextfind/pages/favorite_locations.dart';
 import 'package:nextfind/utils/tag_manager.dart';
 
 final mlog = Logger();
@@ -57,12 +59,6 @@ String parseAddress(Map address, int houseNumber) {
 
   return addressString;
 }
-// double dist(List<double> a, List<double> b) {
-//   final dx = a[0] - b[0];
-//   final dy = a[1] - b[1];
-//   return math.sqrt(dx * dx + dy * dy);
-// }
-
 class Point {
   final double x;
   final double y;
@@ -393,7 +389,7 @@ class _BaseImageState extends State<BaseImage> {
     if (widget.url != "No Url") {
       final trueUrl = "$serverUrl/image/${widget.url}";
 
-      provider = NetworkImage(trueUrl);
+      provider = CachedNetworkImageProvider(trueUrl);
       // WidgetsBinding.instance.addPostFrameCallback((_) async {
       //   try {
       //     await precacheImage(provider, context);
@@ -1451,13 +1447,13 @@ class TagController {
     final TextEditingController tagSearchBarController =
         TextEditingController();
 
-    double forgivingScore(String a, String b) {
-      final r1 = fuzz.ratio(a, b);
-      final r2 = fuzz.partialRatio(a, b);
-      final r3 = fuzz.tokenSortRatio(a, b);
-      final r4 = fuzz.tokenSetRatio(a, b);
-      return [r1, r2, r3, r4].reduce((a, b) => a > b ? a : b);
-    }
+    // double forgivingScore(String a, String b) {
+    //   final r1 = fuzz.ratio(a, b);
+    //   final r2 = fuzz.partialRatio(a, b);
+    //   final r3 = fuzz.tokenSortRatio(a, b);
+    //   final r4 = fuzz.tokenSetRatio(a, b);
+    //   return [r1, r2, r3, r4].reduce((a, b) => a > b ? a : b);
+    // }
 
     List<Tag> searchSimilarTags(String query, List<Tag> tags) {
       final lowerQuery = query.toLowerCase().trim();
@@ -1762,7 +1758,7 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
       borderRadius: BorderRadius.circular(0),
       child: Container(
         height: 50,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(10), topRight: Radius.circular(10)),
           color: AppColors.primary,
@@ -1797,7 +1793,7 @@ Widget newbottombar(BuildContext context, {int index = 2}) {
               icon: favoriteIcon,
               iconSize: 35,
               onPressed: () {
-                log.d("User tapped bottom nav button : favorite");
+                goToFavoritesPage(context);
               },
             ),
             IconButton(
@@ -1835,8 +1831,8 @@ void showErrorMessage(BuildContext context, dynamic message) {
       builder: (context) {
         return Dialog(
           backgroundColor: AppColors.background,
-          constraints:
-              const BoxConstraints(minHeight: 100, minWidth: 200, maxHeight: 300),
+          constraints: const BoxConstraints(
+              minHeight: 100, minWidth: 200, maxHeight: 300),
           child: Center(
               child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -1880,6 +1876,20 @@ void goToBusinessPage(BuildContext context, String locationId,
     Navigator.pushReplacement(
       context,
       router,
+    );
+  }
+}
+
+void goToFavoritesPage(BuildContext context, {bool canGoBack = true}) {
+  if (canGoBack) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const FavoriteLocationsPage()),
+    );
+  } else {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const FavoriteLocationsPage()),
     );
   }
 }

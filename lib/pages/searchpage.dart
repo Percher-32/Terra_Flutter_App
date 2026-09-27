@@ -115,7 +115,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
   double _mapZoom = 16.0;
   double _mapBearing = 0.0;
-  bool _radiusSourceAdded = false;
+  // bool _radiusSourceAdded = false;
 
   @override
   void initState() {

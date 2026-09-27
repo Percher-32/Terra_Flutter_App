@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nextfind/networking/apiconn.dart';
 import 'package:nextfind/networking/newtokenmanager.dart';
 import 'package:nextfind/pages/signuppage.dart';
+import 'package:nextfind/utils/user_manager.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
 import 'package:logger/logger.dart';
 
@@ -41,7 +42,7 @@ class _UserPageState extends State<UserPage> {
   }
 
   Widget myBody() {
-    if (tokenMaster.refToken != null) {
+    if (UserManager.isLoggedIn()) {
       return Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:nextfind/networking/newtokenmanager.dart';
 import 'package:nextfind/widgets/newwidgets.dart';
 // import 'package:nextfind/widgets/widgets.dart';
-import 'package:nextfind/networking/apiconn.dart';
-import 'package:nextfind/utils/devicemanager.dart';
+import 'package:nextfind/utils/user_manager.dart';
 
 import 'package:logger/logger.dart';
 
@@ -71,32 +69,11 @@ class _UserSignupPageState extends State<UserSignupPage> {
   final passwordcontroller = TextEditingController();
 
   Future<void> signup() async {
-    final dynamic jsondata = await serverconnect.signupUser(
-      email: emailcontroller.text,
-      password: passwordcontroller.text,
+    await UserManager.signup(
+      context,
+      emailcontroller.text,
+      passwordcontroller.text,
     );
-
-    final devicename = await getDeviceDetails();
-    log.i("DVNAME -> $devicename");
-
-    final String message = jsondata["message"];
-
-    if (message == 'Successful') {
-      log.i("SIGNUP || SUCCESSFUL");
-      await tokenMaster.userLogin(
-          email: emailcontroller.text, password: passwordcontroller.text);
-      if (!mounted) return;
-      goToHomePage(context);
-    } else {
-      log.e("SIGNUP || ERROR -> $message");
-      if (message == 'User already exists') {
-        if (!mounted) {
-          return;
-        }
-        showErrorMessage(context, message);
-      }
-      return;
-    }
   }
 
   @override
@@ -152,24 +129,11 @@ class _LoginPageState extends State<LoginPage> {
   final passwordcontroller = TextEditingController();
 
   Future<void> login(BuildContext context) async {
-    debugPrint(emailcontroller.text);
-    debugPrint(passwordcontroller.text);
-    final loginSuccess = await tokenMaster.userLogin(
-        email: emailcontroller.text, password: passwordcontroller.text);
-
-    if (loginSuccess.$1) {
-      final devicename = await getDeviceDetails();
-      log.i("devicename : $devicename");
-
-      log.i("LOGIN SUCCESS");
-      if (!context.mounted) return;
-      goToUserPage(context);
-    } else {
-      log.e("LOGIN FAILED");
-
-      if (!context.mounted) return;
-      showErrorMessage(context, loginSuccess.$2["detail"]);
-    }
+    UserManager.login(
+      context,
+      emailcontroller.text,
+      passwordcontroller.text,
+    );
   }
 
   @override
