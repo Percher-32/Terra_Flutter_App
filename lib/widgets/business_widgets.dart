@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/services/business_services.dart';
+import 'package:nextfind/constants/business_constants.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:logger/logger.dart';
+import 'package:nextfind/helpers/conversions.dart';
+import 'package:nextfind/widgets/main_widgets.dart';
+import 'package:intl/intl.dart';
 
 final log = Logger();
+
+bool isBetween(DateTime start, DateTime end, DateTime now) {
+  return now.isAfter(start) && now.isBefore(end);
+}
 
 String parseAddress(Map address, int houseNumber) {
   String addressString = "";
@@ -46,7 +54,7 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
     if (snapshot.hasData) {
       if (snapshot.data is! Map) {
         // log.i("SNAPSHOTRUNT ISNT Map ITS  : ${snapshot.data.runtimeType}");
-        return SizedBox();
+        return const SizedBox();
       }
 
       log.i("SNAPSHOTRUNT : ${snapshot.data!} || ${widget.locationId} ");

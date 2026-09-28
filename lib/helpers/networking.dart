@@ -19,12 +19,17 @@ abstract class Networking {
 
   static const serverUrl = 'http://192.168.1.107:8000';
 
+  static toJson(source) {
+    return jsonDecode(source);
+  }
+
   static Future<http.Response> apiGet(
     String endpoint, {
     Map<String, dynamic> params = const {},
   }) async {
     // 1. Clean endpoint leading slash
-    final cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+    final cleanEndpoint =
+        endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
 
     // 2. Parse base URI to safely extract authority and port
     final baseUri = Uri.parse(serverUrl);
@@ -46,23 +51,36 @@ abstract class Networking {
       queryParameters: formattedParams.isEmpty ? null : formattedParams,
     );
 
-    return await http.get(uri);
+    final response = await http.get(uri);
+
+    if (!response.toString().startsWith("2")) {
+      log.e("Error URL $endpoint || ${response.statusCode} ${jsonDecode(response.body)}");
+    }
+
+    return response;
   }
-  
+
   static Future<http.Response> apiPost(
     String endpoint, {
     Map<String, dynamic> params = const {},
   }) async {
-    final cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+    final cleanEndpoint =
+        endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
     final url = Uri.parse('$serverUrl/$cleanEndpoint');
 
-    return await http.post(
+    final response = await http.post(
       url,
       headers: {
         'Content-Type': 'application/json',
       },
       body: jsonEncode(params),
     );
+
+    if (!response.toString().startsWith("2")) {
+      log.e("Error URL $url || ${response.statusCode} ${jsonDecode(response.body)}");
+    }
+
+    return response;
   }
 
   static Future<bool> testPing() async {

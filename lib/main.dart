@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/networking/apiconn.dart';
 // import 'package:nextfind/pages/searchpage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 
 import 'pages/homepage.dart';
@@ -9,7 +10,11 @@ import 'package:nextfind/utils/arbitStore.dart';
 void main() {
   arbitfallbacks();
   HttpOverrides.global = MyHttpOverrides();
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -31,16 +36,9 @@ class MyApp extends StatelessWidget {
       ),
       themeMode: ThemeMode.light,
       home: const MyHomePage(title: 'Next Find'),
-      // home: const SearchPage(),
     );
   }
 }
 
 
 
-
-
-
-//[] ([he] [is] [the]) ([for][ty][forth]) ([pre][sid][dent]) ([of] [the]) ([U][NIT][ED] [STATES])
-// ([ev][ery][bo][dy]) ([give][it][up][for]) ([the][one][and][only]) ([BARACK][HUSIEN])
-// OBAMA ,
