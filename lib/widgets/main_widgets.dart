@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
-import 'package:nextfind/networking/apiconn.dart';
 import 'package:flutter/material.dart';
-import 'package:nextfind/utils/arbitStore.dart';
+import 'package:nextfind/global_states.dart';
+import 'package:nextfind/helpers/conversions.dart';
+import 'package:nextfind/helpers/networking.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class AppColors {
@@ -300,20 +300,8 @@ class _BaseImageState extends State<BaseImage> {
     super.initState();
 
     if (widget.url != "No Url") {
-      final trueUrl = "$serverUrl/image/${widget.url}";
-
+      final trueUrl = Networking.getFullImageUrl(widget.url);
       provider = CachedNetworkImageProvider(trueUrl);
-      // WidgetsBinding.instance.addPostFrameCallback((_) async {
-      //   try {
-      //     await precacheImage(provider, context);
-      //     log.i("PRECACHE SUCCESS");
-      //   } catch (e, st) {
-      //     log.e("PRECACHE FAILED: $e\n$st");
-      //   }
-      // });
-
-      // preload once
-      // precacheImage(provider, context);
     } else {
       provider = const AssetImage("assets/img/kde.png");
     }
@@ -450,7 +438,7 @@ class MyMainSliderState extends State<MyMainSlider> {
       spacing: 5,
       children: [
         Body(
-          arbitStore.data["metric?"]
+          GlobalStates.isMetric
               ? "Search within ${milesToKm(distances[sliderValue.toInt()].toDouble()).round()} Kilometers"
               : (distances[sliderValue.toInt()] == 1)
                   ? "Search within ${distances[sliderValue.toInt()]} mile"

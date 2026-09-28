@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:logger/logger.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:convert';
+import 'package:nextfind/helpers/logger.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -15,8 +15,6 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 abstract class Networking {
-  static final log = Logger();
-
   static const serverUrl = 'http://192.168.1.107:8000';
 
   static toJson(source) {
@@ -54,7 +52,8 @@ abstract class Networking {
     final response = await http.get(uri);
 
     if (!response.toString().startsWith("2")) {
-      log.e("Error URL $endpoint || ${response.statusCode} ${jsonDecode(response.body)}");
+      log.e(
+          "Error URL $endpoint || ${response.statusCode} ${jsonDecode(response.body)}");
     }
 
     return response;
@@ -77,7 +76,8 @@ abstract class Networking {
     );
 
     if (!response.toString().startsWith("2")) {
-      log.e("Error URL $url || ${response.statusCode} ${jsonDecode(response.body)}");
+      log.e(
+          "Error URL $url || ${response.statusCode} ${jsonDecode(response.body)}");
     }
 
     return response;
