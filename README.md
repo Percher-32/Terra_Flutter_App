@@ -1,16 +1,8 @@
-# nextfind
+# Mobile app for Nextfind
 
-A new Flutter project.
+## About
+This repository contains all the code for the NextFind flutter mobile app
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Folder Structure
+This uses a horizontal folder structure due to the small size of the app.
+If needed it could be migrated to a vertical folder structure
