@@ -1,113 +1,18 @@
-import 'package:nextfind/pages/homepage.dart';
+import 'package:flutter/material.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
-import 'package:nextfind/helpers/logger.dart';
-import 'package:nextfind/helpers/conversions.dart';
+import 'package:nextfind/services/business_services.dart';
+import 'package:nextfind/services/search_services.dart';
+import 'package:nextfind/services/tag_services.dart';
+import 'package:nextfind/pages/homepage.dart';
 import 'package:nextfind/pages/searchpage.dart';
 import 'package:nextfind/pages/userpage.dart';
-import 'package:flutter/material.dart';
 import 'package:nextfind/pages/focusedviewed.dart';
 import 'package:nextfind/pages/favorite_locations.dart';
-
-Widget newbottombar(BuildContext context, {int index = 2}) {
-  void homePageButtonLogic(BuildContext context) {
-    goToHomePage(context);
-  }
-
-  void searchButtonLogic(BuildContext context) {
-    goToSearchPage(context);
-  }
-
-  Future<void> userButtonLogic(BuildContext context) async {
-    goToUserPage(context);
-  }
-
-  final midColor = Color.lerp(AppColors.background, AppColors.primary, 0.5);
-
-  Widget searchIcon = Icon(Icons.search, color: midColor, size: 35);
-  Widget leaderboardIcon =
-      Icon(Icons.leaderboard_outlined, color: midColor, size: 35);
-  Widget homeIcon = Icon(Icons.home_outlined, color: midColor, size: 35);
-  Widget favoriteIcon =
-      Icon(Icons.favorite_border_rounded, color: midColor, size: 35);
-  Widget userIcon = Icon(Icons.person_outline, color: midColor, size: 35);
-
-  if (index == 0) {
-    searchIcon = const Icon(Icons.search, color: Colors.white, size: 35);
-  } else if (index == 1) {
-    leaderboardIcon =
-        const Icon(Icons.leaderboard_outlined, color: Colors.white, size: 35);
-  } else if (index == 2) {
-    homeIcon = const Icon(Icons.home_outlined, color: Colors.white, size: 35);
-  } else if (index == 3) {
-    favoriteIcon = const Icon(Icons.favorite_border_rounded,
-        color: Colors.white, size: 35);
-  } else if (index == 4) {
-    userIcon = const Icon(Icons.person_outline, color: Colors.white, size: 35);
-  }
-
-  return Padding(
-    padding: const EdgeInsets.all(0),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(0),
-      child: Container(
-        height: 50,
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-          color: AppColors.primary,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            IconButton(
-              icon: searchIcon,
-              iconSize: 35,
-              onPressed: () {
-                log.d("User tapped bottom nav button : search");
-                searchButtonLogic(context);
-              },
-            ),
-            IconButton(
-              icon: leaderboardIcon,
-              iconSize: 35,
-              onPressed: () {
-                log.d("User tapped bottom nav button leader :board");
-              },
-            ),
-            IconButton(
-              icon: homeIcon,
-              iconSize: 35,
-              onPressed: () {
-                log.d("User tapped bottom nav button : home");
-                homePageButtonLogic(context);
-              },
-            ),
-            IconButton(
-              icon: favoriteIcon,
-              iconSize: 35,
-              onPressed: () {
-                goToFavoritesPage(context);
-              },
-            ),
-            IconButton(
-              icon: userIcon,
-              iconSize: 35,
-              onPressed: () async {
-                log.d("User tapped bottom nav button : user");
-                await userButtonLogic(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
 
 void goToSearchPage(BuildContext context) {
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (context) => SearchPage()),
+    MaterialPageRoute(builder: (context) => const SearchPage()),
   );
 }
 
@@ -202,16 +107,13 @@ void goToUserPage(BuildContext context, {bool canGoBack = true}) {
 }
 
 void filterDropDown(BuildContext context) {
-  arbitfallbacks();
-  final distances = [1, 3, 5, 10, 15, 20, 30, 50];
+  Map<dynamic, Widget> allIcons = {};
+  Map<dynamic, Widget> allIconsAlt = {};
 
-  List<Widget> allIcons = [];
-  List<Widget> allIconsAlt = [];
-
-  for (int index in businessIconLookup.keys) {
+  for (int? index in businessIconLookup.keys) {
     Widget widget = const SizedBox();
     Widget widgetAlt = const SizedBox();
-    if (index != -1) {
+    if (index != null) {
       widget = Image.asset(
         businessIconLookup[index]!,
         width: 32,
@@ -225,8 +127,8 @@ void filterDropDown(BuildContext context) {
       );
     }
 
-    allIcons.add(widget);
-    allIconsAlt.add(widgetAlt);
+    allIcons[index] = widget;
+    allIconsAlt[index] = widgetAlt;
   }
 
   showModalBottomSheet(
@@ -255,57 +157,38 @@ void filterDropDown(BuildContext context) {
                 decoration: BoxDecoration(
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(20)),
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: HeaderInput(
                   hint: "find a business",
-                  controller: SearchBarController.controller,
+                  controller: SearchServices.controller,
                   onSubmitted: (value) => goToSearchPage(context),
                 )),
 
             const SizedBox(height: 20),
 
             ValueListenableBuilder(
-              valueListenable:
-                  DistanceMeasurmentChangedHolder.distanceMeasurmentChanged,
+              valueListenable: SearchServices.searchRadiusIndex,
               builder: (_, __, ___) {
                 return MyMainSlider(
-                  distances: distances,
-                  onChanged: (distance) {
-                    arbitStore.data["distance_index"] =
-                        distances.indexOf(distance);
-                    arbitStore.data["distance"] = milesToKm(
-                      distance.toDouble(),
-                    ).toInt();
+                  distances: SearchServices.searchRadiusValues,
+                  onChanged: (distanceIndex) {
+                    SearchServices.searchRadiusIndex.value = distanceIndex;
                   },
-                  startValue: arbitStore.data["distance_index"],
+                  startValue: SearchServices.searchRadiusIndex.value,
                 );
               },
             ),
             const SizedBox(height: 10),
             //TTILE SLIDER DONE
 
-            // const Body(
-            //   "Measure",
-            //   color: AppColors.text,
-            // ),
-            // const SizedBox(height: 10),
             MyMultiToggle(
-              initial: arbitStore.data["metric?"] ? 0 : 1,
+              initial: SearchServices.isMetric.value ? 0 : 1,
               options: const [
                 "Kilometers",
                 "Miles",
               ],
               onChanged: (val) {
-                DistanceMeasurmentChangedHolder
-                        .distanceMeasurmentChanged.value =
-                    !DistanceMeasurmentChangedHolder
-                        .distanceMeasurmentChanged.value;
-                if (val == 0) {
-                  arbitStore.data["metric?"] = true;
-                }
-                if (val == 1) {
-                  arbitStore.data["metric?"] = false;
-                }
+                SearchServices.isMetric.value = !SearchServices.isMetric.value;
               },
             ),
             const SizedBox(height: 20),
@@ -317,20 +200,16 @@ void filterDropDown(BuildContext context) {
             ),
             const SizedBox(height: 10),
             CustomDropDown(
-              values: businessTypeLookup.values.toList(),
+              values: businessTypeLookup,
               onChanged: (value) {
-                log.i(
-                    "CATEGORY CHANGE : BEFORE -> ${arbitStore.data["categoryINDEX"]}");
-                arbitStore.data["categoryINDEX"] = value - 1;
-                log.i(
-                    "CATEGORY CHANGE : AFTER -> ${arbitStore.data["categoryINDEX"]}");
+                SearchServices.categoryIndex = value;
               },
-              startIndex: arbitStore.data["categoryINDEX"] + 1,
+              startIndex: SearchServices.categoryIndex,
               widgetAppend: allIconsAlt,
               selectedWidgetAppend: allIcons,
             ),
             const SizedBox(height: 20),
-            //TTILE DROPDOWN DONE
+            //Category DROPDOWN DONE
 
             const Body(
               "Sort By",
@@ -338,23 +217,10 @@ void filterDropDown(BuildContext context) {
             ),
             const SizedBox(height: 10),
             MyMultiToggle(
-              initial: arbitStore.data["sortingINDEX"],
-              options: const [
-                "Relevance",
-                "Distance",
-                "Rating",
-              ],
+              initial: SearchServices.sortingByIndex,
+              options: SearchServices.sortingByValues,
               onChanged: (val) {
-                arbitStore.data["sortingINDEX"] = val;
-                if (val == 1) {
-                  arbitStore.data["sorting"] = "DST";
-                }
-                if (val == 2) {
-                  arbitStore.data["sorting"] = "RAT";
-                }
-                if (val == 0) {
-                  arbitStore.data["sorting"] = "";
-                }
+                SearchServices.sortingByIndex = val;
               },
             ),
             const SizedBox(height: 20),
@@ -365,7 +231,7 @@ void filterDropDown(BuildContext context) {
               color: AppColors.text,
             ),
             const SizedBox(height: 10),
-            TagController.showChosenTagWidget(context),
+            TagServices.showChosenTagWidget(context),
             const SizedBox(height: 40),
             //Tag Chooser Done
 

@@ -1,11 +1,13 @@
 import 'package:nextfind/models/business_models.dart';
-import 'package:nextfind/global_states.dart';
 import 'package:nextfind/helpers/networking.dart';
 import 'package:nextfind/helpers/logger.dart';
+import 'package:flutter/material.dart';
 import 'dart:convert';
 
+import 'package:nextfind/services/tag_services.dart';
+
 const businessTypeLookup = {
-  -1: "All",
+  null: "All",
   0: "Food",
   1: "Home",
   2: "Health",
@@ -19,7 +21,7 @@ const businessTypeLookup = {
 };
 
 const businessIconLookup = {
-  -1: "assets/icons/svg_logo.png",
+  null: "assets/icons/svg_logo.png",
   0: "assets/icons/business_type_icons/food_and_dining_icon.png",
   1: "assets/icons/business_type_icons/home_services_icon.png",
   2: "assets/icons/business_type_icons/health_and_wellness_icon.png",
@@ -33,7 +35,7 @@ const businessIconLookup = {
 };
 
 const businessIconLookupAlt = {
-  -1: "assets/icons/svg_logo.png",
+  null: "assets/icons/svg_logo.png",
   0: "assets/icons/business_type_icons/food_and_dining_icon_alt.png",
   1: "assets/icons/business_type_icons/home_services_icon_alt.png",
   2: "assets/icons/business_type_icons/health_and_wellness_icon_alt.png",
@@ -47,10 +49,11 @@ const businessIconLookupAlt = {
 };
 
 class BusinessService {
-  Map<String, MiniBusinessLoc> miniBusinessLocLookup = {};
-  Map<String, BusinessLocation> businessLocationLookup = {};
+  static Map<String, MiniBusinessLoc> miniBusinessLocLookup = {};
+  static Map<String, BusinessLocation> businessLocationLookup = {};
 
-  MiniBusinessLoc? addBusinessLocationMini(Map<String, dynamic> locationData) {
+  static MiniBusinessLoc? addBusinessLocationMini(
+      Map<String, dynamic> locationData) {
     try {
       final newMiniBusiness = MiniBusinessLoc.fromJson(locationData);
 
@@ -65,7 +68,7 @@ class BusinessService {
     }
   }
 
-  BusinessLocation? addBusinessLocation(
+  static BusinessLocation? addBusinessLocation(
       Map<String, dynamic> businessLocationData) {
     try {
       final newBusiness = BusinessLocation.fromJson(businessLocationData);
@@ -80,7 +83,7 @@ class BusinessService {
     }
   }
 
-  Future<BusinessLocation> getBusinessLocation(String locationId) async {
+  static Future<BusinessLocation> getBusinessLocation(String locationId) async {
     if (businessLocationLookup.containsKey(locationId)) {
       return businessLocationLookup[locationId]!;
     } else {
@@ -88,7 +91,7 @@ class BusinessService {
     }
   }
 
-  Future<Map<String, MiniBusinessLoc>> getBusinessLocationMini(
+  static Future<Map<String, MiniBusinessLoc>> getBusinessLocationMini(
       List<String> locationIds) async {
     Map<String, MiniBusinessLoc> retLookup = {};
     List<String> locationsToGet = [];
@@ -132,8 +135,28 @@ class BusinessService {
     return retLookup;
   }
 
+  static void startPreloadingImages(
+    BuildContext context,
+    List<String> urls,
+  ) {
+    _runPreloadImagesTask(urls, context);
+  }
+
+  static Future<void> _runPreloadImagesTask(
+      List<String> urls, BuildContext context) async {
+    for (final url in urls) {
+      Future.microtask(() async {
+        if (!context.mounted) return;
+        await precacheImage(
+            NetworkImage(Networking.getFullImageUrl(url)), context);
+      });
+
+      await Future.delayed(const Duration(milliseconds: 30)); // throttle
+    }
+  }
+
   //* Api calling functions
-  Future<dynamic> getNearbyBusinesses({
+  static Future<dynamic> getNearbyBusinesses({
     required List location,
     String macroTypes = "All",
     int? type,
@@ -161,7 +184,7 @@ class BusinessService {
       "electricity_safe_only": elecSafeOnly,
       "just_id": idOnly,
       "allow_base": macroTypes,
-      "tags": GlobalStates.chosenTags,
+      "tags": TagServices.chosenTags,
       "location": "${location[0]} , ${location[1]}"
     };
 
@@ -210,7 +233,8 @@ class BusinessService {
     }
   }
 
-  Future<BusinessLocation?> getFullLocationData(String locationId) async {
+  static Future<BusinessLocation?> getFullLocationData(
+      String locationId) async {
     final response = await Networking.apiGet("business_location",
         params: {"location_id": locationId});
 
@@ -243,7 +267,7 @@ class BusinessService {
     return businessLocation;
   }
 
-  Future<List<String>?> getTrendingBusinessIds(
+  static Future<List<String>?> getTrendingBusinessIds(
       {int limit = 30, int offset = 0}) async {
     final response = await Networking.apiGet("homepage/trending",
         params: {"limit": limit, "offset": offset});
@@ -263,7 +287,7 @@ class BusinessService {
     return trendingBusinessIds;
   }
 
-  Future<dynamic> getBusinessLocationDataMiniApi(
+  static Future<dynamic> getBusinessLocationDataMiniApi(
       {required List<String> locationIds}) async {
     final response = await Networking.apiGet("mini_collect/business_location",
         params: {"location_ids": locationIds});
@@ -291,4 +315,4 @@ class BusinessService {
   }
 }
 
-var businessService = BusinessService();
+// var businessService = BusinessService();

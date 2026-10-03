@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:nextfind/global_states.dart';
 import 'package:nextfind/helpers/conversions.dart';
 import 'package:nextfind/helpers/networking.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:nextfind/services/search_services.dart';
 
 class AppColors {
   static const background = Color.fromARGB(255, 255, 255, 255);
@@ -438,7 +438,7 @@ class MyMainSliderState extends State<MyMainSlider> {
       spacing: 5,
       children: [
         Body(
-          GlobalStates.isMetric
+          SearchServices.isMetric.value
               ? "Search within ${milesToKm(distances[sliderValue.toInt()].toDouble()).round()} Kilometers"
               : (distances[sliderValue.toInt()] == 1)
                   ? "Search within ${distances[sliderValue.toInt()]} mile"
@@ -453,7 +453,7 @@ class MyMainSliderState extends State<MyMainSlider> {
           // label: "${distances[sliderValue.toInt()]} miles",
           onChanged: (value) {
             setState(() => sliderValue = value.toInt());
-            widget.onChanged(distances[value.toInt()]);
+            widget.onChanged(value.toInt());
           },
         ),
       ],
@@ -812,18 +812,18 @@ class RoundButton extends StatelessWidget {
 class CustomDropDown extends StatefulWidget {
   const CustomDropDown(
       {super.key,
-      this.values = const [],
-      this.widgetAppend = const [],
-      this.selectedWidgetAppend = const [],
+      this.values = const {},
+      this.widgetAppend = const {},
+      this.selectedWidgetAppend = const {},
       this.startIndex = 0,
       this.numColumns = 3,
       this.onChanged});
 
-  final List values;
-  final int startIndex;
+  final Map values;
+  final dynamic startIndex;
   final int numColumns;
-  final List<Widget> widgetAppend;
-  final List<Widget> selectedWidgetAppend;
+  final Map<dynamic,Widget> widgetAppend;
+  final Map<dynamic,Widget> selectedWidgetAppend;
   final ValueChanged<int>? onChanged;
 
   @override
@@ -850,9 +850,9 @@ class _CustomDropDownState extends State<CustomDropDown> {
       Widget itemWidget = const SizedBox();
       if (itemIndex < widget.widgetAppend.length) {
         if (isChosen) {
-          itemWidget = widget.selectedWidgetAppend[itemIndex];
+          itemWidget = widget.selectedWidgetAppend[itemIndex]!;
         } else {
-          itemWidget = widget.widgetAppend[itemIndex];
+          itemWidget = widget.widgetAppend[itemIndex]!;
         }
       }
 

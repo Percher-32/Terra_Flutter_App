@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:nextfind/networking/apiconn.dart';
-import 'package:nextfind/utils/arbitStore.dart';
-import 'package:logger/logger.dart';
-import 'package:nextfind/';
+import 'package:nextfind/helpers/networking.dart';
+import 'package:nextfind/services/business_services.dart';
+import 'package:nextfind/services/navbar_services.dart';
+import 'package:nextfind/services/search_services.dart';
+import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/widgets/business_widgets.dart';
-// import 'package:nextfind/theme/app_theme.dart';
-
-final hog = Logger();
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -33,20 +31,20 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<dynamic> buildFeed() async {
     log.i("RUNNING THE BUILD FEED TASK");
     log.i("ALL THAT DATA ${{
-      "location": arbitStore.data["userLocation"],
+      "location": UserSerivce.userLocation,
       "sort": "RAT",
       "maxdist": 500,
       "idOnly": true
     }}");
 
-    _hasWifi = await serverconnect.isOnline();
+    _hasWifi = await Networking.isOnline();
 
     if (!_hasWifi) {
       return;
     }
 
-    final nearbyBus = await serverconnect.getNearbyBusinesses(
-        location: arbitStore.data["userLocation"],
+    final nearbyBus = await BusinessService.getNearbyBusinesses(
+        location: UserSerivce.userLocation,
         sort: "RAT",
         maxdist: 500,
         idOnly: true);
@@ -56,16 +54,16 @@ class _MyHomePageState extends State<MyHomePage> {
     if (trendingBusinesses != null) {
       if ((DateTime.now().difference(trendingBusinessesLastUpdate!).inMinutes >
           5)) {
-        trendingBusinesses = await serverconnect.getTrendingBusinessIds();
+        trendingBusinesses = await BusinessService.getTrendingBusinessIds();
         trendingBusinessesLastUpdate = DateTime.now();
       }
     } else {
-      trendingBusinesses = await serverconnect.getTrendingBusinessIds();
+      trendingBusinesses = await BusinessService.getTrendingBusinessIds();
       trendingBusinessesLastUpdate = DateTime.now();
     }
 
     final allTrendyBusinesses =
-        await businessManager.getBusinessLocationMini(trendingBusinesses!);
+        await BusinessService.getBusinessLocationMini(trendingBusinesses!);
 
     if (trendingBusinesses != null) {
       allUrls = trendingBusinesses!
@@ -88,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget trendScroll(BuildContext context) {
     if (allUrls != null) {
-      startPreloading(context, allUrls!.take(10).toList());
+      BusinessService.startPreloadingImages(context, allUrls!.take(10).toList());
     }
 
     return Column(
@@ -166,8 +164,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: SearchBarController.createSearchBar(context),
-        bottomNavigationBar: newbottombar(context),
+        appBar: SearchServices.createSearchBar(context),
+        bottomNavigationBar: const NavBar(currentPage : AppPages.homepage),
         body: myBody(context));
   }
 }

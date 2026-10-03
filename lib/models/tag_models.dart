@@ -1,7 +1,4 @@
 
-import 'package:nextfind/networking/apiconn.dart';
-
-
 
 class Tag {
   const Tag(this.id, this.category, this.name);

@@ -3,8 +3,9 @@ import 'package:nextfind/services/business_services.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:logger/logger.dart';
 import 'package:nextfind/helpers/conversions.dart';
+import 'package:nextfind/services/search_services.dart';
+import 'package:nextfind/page_moves.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
-import 'package:nextfind/global_states.dart';
 import 'package:intl/intl.dart';
 
 final log = Logger();
@@ -46,7 +47,7 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
   @override
   void initState() {
     super.initState();
-    _future = businessService.getBusinessLocationMini([widget.locationId]);
+    _future = BusinessService.getBusinessLocationMini([widget.locationId]);
   }
 
   Widget buildWidget(BuildContext context,
@@ -284,10 +285,9 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                                       top: -10,
                                       left: 30,
                                       child: ValueListenableBuilder(
-                                          valueListenable: GlobalStates
-                                              .distanceMeasurmentChanged,
+                                          valueListenable: SearchServices.isMetric,
                                           builder: (_, __, ___) {
-                                            return Small(GlobalStates.isMetric
+                                            return Small(SearchServices.isMetric.value
                                                 ? "${minibusinessLocation.distance.toStringAsFixed(2)} km"
                                                 : "${kmToMiles(minibusinessLocation.distance).toStringAsFixed(2)} miles");
                                           }),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/models/tag_models.dart';
-import 'package:nextfind/global_states.dart';
+import 'package:nextfind/services/search_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:rapidfuzz/rapidfuzz.dart' as fuzz;
 import 'package:nextfind/helpers/networking.dart';
@@ -8,7 +8,7 @@ import 'package:nextfind/helpers/networking.dart';
 class TagServices {
   static final ValueNotifier<bool> updateTagWidget = ValueNotifier(false);
   static final ValueNotifier<bool> justExitedTagChoose = ValueNotifier(false);
-
+  static List<int> chosenTags = [];
   static Map<int, Tag> tagLookup = {};
   static DateTime timeSinceLastRefresh = DateTime.utc(2000);
 
@@ -80,18 +80,18 @@ class TagServices {
 
       List<Tag> allTagsList = [];
       for (Tag tag in allTags.values) {
-        if (List.from(GlobalStates.chosenTags).contains(tag.id)) {
-          if (GlobalStates.categoryIndex != -1 &&
-              tag.category != GlobalStates.categoryIndex) {
+        if (List.from(chosenTags).contains(tag.id)) {
+          if (SearchServices.categoryIndex != null &&
+              tag.category != SearchServices.categoryIndex) {
             continue;
           }
           allTagsList.add(tag);
         }
       }
       for (Tag tag in allTags.values) {
-        if (!List.from(GlobalStates.chosenTags).contains(tag.id)) {
-          if (GlobalStates.categoryIndex != -1) {
-            if (tag.category != GlobalStates.categoryIndex) {
+        if (!List.from(chosenTags).contains(tag.id)) {
+          if (SearchServices.categoryIndex != null) {
+            if (tag.category != SearchServices.categoryIndex) {
               continue;
             }
           }
@@ -136,7 +136,7 @@ class TagServices {
                                 valueListenable: updateTagWidget,
                                 builder: (_, __, ___) {
                                   final selected =
-                                      List.from(GlobalStates.chosenTags)
+                                      List.from(chosenTags)
                                           .contains(tag.id);
 
                                   return SizedBox(
@@ -145,10 +145,10 @@ class TagServices {
                                     child: ElevatedButton(
                                       onPressed: () {
                                         if (selected) {
-                                          GlobalStates.chosenTags
+                                          chosenTags
                                               .remove(tag.id);
                                         } else {
-                                          GlobalStates.chosenTags.add(tag.id);
+                                          chosenTags.add(tag.id);
                                         }
                                         updateTagWidget.value =
                                             !updateTagWidget.value;
@@ -241,9 +241,9 @@ class TagServices {
             child: ListView.builder(
               clipBehavior: Clip.none,
               scrollDirection: Axis.horizontal,
-              itemCount: List.from(GlobalStates.chosenTags).length + 1,
+              itemCount: List.from(chosenTags).length + 1,
               itemBuilder: (_, tagId) {
-                if (List.from(GlobalStates.chosenTags).length == tagId) {
+                if (List.from(chosenTags).length == tagId) {
                   return Padding(
                       padding:
                           const EdgeInsets.only(top: 10, bottom: 10, right: 30),
@@ -262,7 +262,7 @@ class TagServices {
                                 size: 40)),
                       ));
                 } else {
-                  final Tag tag = tagLookup[GlobalStates.chosenTags[tagId]]!;
+                  final Tag tag = tagLookup[chosenTags[tagId]]!;
                   return Padding(
                       padding:
                           const EdgeInsets.only(top: 10, bottom: 10, right: 10),
@@ -281,7 +281,7 @@ class TagServices {
                             SizedBox(width: 20),
                             IconButton(
                               onPressed: () {
-                                GlobalStates.chosenTags.remove(tag.id);
+                                chosenTags.remove(tag.id);
 
                                 updateTagWidget.value = !updateTagWidget.value;
                               },
