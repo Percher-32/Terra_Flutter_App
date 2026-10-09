@@ -3,8 +3,8 @@ import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/services/business_services.dart';
 import 'package:nextfind/services/search_services.dart';
 import 'package:nextfind/services/tag_services.dart';
-import 'package:nextfind/pages/homepage.dart';
-import 'package:nextfind/pages/searchpage.dart';
+import 'package:nextfind/screens/homepage.dart';
+import 'package:nextfind/screens/searchpage.dart';
 import 'package:nextfind/pages/userpage.dart';
 import 'package:nextfind/pages/focusedviewed.dart';
 import 'package:nextfind/pages/favorite_locations.dart';
@@ -19,7 +19,7 @@ void goToSearchPage(BuildContext context) {
 void goToHomePage(BuildContext context) {
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (context) => const MyHomePage(title: "HI")),
+    MaterialPageRoute(builder: (context) => const MyHomePage()),
   );
 }
 

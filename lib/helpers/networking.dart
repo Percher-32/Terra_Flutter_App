@@ -24,6 +24,7 @@ abstract class Networking {
   static Future<http.Response> apiGet(
     String endpoint, {
     Map<String, dynamic> params = const {},
+    headers = const {},
   }) async {
     // 1. Clean endpoint leading slash
     final cleanEndpoint =
@@ -49,7 +50,7 @@ abstract class Networking {
       queryParameters: formattedParams.isEmpty ? null : formattedParams,
     );
 
-    final response = await http.get(uri);
+    final response = await http.get(uri,headers: headers);
 
     if (!response.toString().startsWith("2")) {
       log.e(
@@ -62,6 +63,7 @@ abstract class Networking {
   static Future<http.Response> apiPost(
     String endpoint, {
     Map<String, dynamic> params = const {},
+    Map<String, String> headers = const {'Content-Type': 'application/json',},
   }) async {
     final cleanEndpoint =
         endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
@@ -69,9 +71,7 @@ abstract class Networking {
 
     final response = await http.post(
       url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
       body: jsonEncode(params),
     );
 

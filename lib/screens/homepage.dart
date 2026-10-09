@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/helpers/networking.dart';
+import 'package:nextfind/helpers/logger.dart';
 import 'package:nextfind/services/business_services.dart';
 import 'package:nextfind/services/navbar_services.dart';
 import 'package:nextfind/services/search_services.dart';
@@ -8,8 +9,7 @@ import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/widgets/business_widgets.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -31,7 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<dynamic> buildFeed() async {
     log.i("RUNNING THE BUILD FEED TASK");
     log.i("ALL THAT DATA ${{
-      "location": UserSerivce.userLocation,
+      "location": UserService.userLocation,
       "sort": "RAT",
       "maxdist": 500,
       "idOnly": true
@@ -44,7 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final nearbyBus = await BusinessService.getNearbyBusinesses(
-        location: UserSerivce.userLocation,
+        location: UserService.userLocation,
         sort: "RAT",
         maxdist: 500,
         idOnly: true);
@@ -86,7 +86,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget trendScroll(BuildContext context) {
     if (allUrls != null) {
-      BusinessService.startPreloadingImages(context, allUrls!.take(10).toList());
+      BusinessService.startPreloadingImages(
+          context, allUrls!.take(10).toList());
     }
 
     return Column(
@@ -122,15 +123,14 @@ class _MyHomePageState extends State<MyHomePage> {
       future: buildFeed(),
       builder: (context, snapshot) {
         if (!_hasWifi) {
-            return const Center(
-              child: Heading("No Internet "),
-            );
-          }
+          return const Center(
+            child: Heading("No Internet "),
+          );
+        }
 
         if (!snapshot.hasData) {
           return const LinearProgressIndicator();
         } else {
-          
           return SizedBox(
             height: MediaQuery.of(context).size.height,
             child: ListView.separated(
@@ -165,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: SearchServices.createSearchBar(context),
-        bottomNavigationBar: const NavBar(currentPage : AppPages.homepage),
+        bottomNavigationBar: const NavBar(currentPage: AppPages.homepage),
         body: myBody(context));
   }
 }
