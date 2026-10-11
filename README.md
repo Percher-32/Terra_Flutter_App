@@ -1,1 +1,9 @@
 # Terra_Flutter_App
+
+## License and Terms of Use
+
+Copyright (c) 2026 Lincoln Mbanefo. All Rights Reserved.
+
+This repository and its source code are published strictly for review and evaluation purposes. 
+
+No part of this software, including source code, design, or assets, may be reproduced, distributed, modified, sublicensed, or used for commercial or non-commercial purposes without explicit written permission from the copyright holder.
