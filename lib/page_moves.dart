@@ -5,7 +5,7 @@ import 'package:nextfind/services/search_services.dart';
 import 'package:nextfind/services/tag_services.dart';
 import 'package:nextfind/screens/homepage.dart';
 import 'package:nextfind/screens/searchpage.dart';
-import 'package:nextfind/pages/userpage.dart';
+import 'package:nextfind/screens/userpage.dart';
 import 'package:nextfind/pages/focusedviewed.dart';
 import 'package:nextfind/pages/favorite_locations.dart';
 
@@ -21,27 +21,6 @@ void goToHomePage(BuildContext context) {
     context,
     MaterialPageRoute(builder: (context) => const MyHomePage()),
   );
-}
-
-void showErrorMessage(BuildContext context, dynamic message) {
-  showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: AppColors.background,
-          constraints: const BoxConstraints(
-              minHeight: 100, minWidth: 200, maxHeight: 300),
-          child: Center(
-              child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: SizedBox(
-                      // width: 200,
-                      child: MyText(
-                          textAlign: TextAlign.center,
-                          message.toString(),
-                          size: 25)))),
-        );
-      });
 }
 
 void goToBusinessPage(BuildContext context, String locationId,
@@ -248,4 +227,25 @@ void filterDropDown(BuildContext context) {
       );
     },
   );
+}
+
+void showErrorMessage(BuildContext context, dynamic message) {
+  showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: AppColors.background,
+          constraints: const BoxConstraints(
+              minHeight: 100, minWidth: 200, maxHeight: 300),
+          child: Center(
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: SizedBox(
+                      // width: 200,
+                      child: MyText(
+                          textAlign: TextAlign.center,
+                          message.toString(),
+                          size: 25)))),
+        );
+      });
 }

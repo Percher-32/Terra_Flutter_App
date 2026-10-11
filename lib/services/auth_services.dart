@@ -8,20 +8,37 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 const FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
-class TokenMaster {
-  String? accessToken;
-  String? refToken;
+class AuthServices {
+  static String? accessToken;
+  static String? refreshToken;
 
-  TokenMaster() {
+  AuthServices() {
     _loadStoredRefreshToken();
   }
 
-  Future<void> _loadStoredRefreshToken() async {
-    refToken = await secureStorage.read(key: 'refresh_token');
+  static Future<void> _loadStoredRefreshToken() async {
+    refreshToken = await secureStorage.read(key: 'refresh_token');
   }
 
-  Future<(bool, dynamic)> userLogin(
+  static Future<(bool, dynamic)> userSignup(
       {required String email, required String password}) async {
+    ///doesnt perform login
+    final response = await Networking.apiPost("auth/new_user", params: {
+      "username": email,
+      "password": password,
+    });
+
+    if (response.statusCode != 200) {
+      log.e("LOGIN ||| UNSUCCESFUL -> ${jsonDecode(response.body)}");
+      return (false, jsonDecode(response.body));
+    }
+
+    return (true, "success");
+  }
+
+  static Future<(bool, dynamic)> userLogin(
+      {required String email, required String password}) async {
+    ///Also updates user data
     final response = await Networking.apiPost("auth/login", params: {
       "username": email,
       "password": password,
@@ -35,38 +52,37 @@ class TokenMaster {
     final Map tokensData = jsonDecode(response.body);
 
     accessToken = tokensData["access_token"];
-    refToken = tokensData["refresh_token"];
+    refreshToken = tokensData["refresh_token"];
     await saveRefreshToken();
 
     return (true, "success");
   }
 
-  Future<bool> userLogout() async {
+  static Future<bool> userLogout() async {
     final response = await userPost("auth/logout", params: {
       "device": await DeviceServices.getDeviceDetails(),
     });
 
-    if (response.statusCode == 200) {
-      refToken = null;
-      accessToken = null;
-      UserService.setAllUserDataToNull();
-      saveRefreshToken();
-
-      return true;
-    } else {
+    if (response.statusCode != 200) {
       log.e("LOGOUT : Error Logging Out ${jsonDecode(response.body)}");
       return false;
     }
+    refreshToken = null;
+    accessToken = null;
+    UserService.setAllUserDataToNull();
+    saveRefreshToken();
+
+    return true;
   }
 
-  Future<(bool, dynamic)> renewTokens() async {
-    refToken ??= await secureStorage.read(key: 'refresh_token');
+  static Future<(bool, dynamic)> renewTokens() async {
+    refreshToken ??= await secureStorage.read(key: 'refresh_token');
 
-    if (refToken != null) {
+    if (refreshToken != null) {
       final response = await userPost(
         "auth/refresh",
         params: {
-          'refresh_token': refToken,
+          'refresh_token': refreshToken,
         },
       );
 
@@ -74,7 +90,7 @@ class TokenMaster {
         final Map tokensData = jsonDecode(response.body);
 
         accessToken = tokensData["access_token"];
-        refToken = tokensData["refresh_token"];
+        refreshToken = tokensData["refresh_token"];
         await saveRefreshToken();
 
         return (true, tokensData);
@@ -82,7 +98,7 @@ class TokenMaster {
         log.e("TOKEN RENEW ||| UNSUCCESFUL -> ${jsonDecode(response.body)}");
 
         // ! [MAY HAVE TO REMOVE]
-        refToken = null;
+        refreshToken = null;
         await saveRefreshToken();
         // ! [//////////////////]
 
@@ -94,7 +110,7 @@ class TokenMaster {
     }
   }
 
-  Future<dynamic> userGet(String endpoint,
+  static Future<dynamic> userGet(String endpoint,
       {Map<String, dynamic> params = const {}}) async {
     final response =
         await Networking.apiGet(endpoint, params: params, headers: {
@@ -116,7 +132,7 @@ class TokenMaster {
     return jsonDecode(response.body);
   }
 
-  Future<dynamic> userPost(String endpoint,
+  static Future<dynamic> userPost(String endpoint,
       {Map<String, dynamic> params = const {}}) async {
     final response = await Networking.apiPost(
       endpoint,
@@ -143,16 +159,14 @@ class TokenMaster {
     }
   }
 
-  Future<void> saveRefreshToken() async {
-    if (refToken != null) {
+  static Future<void> saveRefreshToken() async {
+    if (refreshToken != null) {
       await secureStorage.write(
         key: 'refresh_token',
-        value: refToken,
+        value: refreshToken,
       );
     } else {
       await secureStorage.delete(key: 'refresh_token');
     }
   }
 }
-
-final tokenMaster = TokenMaster();
