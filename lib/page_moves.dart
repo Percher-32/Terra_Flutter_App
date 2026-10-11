@@ -27,7 +27,7 @@ void goToBusinessPage(BuildContext context, String locationId,
     {bool canGoBack = true}) {
   final router = PageRouteBuilder(
     transitionDuration: const Duration(milliseconds: 300),
-    pageBuilder: (_, __, ___) => BusinessLocPage(locationId: locationId),
+    pageBuilder: (_, __, ___) => BusinessLocationFullPage(locationId: locationId),
     transitionsBuilder: (_, animation, __, child) {
       final offsetAnimation = Tween(
         begin: const Offset(0, 1), // start below screen
