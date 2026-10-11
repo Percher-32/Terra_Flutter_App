@@ -3,7 +3,7 @@ import 'package:nextfind/services/navbar_services.dart';
 import 'package:nextfind/services/auth_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/page_moves.dart';
-import 'package:nextfind/helpers/logger.dart';
+// import 'package:nextfind/helpers/logger.dart';
 
 class LoginOrSignupPage extends StatelessWidget {
   const LoginOrSignupPage({super.key});

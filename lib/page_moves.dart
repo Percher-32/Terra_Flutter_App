@@ -6,8 +6,8 @@ import 'package:nextfind/services/tag_services.dart';
 import 'package:nextfind/screens/homepage.dart';
 import 'package:nextfind/screens/searchpage.dart';
 import 'package:nextfind/screens/userpage.dart';
-import 'package:nextfind/pages/focusedviewed.dart';
-import 'package:nextfind/pages/favorite_locations.dart';
+import 'package:nextfind/screens/businesspage.dart';
+import 'package:nextfind/screens/favorite_locations_page.dart';
 
 void goToSearchPage(BuildContext context) {
   Navigator.pushReplacement(

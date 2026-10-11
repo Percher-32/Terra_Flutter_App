@@ -1,28 +1,29 @@
 // import 'dart:ffi';
-
 import 'dart:ui' as ui;
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:nextfind/helpers/networking.dart';
-import 'package:nextfind/services/business_services.dart';
-import 'package:nextfind/models/business_models.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/scheduler.dart';
+
+import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
+
 import 'package:nextfind/services/device_services.dart';
+import 'package:nextfind/services/business_services.dart';
 import 'package:nextfind/services/navbar_services.dart';
 import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/services/tag_services.dart';
 import 'package:nextfind/services/search_services.dart';
-import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
+import 'package:nextfind/services/lifecycle_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/widgets/business_widgets.dart';
-import 'package:nextfind/services/lifecycle_services.dart';
-import 'package:flutter/foundation.dart';
-
+import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/helpers/logger.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'dart:async';
-import 'package:flutter/scheduler.dart';
+import 'package:nextfind/helpers/networking.dart';
 
-import 'dart:math';
-// import 'dart:typed_data';
+
 
 List<double> nearestDistances(List<Point> points) {
   final result = List<double>.filled(points.length, 0);
@@ -1211,13 +1212,9 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    log.i("SEARCHPAGELOG : RUNNING BUILD FUNCTION");
-
-    log.i("SEARCHPAGELOG : mapModeFound $hasMapModeValue");
-    log.i("SEARCHPAGELOG : RUNNING BUILD FUNCTION -> HAS MADMODE VALUE");
     return PopScope(
         canPop: mapMode.value !=
-            "Thumbnail", // BLOCK back when thumbnail is showing
+            "Thumbnail", // BLOCK back button when thumbnail is showing
         onPopInvokedWithResult: (didPop, result) {
           if (mapMode.value == "Thumbnail") {
             // Custom back behaviour
@@ -1226,9 +1223,6 @@ class _SearchPageState extends State<SearchPage> {
             // DO NOT allow pop
             return;
           }
-
-          // If didPop == true → the page already popped
-          // If didPop == false → canPop prevented the pop
         },
         child: Scaffold(
             appBar: PreferredSize(
@@ -1308,8 +1302,6 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               ),
             ])));
-
-    // return;
   }
 }
 

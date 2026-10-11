@@ -8,13 +8,13 @@ class UserService {
   static String? email;
   static String? userId;
   static int? xp;
+  static List<String>? cachedFavoriteLocations;
 
   static void setAllUserDataToNull() {
     username = null;
     email = null;
     userId = null;
     xp = null;
-
 
     isLoggedIn = false;
   }
@@ -30,6 +30,17 @@ class UserService {
       xp = userData["xp"];
 
       isLoggedIn = true;
+    }
+  }
+
+  static Future<List<String>?> getFavoriteLocations() async {
+    if (isLoggedIn) {
+      cachedFavoriteLocations ??=
+          List<String>.from((await AuthServices.userGet("user/favorite/view")));
+
+      return cachedFavoriteLocations;
+    } else {
+      return null;
     }
   }
 }
