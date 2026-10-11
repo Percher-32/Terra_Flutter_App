@@ -8,7 +8,6 @@ import 'package:nextfind/page_moves.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:intl/intl.dart';
 
-
 bool isBetween(DateTime start, DateTime end, DateTime now) {
   return now.isAfter(start) && now.isBefore(end);
 }
@@ -53,11 +52,8 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
       AsyncSnapshot<Map<String, MiniBusinessLoc>> snapshot) {
     if (snapshot.hasData) {
       if (snapshot.data is! Map) {
-        // log.i("SNAPSHOTRUNT ISNT Map ITS  : ${snapshot.data.runtimeType}");
         return const SizedBox();
       }
-
-      log.i("SNAPSHOTRUNT : ${snapshot.data!} || ${widget.locationId} ");
 
       final minibusinessLocation = snapshot.data![widget.locationId]!;
       String ratings = "No Ratings";
@@ -284,9 +280,11 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
                                       top: -10,
                                       left: 30,
                                       child: ValueListenableBuilder(
-                                          valueListenable: SearchServices.isMetric,
+                                          valueListenable:
+                                              SearchServices.isMetric,
                                           builder: (_, __, ___) {
-                                            return Small(SearchServices.isMetric.value
+                                            return Small(SearchServices
+                                                    .isMetric.value
                                                 ? "${minibusinessLocation.distance.toStringAsFixed(2)} km"
                                                 : "${kmToMiles(minibusinessLocation.distance).toStringAsFixed(2)} miles");
                                           }),

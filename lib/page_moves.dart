@@ -19,7 +19,7 @@ void goToSearchPage(BuildContext context) {
 void goToHomePage(BuildContext context) {
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (context) => const MyHomePage()),
+    MaterialPageRoute(builder: (context) => const HomePage()),
   );
 }
 
@@ -86,7 +86,7 @@ void goToUserPage(BuildContext context, {bool canGoBack = true}) {
   }
 }
 
-void filterDropDown(BuildContext context) {
+void filterDropDown(BuildContext parentContext) {
   Map<dynamic, Widget> allIcons = {};
   Map<dynamic, Widget> allIconsAlt = {};
 
@@ -112,13 +112,13 @@ void filterDropDown(BuildContext context) {
   }
 
   showModalBottomSheet(
-    context: context,
+    context: parentContext,
     // backgroundColor: Colors.deepPurple.shade50,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (context) {
+    builder: (builderContext) {
       return Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -141,7 +141,7 @@ void filterDropDown(BuildContext context) {
                 child: HeaderInput(
                   hint: "find a business",
                   controller: SearchServices.controller,
-                  onSubmitted: (value) => goToSearchPage(context),
+                  onSubmitted: (value) => goToSearchPage(parentContext),
                 )),
 
             const SizedBox(height: 20),
@@ -211,7 +211,7 @@ void filterDropDown(BuildContext context) {
               color: AppColors.text,
             ),
             const SizedBox(height: 10),
-            TagServices.showChosenTagWidget(context),
+            TagServices.showChosenTagWidget(parentContext),
             const SizedBox(height: 40),
             //Tag Chooser Done
 
@@ -220,7 +220,7 @@ void filterDropDown(BuildContext context) {
               width: 300,
               child: const Body("Search", color: AppColors.background),
               onPressed: () {
-                goToSearchPage(context);
+                // goToSearchPage(parentContext);
               },
             ),
           ],

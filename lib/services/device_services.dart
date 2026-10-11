@@ -1,8 +1,8 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
-import "package:nextfind/utils/arbitStore.dart";
 import 'package:nextfind/helpers/logger.dart';
+import 'package:nextfind/services/user_services.dart';
 import 'dart:io' show Platform;
 
 class DeviceServices {
@@ -35,9 +35,9 @@ class DeviceServices {
     // Get the actual location
     final data = await Geolocator.getCurrentPosition();
 
-    final List userLocation = [data.latitude, data.longitude];
+    final List<double> userLocation = [data.latitude, data.longitude];
 
-    arbitStore.data["userLocation"] = userLocation;
+    UserService.userLocation = userLocation;
     return userLocation;
   }
 

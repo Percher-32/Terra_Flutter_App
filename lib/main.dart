@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:nextfind/networking/apiconn.dart';
-// import 'package:nextfind/pages/searchpage.dart';
+import 'package:nextfind/screens/homepage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 
-import 'pages/homepage.dart';
-import 'package:nextfind/utils/arbitStore.dart';
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    final client = super.createHttpClient(context);
+    client.connectionTimeout =
+        const Duration(seconds: 20); // increase wait time
+    return client;
+  }
+}
 
 void main() {
-  arbitfallbacks();
   HttpOverrides.global = MyHttpOverrides();
   runApp(
     const ProviderScope(
@@ -35,10 +40,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       themeMode: ThemeMode.light,
-      home: const MyHomePage(title: 'Next Find'),
+      home: const HomePage(),
     );
   }
 }
-
-
-

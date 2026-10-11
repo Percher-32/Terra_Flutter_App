@@ -8,14 +8,14 @@ import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/widgets/business_widgets.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomePageState extends State<HomePage> {
   List<String>? trendingBusinesses;
   DateTime? trendingBusinessesLastUpdate;
   List<String>? allUrls;
@@ -25,18 +25,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _hasWifi = true;
-    log.i("HI I LOGGED IT");
   }
 
   Future<dynamic> buildFeed() async {
-    log.i("RUNNING THE BUILD FEED TASK");
-    log.i("ALL THAT DATA ${{
-      "location": UserService.userLocation,
-      "sort": "RAT",
-      "maxdist": 500,
-      "idOnly": true
-    }}");
-
     _hasWifi = await Networking.isOnline();
 
     if (!_hasWifi) {
@@ -49,7 +40,6 @@ class _MyHomePageState extends State<MyHomePage> {
         maxdist: 500,
         idOnly: true);
 
-    log.i("Gotten the data");
 
     if (trendingBusinesses != null) {
       if ((DateTime.now().difference(trendingBusinessesLastUpdate!).inMinutes >

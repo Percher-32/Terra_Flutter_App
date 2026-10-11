@@ -15,7 +15,7 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 abstract class Networking {
-  static const serverUrl = 'http://192.168.1.107:8000';
+  static const serverUrl = 'http://0.0.0.0:8000';
 
   static toJson(source) {
     return jsonDecode(source);
@@ -82,6 +82,7 @@ abstract class Networking {
 
     return response;
   }
+
 
   static Future<bool> testPing() async {
     final response = await apiGet("main");

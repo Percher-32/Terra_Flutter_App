@@ -146,7 +146,6 @@ class _MapSearchViewState extends State<MapSearchView>
 
   @override
   void initState() {
-    log.i("SEARCHPAGELOG : INITSTATE STARTED");
     initComplete = false;
 
     super.initState();
@@ -169,12 +168,7 @@ class _MapSearchViewState extends State<MapSearchView>
     });
 
     widget.changeMapBool.addListener(() {
-      log.i(
-          "SEARCHPAGELOG : MOVING TO NEW LOCATION -> ${widget.changeMapLocation.value}");
-      log.d(
-          "SEARCHPAGELOG : MOVING TO NEW LOCATION -> ${widget.changeMapLocation.value}");
-      log.t(
-          "SEARCHPAGELOG : MOVING TO NEW LOCATION -> ${widget.changeMapLocation.value}");
+      
       moveToNewLocation(widget.changeMapLocation.value);
     });
 
@@ -185,7 +179,6 @@ class _MapSearchViewState extends State<MapSearchView>
     _ticker.start();
 
     initComplete = true;
-    log.i("SEARCHPAGELOG : INITSTATE COMPLETE");
   }
 
   Future<void> updatBusinessPositions(
@@ -519,7 +512,6 @@ class _MapSearchViewState extends State<MapSearchView>
 
   @override
   Widget build(BuildContext context) {
-    log.i("SEARCHPAGELOG : BUILDPAGERUNNING -> INITCOMPLETE -> $initComplete");
 
     if (!initComplete) {
       return const SizedBox();
@@ -574,7 +566,6 @@ class _MapSearchViewState extends State<MapSearchView>
                 },
                 onCameraMove: (cameraPosition) {},
                 onMapClick: (_, map_gl.LatLng latLng) {
-                  log.i("SEARCHPAGELOG : MAP TAPPED");
                   if (widget.mapMode.value == "Choosing") {
                     final tappedLat = latLng.latitude;
                     final tappedLng = latLng.longitude;
@@ -583,7 +574,6 @@ class _MapSearchViewState extends State<MapSearchView>
                     UserService.userLocation = [tappedLat, tappedLng];
                     widget.userLocation.value = UserService.userLocation;
 
-                    log.i("SEARCHPAGELOG : MAP TAPPED RELOADING MARKERS");
 
                     widget.mapMode.value = "Base";
                   } else {
@@ -686,7 +676,6 @@ class _SearchPageState extends State<SearchPage> {
 
   bool hasMapModeValue = false;
 
-  // log.i("SEARCHPAGELOG : INIT STATE RAN");
   late final ValueNotifier<String> mapMode;
   late final ValueNotifier<bool> shouldReloadMap;
   late final ValueNotifier<List<double>> changeMapLocation;
@@ -702,7 +691,6 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void initState() {
-    log.i("SEARCHPAGELOG : INIT STATE RAN");
 
     super.initState();
     WidgetsBinding.instance.addObserver(lifecycle);
@@ -716,17 +704,14 @@ class _SearchPageState extends State<SearchPage> {
     changeMapLocation = ValueNotifier(UserService.userLocation);
     userLocationForMap = ValueNotifier(UserService.userLocation);
 
-    log.i("SEARCHPAGELOG : INIT STATE LATE INITIALISED");
 
     shouldReloadMap.addListener(() {
-      log.i("SEARCHPAGELOG : Should RELOADING MAP");
       if (mapMode.value != "List") {
         _reloadMapOnly();
       }
     });
 
     mapMode.addListener(() {
-      log.i("SEARCHPAGELOG : mapMode set to ${mapMode.value}");
     });
 
     _hasWifi = true;
@@ -736,15 +721,12 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _reloadMapOnly() async {
-    log.i("SEARCHPAGELOG : RELOAD MAP - START");
     await _runSearchFunction(); // refresh business markers
-    log.i("SEARCHPAGELOG : RELOAD MAP - END");
 
     mapMode.value = "Base";
   }
 
   Future<void> _runSearchFunction() async {
-    log.i("SEARCHPAGELOG : RUNNING SEARCH START");
 
     // Prevent overlapping searches
     if (isRunningSearch.value) return;
@@ -817,7 +799,6 @@ class _SearchPageState extends State<SearchPage> {
                     onPressed: () async {
                       isReady = false;
                       await DeviceServices.getDeviceLocation();
-                      log.i("PLAX : GOTTEN USER LOCATION");
                       userLocationForMap.value =
                           List<double>.from(UserService.userLocation);
                       if (!sheetContext.mounted) return;
@@ -853,17 +834,14 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget buildPage(BuildContext context) {
-    log.i("SEARCHPAGELOG : Search Hub BUILDPAGE RAN");
     Widget mapViewWidget = const Center(child: Heading("Loading Map..."));
 
     if (!_hasWifi) {
       mapViewWidget = const Center(child: Heading("No Internet"));
     }
 
-    log.i("SEARCHPAGELOG : Search Hub  MAP RELOAD OCCURING");
     if (isReady) {
       if (mapMode.value == "Base") {
-        log.i("SEARCHPAGELOG : Search Hub BUILDPAGE ADDED MAP ");
         mapViewWidget = MapSearchView(
           // key : ValueKey(_miniBusinessLocationids.toString()),
           baseMiniBusinessLocationids: _miniBusinessLocationids,
@@ -876,7 +854,7 @@ class _SearchPageState extends State<SearchPage> {
           changeMapBool: changeMapBool,
           changeMapLocation: changeMapLocation,
         );
-        log.i("SEARCHPAGELOG : Search Hub BUILDPAGE ADDED COMPLETE");
+        // log.i("SEARCHPAGELOG : Search Hub BUILDPAGE ADDED COMPLETE");
       } else if (mapMode.value == "List") {
         mapViewWidget = ListSearchView(
             key: ValueKey([

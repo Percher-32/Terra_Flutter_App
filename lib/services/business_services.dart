@@ -96,8 +96,6 @@ class BusinessService {
     Map<String, MiniBusinessLoc> retLookup = {};
     List<String> locationsToGet = [];
 
-    log.i("GET MINI BUSINESS LOCATION || ABSTRACTED || START");
-    log.d("GET MINI BUSINESS LOCATION || ABSTRACTED || INPUTS $locationIds");
 
     for (var locationId in locationIds) {
       // log.d(
@@ -126,11 +124,6 @@ class BusinessService {
       retLookup = {...retLookup, ...newLocationData};
     }
 
-    log.d(
-        "GET MINI BUSINESS LOCATION || ABSTRACTED || LOOKUP + $retLookup || INPUTS $locationIds");
-
-    log.i(
-        "GET MINI BUSINESS LOCATION || ABSTRACTED || ENDED RETURNED : $retLookup || INPUTS $locationIds");
 
     return retLookup;
   }
