@@ -1,10 +1,15 @@
+import 'package:flutter/semantics.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/helpers/networking.dart';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
+import 'package:nextfind/helpers/debug_options.dart';
+import 'package:nextfind/helpers/load_files.dart';
 import 'package:nextfind/services/tag_services.dart';
+
+import 'dart:io';
 
 const businessTypeLookup = {
   null: "All",
@@ -96,7 +101,6 @@ class BusinessService {
     Map<String, MiniBusinessLoc> retLookup = {};
     List<String> locationsToGet = [];
 
-
     for (var locationId in locationIds) {
       // log.d(
       // "GET MINI BUSINESS LOCATION || ABSTRACTED || LOCATION ID $locationId");
@@ -123,7 +127,6 @@ class BusinessService {
 
       retLookup = {...retLookup, ...newLocationData};
     }
-
 
     return retLookup;
   }
@@ -161,39 +164,46 @@ class BusinessService {
     bool elecSafeOnly = false,
     bool includeScore = false,
   }) async {
-    if (type == -1) {
-      type = null;
+    dynamic data;
+    if (NextfindDebugOptions.useBusinessDataTestData) {
+      data = Loadfiles.loadJsonFile("testdata/nearby_business_data.json");
+    } else {
+      if (type == -1) {
+        type = null;
+      }
+
+      if (!(await Networking.isOnline())) {
+        return null;
+      }
+
+      Map<String, dynamic> params = {
+        "query": query,
+        "maxdist": maxdist,
+        "sort": sort,
+        "gas_safe_only": gasSafeOnly,
+        "electricity_safe_only": elecSafeOnly,
+        "just_id": idOnly,
+        "allow_base": macroTypes,
+        "tags": TagServices.chosenTags,
+        "location": "${location[0]} , ${location[1]}"
+      };
+
+      if (type != null) {
+        params["allow_type"] = type;
+      }
+
+      final response =
+          await Networking.apiGet("nearby_businesses", params: params);
+
+      if (response.statusCode != 200) {
+        log.e(
+            "FUNCTION : getNearbyBusinesses | Error Occured ${response.body}");
+        return null;
+      }
+
+      data = jsonDecode(response.body);
     }
 
-    if (!(await Networking.isOnline())) {
-      return null;
-    }
-
-    Map<String, dynamic> params = {
-      "query": query,
-      "maxdist": maxdist,
-      "sort": sort,
-      "gas_safe_only": gasSafeOnly,
-      "electricity_safe_only": elecSafeOnly,
-      "just_id": idOnly,
-      "allow_base": macroTypes,
-      "tags": TagServices.chosenTags,
-      "location": "${location[0]} , ${location[1]}"
-    };
-
-    if (type != null) {
-      params["allow_type"] = type;
-    }
-
-    final response =
-        await Networking.apiGet("nearby_businesses", params: params);
-
-    if (response.statusCode != 200) {
-      log.e("FUNCTION : getNearbyBusinesses | Error Occured ${response.body}");
-      return null;
-    }
-
-    final data = jsonDecode(response.body);
     if (!idOnly) {
       List<int> returnedMiniBusinessesLocationIds = [];
       List<MiniBusinessLoc> returnedMiniBusinessesLocations = [];

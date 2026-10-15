@@ -28,11 +28,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<dynamic> buildFeed() async {
-    _hasWifi = await Networking.isOnline();
+    // _hasWifi = await Networking.isOnline();
 
-    if (!_hasWifi) {
-      return;
-    }
+    // if (!_hasWifi) {
+    //   return;
+    // }
 
     final nearbyBus = await BusinessService.getNearbyBusinesses(
         location: UserService.userLocation,

@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/screens/homepage.dart';
+import 'package:nextfind/helpers/networking.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 
-class MyHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    final client = super.createHttpClient(context);
-    client.connectionTimeout =
-        const Duration(seconds: 20); // increase wait time
-    return client;
-  }
-}
 
 void main() {
   HttpOverrides.global = MyHttpOverrides();
@@ -21,6 +13,7 @@ void main() {
     ),
   );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
