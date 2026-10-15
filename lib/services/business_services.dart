@@ -9,7 +9,6 @@ import 'package:nextfind/helpers/debug_options.dart';
 import 'package:nextfind/helpers/load_files.dart';
 import 'package:nextfind/services/tag_services.dart';
 
-import 'dart:io';
 
 const businessTypeLookup = {
   null: "All",
@@ -166,7 +165,7 @@ class BusinessService {
   }) async {
     dynamic data;
     if (NextfindDebugOptions.useBusinessDataTestData) {
-      data = Loadfiles.loadJsonFile("testdata/nearby_business_data.json");
+      data = await Loadfiles.loadJsonFile("testdata/nearby_business_data.json");
     } else {
       if (type == -1) {
         type = null;

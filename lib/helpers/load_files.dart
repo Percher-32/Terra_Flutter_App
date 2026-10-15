@@ -1,13 +1,15 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:nextfind/helpers/logger.dart';
+import 'package:flutter/services.dart' show rootBundle;
+
 
 class Loadfiles {
-  static dynamic loadJsonFile(String path) {
+  static Future<dynamic> loadJsonFile(String path) async{
     try {
       final file = File(path);
 
-      String jsonString = file.readAsStringSync();
+      String jsonString = await rootBundle.loadString(path);
 
       var jsonData = jsonDecode(jsonString);
 

@@ -4,8 +4,8 @@ import 'package:nextfind/widgets/main_widgets.dart';
 import 'dart:math';
 
 //! FIX THE REVIEW BLOCK
-class ReviewBlock extends StatelessWidget {
-  const ReviewBlock({super.key, required this.rating});
+class RatingBlock extends StatelessWidget {
+  const RatingBlock({super.key, required this.rating});
 
   final Rating rating;
 
