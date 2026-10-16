@@ -1,4 +1,4 @@
 class NextfindDebugOptions {
-  static const bool useBusinessDataTestData = true;
-  static const bool useTestUserData = true;
+  static const bool useBusinessDataTestData = false;
+  static const bool useTestUserData = false;
 }

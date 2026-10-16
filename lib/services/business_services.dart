@@ -4,11 +4,11 @@ import 'package:nextfind/helpers/networking.dart';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'package:intl/intl.dart';
 
 import 'package:nextfind/helpers/debug_options.dart';
 import 'package:nextfind/helpers/load_files.dart';
 import 'package:nextfind/services/tag_services.dart';
-
 
 const businessTypeLookup = {
   null: "All",
@@ -55,6 +55,10 @@ const businessIconLookupAlt = {
 class BusinessService {
   static Map<String, MiniBusinessLoc> miniBusinessLocLookup = {};
   static Map<String, BusinessLocation> businessLocationLookup = {};
+
+  static List<MiniBusinessLoc>? trendingBusinesses;
+  static DateTime trendingBusinessesLastUpdate =
+      DateTime.fromMicrosecondsSinceEpoch(0);
 
   static MiniBusinessLoc? addBusinessLocationMini(
       Map<String, dynamic> locationData) {
@@ -112,17 +116,9 @@ class BusinessService {
       }
     }
 
-    log.d(
-        "GET MINI BUSINESS LOCATION || ABSTRACTED || EXTRACTED ALL KNOWN BUSINESS DATA || currentRetLookup $retLookup || INPUTS $locationIds");
-
     if (locationsToGet.isNotEmpty) {
-      log.d(
-          "GET MINI BUSINESS LOCATION || ABSTRACTED || EXTRACTING ALL UNKNOWN BUSINESSES DATA || locToGet $locationsToGet || INPUTS $locationIds");
       final newLocationData =
-          await getBusinessLocationDataMiniApi(locationIds: locationsToGet);
-
-      log.d(
-          "GET MINI BUSINESS LOCATION || ABSTRACTED || EXTRACTING ALL UNKNOWN BUSINESSES DATA || newLocationData : $newLocationData || locToGet $locationsToGet || INPUTS $locationIds");
+          await getBusinessLocationDataMiniApiCall(locationIds: locationsToGet);
 
       retLookup = {...retLookup, ...newLocationData};
     }
@@ -130,20 +126,68 @@ class BusinessService {
     return retLookup;
   }
 
-  static void startPreloadingImages(
-    BuildContext context,
-    List<String> urls,
-  ) {
-    _runPreloadImagesTask(urls, context);
+  static Future<List<String>?> getTrendingBusinessIds(
+      {int limit = 30, int offset = 0}) async {
+    final response = await Networking.apiGet("homepage/trending",
+        params: {"limit": limit, "offset": offset});
+
+    if (response.statusCode != 200) {
+      log.e(
+          "FUNCTION : GET TRENDING BUSINESSES | Error ${jsonDecode(response.body)}");
+      return null;
+    }
+
+    final dynamic data = jsonDecode(response.body);
+    List<String> trendingBusinessIds = [];
+    for (Map bData in data) {
+      trendingBusinessIds.add(bData["location_id"]);
+    }
+
+    return trendingBusinessIds;
   }
 
-  static Future<void> _runPreloadImagesTask(
-      List<String> urls, BuildContext context) async {
-    for (final url in urls) {
+  static Future<List<MiniBusinessLoc>?> getTrendingBusinesses() async {
+    if (trendingBusinesses == null ||
+        (DateTime.now().difference(trendingBusinessesLastUpdate).inMinutes >
+            5)) {
+      final trendingBusinessesIds = await getTrendingBusinessIds();
+
+      if (trendingBusinessesIds != null) {
+        trendingBusinessesLastUpdate = DateTime.now();
+        Map<String, MiniBusinessLoc> trendingBusinessesMap =
+            await BusinessService.getBusinessLocationMini(
+                trendingBusinessesIds);
+
+        trendingBusinesses = trendingBusinessesIds
+            .map((b) => trendingBusinessesMap[b])
+            .cast<MiniBusinessLoc>()
+            .toList();
+
+        return trendingBusinesses;
+      }
+    }
+    return trendingBusinesses;
+  }
+
+  static void startPreloadingLocationThumbnail(
+    List<MiniBusinessLoc> locations,
+    BuildContext context,
+  ) {
+    _runPreloadLocationThumbnailTask(locations, context);
+  }
+
+  static Future<void> _runPreloadLocationThumbnailTask(
+      List<MiniBusinessLoc> locations, BuildContext context) async {
+    for (final MiniBusinessLoc location in locations) {
       Future.microtask(() async {
         if (!context.mounted) return;
-        await precacheImage(
-            NetworkImage(Networking.getFullImageUrl(url)), context);
+        final String? locationThumbnailPath = location.thumbnailPath;
+
+        if (locationThumbnailPath != null) {
+          await precacheImage(
+              NetworkImage(Networking.getFullImageUrl(locationThumbnailPath)),
+              context);
+        }
       });
 
       await Future.delayed(const Duration(milliseconds: 30)); // throttle
@@ -269,27 +313,7 @@ class BusinessService {
     return businessLocation;
   }
 
-  static Future<List<String>?> getTrendingBusinessIds(
-      {int limit = 30, int offset = 0}) async {
-    final response = await Networking.apiGet("homepage/trending",
-        params: {"limit": limit, "offset": offset});
-
-    if (response.statusCode != 200) {
-      log.e(
-          "FUNCTION : GET TRENDING BUSINESSES | Error ${jsonDecode(response.body)}");
-      return null;
-    }
-
-    final dynamic data = jsonDecode(response.body);
-    List<String> trendingBusinessIds = [];
-    for (Map bData in data) {
-      trendingBusinessIds.add(bData["location_id"]);
-    }
-
-    return trendingBusinessIds;
-  }
-
-  static Future<dynamic> getBusinessLocationDataMiniApi(
+  static Future<dynamic> getBusinessLocationDataMiniApiCall(
       {required List<String> locationIds}) async {
     final response = await Networking.apiGet("mini_collect/business_location",
         params: {"location_ids": locationIds});

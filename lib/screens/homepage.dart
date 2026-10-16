@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/helpers/networking.dart';
+import 'package:nextfind/helpers/debug_options.dart';
 import 'package:nextfind/helpers/logger.dart';
+import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/services/business_services.dart';
 import 'package:nextfind/services/navbar_services.dart';
 import 'package:nextfind/services/search_services.dart';
@@ -16,23 +18,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<String>? trendingBusinesses;
-  DateTime? trendingBusinessesLastUpdate;
-  List<String>? allUrls;
   bool _hasWifi = true;
+  late List<MiniBusinessLoc>? trendingMiniBusLocs;
 
   @override
   void initState() {
     super.initState();
-    _hasWifi = true;
   }
 
   Future<dynamic> buildFeed() async {
-    // _hasWifi = await Networking.isOnline();
+    _hasWifi = await Networking.isOnline();
 
-    // if (!_hasWifi) {
-    //   return;
-    // }
+    if (!_hasWifi && !NextfindDebugOptions.useBusinessDataTestData) {
+      return;
+    }
 
     final nearbyBus = await BusinessService.getNearbyBusinesses(
         location: UserService.userLocation,
@@ -40,46 +39,12 @@ class _HomePageState extends State<HomePage> {
         maxdist: 500,
         idOnly: true);
 
-
-    if (trendingBusinesses != null) {
-      if ((DateTime.now().difference(trendingBusinessesLastUpdate!).inMinutes >
-          5)) {
-        trendingBusinesses = await BusinessService.getTrendingBusinessIds();
-        trendingBusinessesLastUpdate = DateTime.now();
-      }
-    } else {
-      trendingBusinesses = await BusinessService.getTrendingBusinessIds();
-      trendingBusinessesLastUpdate = DateTime.now();
-    }
-
-    final allTrendyBusinesses =
-        await BusinessService.getBusinessLocationMini(trendingBusinesses!);
-
-    if (trendingBusinesses != null) {
-      allUrls = trendingBusinesses!
-          .map((b) => allTrendyBusinesses[b]?.thumbnailPath)
-          .where((url) => url != null)
-          .cast<String>()
-          .toList();
-    }
+    trendingMiniBusLocs = await BusinessService.getTrendingBusinesses();
 
     return nearbyBus;
   }
 
-  Widget myBody(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(top: -50, left: 0, right: 0, child: mainFeedBuilder()),
-      ],
-    );
-  }
-
   Widget trendScroll(BuildContext context) {
-    if (allUrls != null) {
-      BusinessService.startPreloadingImages(
-          context, allUrls!.take(10).toList());
-    }
-
     return Column(
       spacing: 20,
       // mainAxisAlignment: MainAxisAlignment.center,
@@ -96,14 +61,15 @@ class _HomePageState extends State<HomePage> {
                   if (index == 0) {
                     return const SizedBox(width: 0);
                   } else {
-                    String trendyBusinessId = trendingBusinesses![index - 1];
+                    String trendyBusinessId =
+                        trendingMiniBusLocs![index - 1].businessId;
                     return BusinessLocationThumbnail(
                       locationId: trendyBusinessId,
                     );
                   }
                 },
                 separatorBuilder: (context, index) => const SizedBox(width: 20),
-                itemCount: trendingBusinesses!.length + 1))
+                itemCount: trendingMiniBusLocs!.length + 1))
       ],
     );
   }
@@ -156,6 +122,10 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
         appBar: SearchServices.createSearchBar(context),
         bottomNavigationBar: const NavBar(currentPage: AppPages.homepage),
-        body: myBody(context));
+        body: Stack(
+          children: [
+            Positioned(top: -50, left: 0, right: 0, child: mainFeedBuilder()),
+          ],
+        ));
   }
 }

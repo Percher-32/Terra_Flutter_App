@@ -50,7 +50,7 @@ abstract class Networking {
       queryParameters: formattedParams.isEmpty ? null : formattedParams,
     );
 
-    final response = await http.get(uri,headers: headers);
+    final response = await http.get(uri, headers: headers);
 
     if (!response.toString().startsWith("2")) {
       log.e(
@@ -63,7 +63,9 @@ abstract class Networking {
   static Future<http.Response> apiPost(
     String endpoint, {
     Map<String, dynamic> params = const {},
-    Map<String, String> headers = const {'Content-Type': 'application/json',},
+    Map<String, String> headers = const {
+      'Content-Type': 'application/json',
+    },
   }) async {
     final cleanEndpoint =
         endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
@@ -82,7 +84,6 @@ abstract class Networking {
 
     return response;
   }
-
 
   static Future<bool> testPing() async {
     final response = await apiGet("main");
@@ -108,7 +109,7 @@ abstract class Networking {
     return await hasInternet();
   }
 
-  static String getFullImageUrl(String url) {
+  static String getFullImageUrl(String? url) {
     final retStr = '$serverUrl/image/$url';
 
     return retStr;

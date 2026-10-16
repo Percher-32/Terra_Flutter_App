@@ -1,3 +1,5 @@
+
+
 # Mobile App for NextFind
 
 ## License & Terms of Use
@@ -6,6 +8,12 @@ Copyright (c) 2026 Lincoln Mbanefo. All Rights Reserved.
 This repository and its source code are published strictly for review and evaluation purposes. 
 
 No part of this software—including source code, design, or assets—may be reproduced, distributed, modified, sub-licensed, or used for commercial or non-commercial purposes without explicit written permission from the copyright holder.
+
+
+## Demo
+Notice -> This demo only shows how the app function without a server present , I'm in the process of adding mockdata to allow anyone to test it
+
+https://github.com/user-attachments/assets/adda66f1-8fb9-454b-9872-df7f32bcb02a
 
 --
 
