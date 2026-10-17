@@ -23,8 +23,6 @@ import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:nextfind/helpers/networking.dart';
 
-
-
 List<double> nearestDistances(List<Point> points) {
   final result = List<double>.filled(points.length, 0);
 
@@ -87,6 +85,21 @@ List<List<double>> generateCirclePolygon(
   return coords;
 }
 
+
+enum MainSearchPageMode {map,list,choosing,thumbnail}
+class SearchpageStoredData {
+  static final ValueNotifier<MainSearchPageMode> mapMode = ValueNotifier(MainSearchPageMode.list);
+  static final ValueNotifier<bool> shouldReloadMap = ValueNotifier(false);
+}
+
+
+
+
+
+
+
+
+
 class MapSearchView extends StatefulWidget {
   const MapSearchView(
       {super.key,
@@ -97,8 +110,7 @@ class MapSearchView extends StatefulWidget {
       required this.changeMapLocation,
       required this.shouldReloadMapSearchComplete,
       required this.changeMapBool,
-      required this.isSafe,
-      required this.userLocation});
+      required this.isSafe});
 
   final List<String> baseMiniBusinessLocationids;
   final bool isReady;
@@ -108,7 +120,6 @@ class MapSearchView extends StatefulWidget {
   final ValueNotifier<List<String>> shouldReloadMapSearchComplete;
   final ValueNotifier<List<double>> changeMapLocation;
   final ValueNotifier<bool> changeMapBool;
-  final ValueNotifier<List<double>> userLocation;
 
   @override
   State<MapSearchView> createState() => _MapSearchViewState();
@@ -168,13 +179,9 @@ class _MapSearchViewState extends State<MapSearchView>
     });
 
     widget.changeMapBool.addListener(() {
-      
       moveToNewLocation(widget.changeMapLocation.value);
     });
 
-    widget.userLocation.addListener(() {
-      moveToNewLocation(widget.userLocation.value);
-    });
 
     _ticker.start();
 
@@ -276,7 +283,7 @@ class _MapSearchViewState extends State<MapSearchView>
           }
 
           final userPoint = await mapController!.toScreenLocation(map_gl.LatLng(
-              widget.userLocation.value[0], widget.userLocation.value[1]));
+              UserService.userLocation[0], UserService.userLocation[1]));
           userOffset.value = Offset(
             userPoint.x.toDouble() / dpr,
             userPoint.y.toDouble() / dpr,
@@ -300,7 +307,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
     // _lockCamera = true;
 
-    widget.mapMode.value = "Thumbnail";
+    widget.mapMode.value = MainSearchPageMode.thumbnail;
     miniBusinessId = miniBusLoc.locationId;
   }
 
@@ -512,7 +519,6 @@ class _MapSearchViewState extends State<MapSearchView>
 
   @override
   Widget build(BuildContext context) {
-
     if (!initComplete) {
       return const SizedBox();
     }
@@ -572,8 +578,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
                     // Example: update your userLocation
                     UserService.userLocation = [tappedLat, tappedLng];
-                    widget.userLocation.value = UserService.userLocation;
-
+                    UserService.userLocation = UserService.userLocation;
 
                     widget.mapMode.value = "Base";
                   } else {
@@ -664,6 +669,8 @@ class _MapSearchViewState extends State<MapSearchView>
   }
 }
 
+
+
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
 
@@ -676,7 +683,7 @@ class _SearchPageState extends State<SearchPage> {
 
   bool hasMapModeValue = false;
 
-  late final ValueNotifier<String> mapMode;
+  late final ValueNotifier<MainSearchPageMode> mapMode;
   late final ValueNotifier<bool> shouldReloadMap;
   late final ValueNotifier<List<double>> changeMapLocation;
   late final ValueNotifier<bool> changeMapBool;
@@ -691,11 +698,10 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void initState() {
-
     super.initState();
     WidgetsBinding.instance.addObserver(lifecycle);
 
-    mapMode = ValueNotifier("List");
+    mapMode = ValueNotifier(MainSearchPageMode.list);
     shouldReloadMap = ValueNotifier(false);
     isSafe = ValueNotifier(false);
     changeMapBool = ValueNotifier(false);
@@ -704,15 +710,13 @@ class _SearchPageState extends State<SearchPage> {
     changeMapLocation = ValueNotifier(UserService.userLocation);
     userLocationForMap = ValueNotifier(UserService.userLocation);
 
-
     shouldReloadMap.addListener(() {
-      if (mapMode.value != "List") {
+      if (mapMode.value != MainSearchPageMode.list) {
         _reloadMapOnly();
       }
     });
 
-    mapMode.addListener(() {
-    });
+    mapMode.addListener(() {});
 
     _hasWifi = true;
     hasMapModeValue = true;
@@ -723,11 +727,10 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _reloadMapOnly() async {
     await _runSearchFunction(); // refresh business markers
 
-    mapMode.value = "Base";
+    mapMode.value = MainSearchPageMode.map;
   }
 
   Future<void> _runSearchFunction() async {
-
     // Prevent overlapping searches
     if (isRunningSearch.value) return;
     isRunningSearch.value = true;
@@ -750,7 +753,7 @@ class _SearchPageState extends State<SearchPage> {
     );
 
     // 2. MINI-LOCATION LOAD (async, heavy but non-blocking)
-    await BusinessService.getBusinessLocationMini(ids);
+    // await BusinessService.getBusinessLocationMini(ids);
 
     // 3. MARKER SYNC (sync, cheap)
     _miniBusinessLocationids = ids;
@@ -766,7 +769,7 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {});
 
     // Only reload map if map is visible
-    if (mapMode.value != "List") {
+    if (mapMode.value != MainSearchPageMode.list) {
       shouldReloadMapSearchComplete.value = ids;
     }
   }
@@ -816,7 +819,7 @@ class _SearchPageState extends State<SearchPage> {
                     height: 60,
                     onPressed: () {
                       isReady = false;
-                      mapMode.value = "Choosing";
+                      mapMode.value = MainSearchPageMode.choosing;
                       Navigator.pop(sheetContext);
                     },
                     padding: const EdgeInsets.symmetric(
@@ -834,15 +837,15 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget buildPage(BuildContext context) {
-    Widget mapViewWidget = const Center(child: Heading("Loading Map..."));
+    Widget mainSearchPageWidget = const Center(child: Heading("Loading Map..."));
 
     if (!_hasWifi) {
-      mapViewWidget = const Center(child: Heading("No Internet"));
+      mainSearchPageWidget = const Center(child: Heading("No Internet"));
     }
 
     if (isReady) {
-      if (mapMode.value == "Base") {
-        mapViewWidget = MapSearchView(
+      if (mapMode.value == MainSearchPageMode.map) {
+        mainSearchPageWidget = MapSearchView(
           // key : ValueKey(_miniBusinessLocationids.toString()),
           baseMiniBusinessLocationids: _miniBusinessLocationids,
           shouldReloadMapSearchComplete: shouldReloadMapSearchComplete,
@@ -855,8 +858,8 @@ class _SearchPageState extends State<SearchPage> {
           changeMapLocation: changeMapLocation,
         );
         // log.i("SEARCHPAGELOG : Search Hub BUILDPAGE ADDED COMPLETE");
-      } else if (mapMode.value == "List") {
-        mapViewWidget = ListSearchView(
+      } else if (mapMode.value == MainSearchPageMode.list) {
+        mainSearchPageWidget = ListSearchView(
             key: ValueKey([
               UserService.userLocation.toString(),
               _miniBusinessLocationids
@@ -865,26 +868,44 @@ class _SearchPageState extends State<SearchPage> {
       }
     }
 
-    UserService;
-
-    final suppposedMap = mapViewWidget;
-
     return Stack(
       children: [
         //Map OR List
-        suppposedMap,
+        mainSearchPageWidget,
 
-        //Location Popup [MAP]
-        ValueListenableBuilder<String>(
-          valueListenable: mapMode,
+        //Loading Bar
+        ValueListenableBuilder<bool>(
+          valueListenable: isRunningSearch,
           builder: (_, choosing, __) {
-            if (["Thumbnail", "Choosing", "List"].contains(choosing)) {
-              return const SizedBox(); // hide search bar
+            if ([MainSearchPageMode.thumbnail, MainSearchPageMode.list].contains(mapMode.value) ||
+                !choosing) {
+              return const SizedBox();
             }
-            return Positioned(
-              bottom: 60,
-              right: 10 + 70,
-              child: Material(
+
+
+            return const Center(
+                child: SizedBox(
+              width: 200,
+              height: 200,
+              child: CircularProgressIndicator(
+                strokeWidth: 14,
+                color: AppColors.primary,
+              ),
+            ));
+          },
+        ),
+
+        //Location Popup [MAP VIEW]
+        Positioned(
+          bottom: 60,
+          right: 10 + 70,
+          child: ValueListenableBuilder<String>(
+            valueListenable: mapMode,
+            builder: (_, choosing, __) {
+              if (["Thumbnail", "Choosing", "List"].contains(choosing)) {
+                return const SizedBox(); // hide search bar
+              }
+              return Material(
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(20),
@@ -908,240 +929,219 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+              // );
+            },
+          ),
         ),
 
-        //Anchor Position [MAP]
-        ValueListenableBuilder<String>(
-          valueListenable: mapMode,
-          builder: (_, choosing, __) {
-            if (["Thumbnail", "Choosing", "List"].contains(choosing)) {
-              return const SizedBox(); // hide search bar
-            }
-            return Positioned(
-              bottom: 60,
-              right: 80 + 70,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  splashColor: const Color.fromARGB(111, 252, 178, 74),
-                  onTap: () {
-                    changeMapLocation.value =
-                        List<double>.from(UserService.userLocation);
-                    // userLocationForMap.value =
-                    //     List<double>.from(UserService.userLocation);
-                    changeMapBool.value = !changeMapBool.value;
-                  },
-                  child: Ink(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.location_searching,
-                        size: 35,
-                        color: AppColors.background,
+        //Anchor Position [MAP VIEW]
+        Positioned(
+            bottom: 60,
+            right: 80 + 70,
+            child: ValueListenableBuilder<String>(
+              valueListenable: mapMode,
+              builder: (_, choosing, __) {
+                if (["Thumbnail", "Choosing", "List"].contains(choosing)) {
+                  return const SizedBox(); // hide search bar
+                }
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    splashColor: const Color.fromARGB(111, 252, 178, 74),
+                    onTap: () {
+                      changeMapLocation.value =
+                          List<double>.from(UserService.userLocation);
+                      // userLocationForMap.value =
+                      //     List<double>.from(UserService.userLocation);
+                      changeMapBool.value = !changeMapBool.value;
+                    },
+                    child: Ink(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.location_searching,
+                          size: 35,
+                          color: AppColors.background,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
+                );
+              },
+            )),
 
-        //Go to list View [MAP]
-        ValueListenableBuilder<String>(
-          valueListenable: mapMode,
-          builder: (_, choosing, __) {
-            if (["Thumbnail", "Choosing", "List"].contains(choosing)) {
-              return const SizedBox(); // hide search bar
-            }
-            return Positioned(
-              bottom: 60,
-              right: 10,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  splashColor: const Color.fromARGB(111, 252, 178, 74),
-                  onTap: () {
-                    mapMode.value = "List";
-                    setState(() {});
-                  },
-                  child: Ink(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.list,
-                        size: 35,
-                        color: AppColors.background,
+        //Go to list View [MAP VIEW]
+        Positioned(
+            bottom: 60,
+            right: 10,
+            child: ValueListenableBuilder<String>(
+              valueListenable: mapMode,
+              builder: (_, choosing, __) {
+                if (["Thumbnail", "Choosing", "List"].contains(choosing)) {
+                  return const SizedBox(); // hide search bar
+                }
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    splashColor: const Color.fromARGB(111, 252, 178, 74),
+                    onTap: () {
+                      mapMode.value = MainSearchPageMode.list;
+                      setState(() {});
+                    },
+                    child: Ink(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.list,
+                          size: 35,
+                          color: AppColors.background,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
+                );
+              },
+            )),
 
-        //Search Button [MAP]
-        ValueListenableBuilder<String>(
-          valueListenable: mapMode,
-          builder: (_, choosing, __) {
-            if (["Thumbnail", "Choosing", "List"].contains(choosing)) {
-              return const SizedBox(); // hide search bar
-            }
-            return Positioned(
-              bottom: 60,
-              left: 10,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  splashColor: const Color.fromARGB(111, 252, 178, 74),
-                  onTap: () {
-                    shouldReloadMap.value = !shouldReloadMap.value;
-                  },
-                  child: Ink(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.search,
-                        size: 35,
-                        color: AppColors.background,
+        //Search Button [MAP VIEW]
+        Positioned(
+            bottom: 60,
+            left: 10,
+            child: ValueListenableBuilder<String>(
+              valueListenable: mapMode,
+              builder: (_, choosing, __) {
+                if (["Thumbnail", "Choosing", "List"].contains(choosing)) {
+                  return const SizedBox(); // hide search bar
+                }
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    splashColor: const Color.fromARGB(111, 252, 178, 74),
+                    onTap: () {
+                      shouldReloadMap.value = !shouldReloadMap.value;
+                    },
+                    child: Ink(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.search,
+                          size: 35,
+                          color: AppColors.background,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
-
-        //Loading Bar
-        ValueListenableBuilder<bool>(
-          valueListenable: isRunningSearch,
-          builder: (_, choosing, __) {
-            if (["Thumbnail", "Choosing"].contains(mapMode.value) ||
-                !choosing) {
-              return const SizedBox();
-            }
-            return const Center(
-                child: SizedBox(
-              width: 200,
-              height: 200,
-              child: CircularProgressIndicator(
-                strokeWidth: 14,
-                color: AppColors.primary,
-              ),
-            ));
-          },
-        ),
+                );
+                ;
+              },
+            )),
 
         //Search Button [LIST]
-        ValueListenableBuilder<String>(
-          valueListenable: mapMode,
-          builder: (_, choosing, __) {
-            if (["Thumbnail", "Choosing", "Base"].contains(choosing)) {
-              return const SizedBox(); // hide search bar
-            }
-            return Positioned(
-              bottom: 10,
-              left: 10,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  splashColor: const Color.fromARGB(111, 252, 178, 74),
-                  onTap: () {
-                    _runSearchFunction();
-                  },
-                  child: Ink(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.search,
-                        size: 35,
-                        color: AppColors.background,
+        Positioned(
+            bottom: 10,
+            left: 10,
+            child: ValueListenableBuilder<String>(
+              valueListenable: mapMode,
+              builder: (_, choosing, __) {
+                if (["Thumbnail", "Choosing", "Base"].contains(choosing)) {
+                  return const SizedBox(); // hide search bar
+                }
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    splashColor: const Color.fromARGB(111, 252, 178, 74),
+                    onTap: () {
+                      _runSearchFunction();
+                    },
+                    child: Ink(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.search,
+                          size: 35,
+                          color: AppColors.background,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
+                  // ),
+                );
+              },
+            )),
 
         //Go to Map [LIST]
-        ValueListenableBuilder<String>(
-          valueListenable: mapMode,
-          builder: (_, choosing, __) {
-            if (choosing != "List") return const SizedBox(); // hide search bar
-            return Positioned(
-              bottom: 60 - 50,
-              right: 10,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  splashColor: const Color.fromARGB(111, 252, 178, 74),
-                  onTap: () {
-                    mapMode.value = "Base";
-                    setState(() {});
-                  },
-                  child: Ink(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.map_outlined,
-                        size: 35,
-                        color: AppColors.background,
+        Positioned(
+            bottom: 60 - 50,
+            right: 10,
+            child: ValueListenableBuilder<String>(
+              valueListenable: mapMode,
+              builder: (_, choosing, __) {
+                if (choosing != "List")
+                  return const SizedBox(); // hide search bar
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    splashColor: const Color.fromARGB(111, 252, 178, 74),
+                    onTap: () {
+                      mapMode.value = MainSearchPageMode.map;
+                      setState(() {});
+                    },
+                    child: Ink(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.map_outlined,
+                          size: 35,
+                          color: AppColors.background,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
+                );
+              },
+            )),
 
-        // Tap anywhere on the map to choose a location [Choosing]
-        ValueListenableBuilder<String>(
-          valueListenable: mapMode,
-          builder: (_, choosing, __) {
-            if (choosing != "Choosing") return const SizedBox();
+        // Tap anywhere on the map to choose a location [Choosing VIEW]
+        Positioned(
+            top: 60,
+            left: 10,
+            child: ValueListenableBuilder<String>(
+              valueListenable: mapMode,
+              builder: (_, choosing, __) {
+                if (choosing != "Choosing") return const SizedBox();
 
-            return Positioned(
-                top: 60,
-                left: 10,
-                child: Center(
+                return Center(
                     child: Container(
                         width: MediaQuery.of(context).size.width - 20,
                         height: 80,
@@ -1154,20 +1154,20 @@ class _SearchPageState extends State<SearchPage> {
                           size: 20,
                           color: AppColors.background,
                           textAlign: TextAlign.center,
-                        )))));
-          },
-        ),
+                        ))));
+              },
+            )),
 
-        // Back Button [Choosing]
-        ValueListenableBuilder<String>(
-          valueListenable: mapMode,
-          builder: (_, choosing, __) {
-            if (choosing != "Choosing") return const SizedBox();
+        // Back Button [Choosing VIEW]
+        Positioned(
+            bottom: 10,
+            left: MediaQuery.of(context).size.width / 8,
+            child: ValueListenableBuilder<String>(
+              valueListenable: mapMode,
+              builder: (_, choosing, __) {
+                if (choosing != "Choosing") return const SizedBox();
 
-            return Positioned(
-                bottom: 10,
-                left: MediaQuery.of(context).size.width / 8,
-                child: Center(
+                return Center(
                     child: MyButton(
                   width: 300,
                   height: 60,
@@ -1178,12 +1178,12 @@ class _SearchPageState extends State<SearchPage> {
                     color: AppColors.background,
                   ),
                   onPressed: () {
-                    mapMode.value = "Base";
+                    mapMode.value = MainSearchPageMode.map;
                     shouldReloadMap.value = !shouldReloadMap.value;
                   },
-                )));
-          },
-        ),
+                ));
+              },
+            )),
       ],
     );
   }
@@ -1192,11 +1192,11 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return PopScope(
         canPop: mapMode.value !=
-            "Thumbnail", // BLOCK back button when thumbnail is showing
+           MainSearchPageMode.thumbnail, // BLOCK back button when thumbnail is showing
         onPopInvokedWithResult: (didPop, result) {
-          if (mapMode.value == "Thumbnail") {
+          if (mapMode.value == MainSearchPageMode.thumbnail) {
             // Custom back behaviour
-            mapMode.value = "Base";
+            mapMode.value = MainSearchPageMode.map;
 
             // DO NOT allow pop
             return;

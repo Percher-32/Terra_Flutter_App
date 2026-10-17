@@ -6,7 +6,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 class Loadfiles {
   static Future<dynamic> loadJsonFile(String path) async{
-    try {
+    // try {
       // final file = File(path);
 
       String jsonString = await rootBundle.loadString(path);
@@ -14,8 +14,9 @@ class Loadfiles {
       var jsonData = jsonDecode(jsonString);
 
       return jsonData;
-    } catch (e) {
-      log.e("Error loading file $path || $e");
-    }
+    // } 
+    // catch (e) {
+    //   log.e("Error loading file $path || $e");
+    // }
   }
 }

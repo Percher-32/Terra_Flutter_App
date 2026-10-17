@@ -4,13 +4,15 @@ import 'package:nextfind/services/search_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:rapidfuzz/rapidfuzz.dart' as fuzz;
 import 'package:nextfind/helpers/networking.dart';
+import 'package:nextfind/helpers/debug_options.dart';
+import 'package:nextfind/helpers/load_files.dart';
 
 class TagServices {
   static final ValueNotifier<bool> updateTagWidget = ValueNotifier(false);
   static final ValueNotifier<bool> justExitedTagChoose = ValueNotifier(false);
   static List<int> chosenTags = [];
   static Map<int, Tag> tagLookup = {};
-  static DateTime timeSinceLastRefresh = DateTime.utc(2000);
+  static DateTime timeSinceLastRefresh = DateTime.fromMicrosecondsSinceEpoch(0);
 
   static Future<Map<int, Tag>> getAllTags() async {
     if (DateTime.now().difference(timeSinceLastRefresh).inMinutes >= 10) {
@@ -20,6 +22,7 @@ class TagServices {
         final newTag = Tag(tagData["id"], tagData["category"], tagData["name"]);
         tagLookup[tagData["id"]] = newTag;
       }
+      timeSinceLastRefresh = DateTime.now();
     }
 
     return tagLookup;
@@ -28,13 +31,15 @@ class TagServices {
   static Future<List<Map<String, dynamic>>> getRawTagData() async {
     // const String tagGetEndpoint = '$serverUrl/tags/get';
 
-    final response = await Networking.apiGet(
-      "tags/get",
-    );
+    if (!NextfindDebugOptions.useTestTagData) {
+      final response = await Networking.apiGet(
+        "tags/get",
+      );
 
-    final dynamic data = Networking.toJson(response.body);
-
-    return data;
+      return Networking.toJson(response.body);
+    } else {
+      return await Loadfiles.loadJsonFile("assets/testdata/tag_data.json");
+    }
   }
 
   static void showChooseTagDropDown(BuildContext context) {
@@ -136,8 +141,7 @@ class TagServices {
                                 valueListenable: updateTagWidget,
                                 builder: (_, __, ___) {
                                   final selected =
-                                      List.from(chosenTags)
-                                          .contains(tag.id);
+                                      List.from(chosenTags).contains(tag.id);
 
                                   return SizedBox(
                                     width: 300,
@@ -145,8 +149,7 @@ class TagServices {
                                     child: ElevatedButton(
                                       onPressed: () {
                                         if (selected) {
-                                          chosenTags
-                                              .remove(tag.id);
+                                          chosenTags.remove(tag.id);
                                         } else {
                                           chosenTags.add(tag.id);
                                         }

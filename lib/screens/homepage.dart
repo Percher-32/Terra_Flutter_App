@@ -30,6 +30,7 @@ class _HomePageState extends State<HomePage> {
     _hasWifi = await Networking.isOnline();
 
     if (!_hasWifi && !NextfindDebugOptions.useBusinessDataTestData) {
+      log.d("No Wifi Found -> TERMINATING BUILD");
       return;
     }
 

@@ -54,7 +54,7 @@ abstract class Networking {
 
     if (!response.toString().startsWith("2")) {
       log.e(
-          "Error URL $endpoint || ${response.statusCode} ${jsonDecode(response.body)}");
+          "API CALL ERROR from GET $endpoint || ${response.statusCode} params : $params headers : $headers ||${jsonDecode(response.body)}");
     }
 
     return response;
