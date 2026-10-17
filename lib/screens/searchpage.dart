@@ -744,7 +744,7 @@ class _SearchPageState extends State<SearchPage> {
         location: UserService.userLocation,
         query: SearchServices.controller.text,
         maxdist: SearchServices.searchRadius,
-        type: SearchServices.categoryIndex,
+        type: SearchServices.categoryIndex.value,
         idOnly: true,
       ),
     );

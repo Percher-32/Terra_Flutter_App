@@ -207,6 +207,7 @@ class BusinessService {
     bool elecSafeOnly = false,
     bool includeScore = false,
   }) async {
+    log.i("Getting Nearby Businesses");
     dynamic data;
     if (NextfindDebugOptions.useBusinessDataTestData) {
       data = await Loadfiles.loadJsonFile("testdata/nearby_business_data.json");

@@ -78,11 +78,11 @@ class _HomePageState extends State<HomePage> {
     return FutureBuilder<dynamic>(
       future: buildFeed(),
       builder: (context, snapshot) {
-        if (!_hasWifi) {
-          return const Center(
-            child: Heading("No Internet "),
-          );
-        }
+        // if (!_hasWifi) {
+        //   return const Center(
+        //     child: Heading("No Internet "),
+        //   );
+        // }
 
         if (!snapshot.hasData) {
           return const LinearProgressIndicator();

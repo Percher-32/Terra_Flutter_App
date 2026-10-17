@@ -1,4 +1,6 @@
 import 'package:nextfind/widgets/main_widgets.dart';
+import 'package:nextfind/services/business_services.dart';
+import 'package:nextfind/services/tag_services.dart';
 import 'package:flutter/material.dart';
 import 'package:nextfind/page_moves.dart';
 
@@ -6,9 +8,10 @@ class SearchServices {
   static ValueNotifier<bool> isMetric = ValueNotifier(false);
 
   static int sortingByIndex = 1;
-  static const List  sortingByValues = ["Relevance","Distance","Rating"];
+  static const List sortingByValues = ["Relevance", "Distance", "Rating"];
 
-  static int? categoryIndex;
+  static ValueNotifier<int?> categoryIndex = ValueNotifier(null);
+
   static const List<int> searchRadiusValues = [1, 3, 5, 10, 15, 20, 30, 50];
   static final ValueNotifier<int> searchRadiusIndex = () {
     final notifier = ValueNotifier(3);
@@ -22,8 +25,145 @@ class SearchServices {
   }();
   static int searchRadius = searchRadiusValues[searchRadiusIndex.value];
 
-
   static final TextEditingController controller = TextEditingController();
+
+  static void filterDropDown(BuildContext parentContext) {
+    Map<dynamic, Widget> allIcons = {};
+    Map<dynamic, Widget> allIconsAlt = {};
+
+    for (int? index in businessIconLookup.keys) {
+      Widget widget = const SizedBox();
+      Widget widgetAlt = const SizedBox();
+      if (index != null) {
+        widget = Image.asset(
+          businessIconLookup[index]!,
+          width: 32,
+          height: 32,
+        );
+
+        widgetAlt = Image.asset(
+          businessIconLookupAlt[index]!,
+          width: 32,
+          height: 32,
+        );
+      }
+
+      allIcons[index] = widget;
+      allIconsAlt[index] = widgetAlt;
+    }
+
+    showModalBottomSheet(
+      context: parentContext,
+      // backgroundColor: Colors.deepPurple.shade50,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (builderContext) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            spacing: 0,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const MyText(
+                "Search Settings",
+                color: AppColors.text,
+                size: 30,
+              ),
+              const SizedBox(height: 30),
+              // //TTILE DONE
+
+              Container(
+                  decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: HeaderInput(
+                    hint: "find a business",
+                    controller: SearchServices.controller,
+                    onSubmitted: (value) => goToSearchPage(parentContext),
+                  )),
+
+              const SizedBox(height: 20),
+
+              ValueListenableBuilder(
+                valueListenable: SearchServices.searchRadiusIndex,
+                builder: (_, __, ___) {
+                  return MyMainSlider(
+                    distances: SearchServices.searchRadiusValues,
+                    onChanged: (distanceIndex) {
+                      SearchServices.searchRadiusIndex.value = distanceIndex;
+                    },
+                    startValue: SearchServices.searchRadiusIndex.value,
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+
+              MyMultiToggle(
+                initial: SearchServices.isMetric.value ? 0 : 1,
+                options: const [
+                  "Kilometers",
+                  "Miles",
+                ],
+                onChanged: (val) {
+                  SearchServices.isMetric.value =
+                      !SearchServices.isMetric.value;
+                },
+              ),
+              const SizedBox(height: 20),
+              // //Choose Units Done
+
+              const Body(
+                "Category",
+                color: AppColors.text,
+              ),
+              const SizedBox(height: 10),
+
+              const CategoryDropDown(),
+
+              const SizedBox(height: 20),
+              // //Category DROPDOWN DONE
+
+              const Body(
+                "Sort By",
+                color: AppColors.text,
+              ),
+              const SizedBox(height: 10),
+              MyMultiToggle(
+                initial: SearchServices.sortingByIndex,
+                options: SearchServices.sortingByValues,
+                onChanged: (val) {
+                  SearchServices.sortingByIndex = val;
+                },
+              ),
+              const SizedBox(height: 20),
+              // //TTILE SEARCH POWER DONE
+
+              const Body(
+                "Tags",
+                color: AppColors.text,
+              ),
+              const SizedBox(height: 10),
+              TagServices.showChosenTagWidget(parentContext),
+              const SizedBox(height: 40),
+              // //Tag Chooser Done
+
+              MyButton(
+                height: 60,
+                width: 300,
+                child: const Body("Search", color: AppColors.background),
+                onPressed: () {
+                  // goToSearchPage(parentContext);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   static PreferredSize createSearchBar(BuildContext context) {
     return PreferredSize(
@@ -65,5 +205,223 @@ class SearchServices {
         ],
       ),
     );
+  }
+}
+
+class CategoryDropDown extends StatefulWidget {
+  const CategoryDropDown({super.key});
+
+  @override
+  State<CategoryDropDown> createState() => CategoryDropDownState();
+}
+
+class CategoryDropDownState extends State<CategoryDropDown> {
+  Map<dynamic, Widget> widgetIcon = {};
+  Map<dynamic, Widget> widgetIconSelected = {};
+  List<Widget> gridItems = [];
+  @override
+  void initState() {
+    super.initState();
+
+    for (int? itemCategoryIndex in businessIconLookup.keys) {
+      if (itemCategoryIndex != null) {
+        Widget widget = Image.asset(
+          businessIconLookup[itemCategoryIndex]!,
+          width: 32,
+          height: 32,
+        );
+
+        Widget widgetAlt = Image.asset(
+          businessIconLookupAlt[itemCategoryIndex]!,
+          width: 32,
+          height: 32,
+        );
+
+        widgetIcon[itemCategoryIndex] = widget;
+        widgetIconSelected[itemCategoryIndex] = widgetAlt;
+      }
+
+
+      
+
+
+      final itemValue = businessTypeLookup[itemCategoryIndex];
+
+      final bool isChosen =
+          SearchServices.categoryIndex.value == itemCategoryIndex;
+
+      Widget itemWidget = const SizedBox();
+      if (itemCategoryIndex != null) {
+        if (isChosen) {
+          itemWidget = widgetIcon[itemCategoryIndex]!;
+        } else {
+          itemWidget = widgetIconSelected[itemCategoryIndex]!;
+        }
+      }
+
+      final gridWidget = SizedBox(
+        width: 300,
+        height: 60,
+        child: ElevatedButton(
+          onPressed: () {
+            SearchServices.categoryIndex.value = itemCategoryIndex;
+            Navigator.pop(context);
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            backgroundColor:
+                isChosen ? AppColors.primary : AppColors.background,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              itemWidget,
+              MyText(
+                itemValue.toString(),
+                color: isChosen ? AppColors.background : AppColors.text,
+                textAlign: TextAlign.center,
+                size: 13,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      gridItems.add(gridWidget);
+    }
+
+
+  }
+
+  void showOptionPicker() {
+    List<Widget> gridItems = [];
+
+    for (int? itemCategoryIndex in businessTypeLookup.keys) {
+      final itemValue = businessTypeLookup[itemCategoryIndex];
+
+      final bool isChosen =
+          SearchServices.categoryIndex.value == itemCategoryIndex;
+
+      Widget itemWidget = const SizedBox();
+      if (itemCategoryIndex != null) {
+        if (isChosen) {
+          itemWidget = widgetIcon[itemCategoryIndex]!;
+        } else {
+          itemWidget = widgetIconSelected[itemCategoryIndex]!;
+        }
+      }
+
+      final gridWidget = SizedBox(
+        width: 300,
+        height: 60,
+        child: ElevatedButton(
+          onPressed: () {
+            SearchServices.categoryIndex.value = itemCategoryIndex;
+            Navigator.pop(context);
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            backgroundColor:
+                isChosen ? AppColors.primary : AppColors.background,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              itemWidget,
+              MyText(
+                itemValue.toString(),
+                color: isChosen ? AppColors.background : AppColors.text,
+                textAlign: TextAlign.center,
+                size: 13,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      gridItems.add(gridWidget);
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+            insetPadding: const EdgeInsets.all(10),
+            backgroundColor: AppColors.leveled,
+            child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const SizedBox(height: 16),
+                  const MyText(
+                    "Choose a category",
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                      height: 500, // limit height
+                      // width: ,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          // how wide each item should be
+                          const itemWidth = 110.0;
+
+                          // calculate how many items fit
+                          final columns =
+                              (constraints.maxWidth / itemWidth).floor();
+
+                          return GridView.count(
+                            padding: const EdgeInsets.all(10),
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            crossAxisCount: columns,
+                            children: gridItems,
+                          );
+                        },
+                      )),
+                ])));
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+        valueListenable: SearchServices.categoryIndex,
+        builder: (_, index, __) {
+          return MyButton(
+            width: 300,
+            height: 60,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Stack(clipBehavior: Clip.none, children: [
+              Positioned(
+                left: 0,
+                top: 15,
+                child: MyText(
+                  businessTypeLookup[SearchServices.categoryIndex.value]
+                      .toString(),
+                  textAlign: TextAlign.center,
+                  color: AppColors.background,
+                ),
+              ),
+              const Positioned(
+                right: 0,
+                top: 10,
+                child: Icon(
+                  Icons.arrow_drop_down,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              )
+            ]),
+            onPressed: () {
+              showOptionPicker();
+            },
+          );
+        });
   }
 }
