@@ -3,18 +3,21 @@ import 'dart:convert';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
-
 class Loadfiles {
-  static Future<dynamic> loadJsonFile(String path) async{
+  static Future<dynamic> loadJsonFile(String path) async {
     // try {
-      // final file = File(path);
+    // final file = File(path);
 
-      String jsonString = await rootBundle.loadString(path);
+    String jsonString = await rootBundle.loadString(path);
 
-      var jsonData = jsonDecode(jsonString);
+    log.d("$path |||| JSONDATA : $jsonString");
 
-      return jsonData;
-    // } 
+    var jsonData = jsonDecode(jsonString);
+
+    log.d("$path |||| DECODED : $jsonData");
+
+    return jsonData;
+    // }
     // catch (e) {
     //   log.e("Error loading file $path || $e");
     // }

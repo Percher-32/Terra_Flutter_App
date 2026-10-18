@@ -1,8 +1,42 @@
+import 'package:flutter/material.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/services/business_services.dart';
+import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/services/tag_services.dart';
-import 'package:flutter/material.dart';
+import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/page_moves.dart';
+
+enum MainSearchPageMode { map, list, choosing, thumbnail }
+
+class SearchPageGlobals {
+  static final ValueNotifier<MainSearchPageMode> mapMode =
+      ValueNotifier(MainSearchPageMode.list);
+  static final ValueNotifier<bool> reloadMapTrigger = ValueNotifier(false);
+  static final ValueNotifier<bool> runSearchTrigger = ValueNotifier(false);
+  static final ValueNotifier<List<double>> changeMapLocationTrigger =
+      ValueNotifier(UserService.userLocation);
+
+  static final ValueNotifier<bool> isLoading = ValueNotifier(false);
+
+  static final ValueNotifier<List<MiniBusinessLoc>> miniBusinessLocations =
+      ValueNotifier([]);
+
+  static bool hasWifi = false;
+
+  static MiniBusinessLoc? chosenBusinessLocation;
+
+  static void reloadMap() {
+    reloadMapTrigger.value = !reloadMapTrigger.value;
+  }
+
+  static void runSearch() {
+    runSearchTrigger.value = !runSearchTrigger.value;
+  }
+
+  static void changeMapLocation(List<double> newLocation) {
+    changeMapLocationTrigger.value = newLocation;
+  }
+}
 
 class SearchServices {
   static ValueNotifier<bool> isMetric = ValueNotifier(false);
@@ -241,10 +275,6 @@ class CategoryDropDownState extends State<CategoryDropDown> {
         widgetIconSelected[itemCategoryIndex] = widgetAlt;
       }
 
-
-      
-
-
       final itemValue = businessTypeLookup[itemCategoryIndex];
 
       final bool isChosen =
@@ -292,8 +322,6 @@ class CategoryDropDownState extends State<CategoryDropDown> {
 
       gridItems.add(gridWidget);
     }
-
-
   }
 
   void showOptionPicker() {
