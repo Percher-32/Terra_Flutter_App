@@ -31,6 +31,8 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
     WidgetsBinding.instance.addObserver(lifecycle);
 
+    SearchPageGlobals.isLoading.value = false;
+
     //Reload the map based on the global trigger
     SearchPageGlobals.reloadMapTrigger.addListener(() async {
       if (SearchPageGlobals.mapMode.value != MainSearchPageMode.list) {
@@ -56,7 +58,10 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _runSearchFunction() async {
     // Prevent overlapping searches
     if (SearchPageGlobals.isLoading.value) return;
-    SearchPageGlobals.isLoading.value = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SearchPageGlobals.isLoading.value = true;
+    });
 
     SearchPageGlobals.hasWifi = await Networking.isOnline();
 
@@ -66,7 +71,6 @@ class _SearchPageState extends State<SearchPage> {
       query: SearchServices.controller.text,
       maxdist: SearchServices.searchRadius,
       type: SearchServices.categoryIndex.value,
-      idOnly: true,
     );
 
     if (!mounted) return;
@@ -314,14 +318,13 @@ class SearchPageBody extends StatelessWidget {
     return ValueListenableBuilder<MainSearchPageMode>(
       valueListenable: SearchPageGlobals.mapMode,
       builder: (_, mapMode, ___) {
-        Widget mainSearchPageWidget =
-            const Center(child: Heading("Loading Map..."));
+        Widget mainSearchPageWidget = const SizedBox();
 
-        if (SearchPageGlobals.hasWifi) {
+        if (!SearchPageGlobals.hasWifi) {
           mainSearchPageWidget = const Center(child: Heading("No Internet"));
         }
 
-        if (SearchPageGlobals.isLoading.value) {
+        if (!SearchPageGlobals.isLoading.value) {
           if (mapMode == MainSearchPageMode.map) {
             mainSearchPageWidget = const MapSearchView();
           } else if (mapMode == MainSearchPageMode.list) {

@@ -4,6 +4,7 @@ import 'package:nextfind/services/search_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:rapidfuzz/rapidfuzz.dart' as fuzz;
 import 'package:nextfind/helpers/networking.dart';
+import 'package:nextfind/helpers/logger.dart';
 import 'package:nextfind/helpers/debug_options.dart';
 import 'package:nextfind/helpers/load_files.dart';
 
@@ -28,7 +29,7 @@ class TagServices {
     return tagLookup;
   }
 
-  static Future<List<Map<String, dynamic>>> getRawTagData() async {
+  static Future<List<dynamic>> getRawTagData() async {
     // const String tagGetEndpoint = '$serverUrl/tags/get';
 
     if (!NextfindDebugOptions.useTestTagData) {
@@ -38,7 +39,9 @@ class TagServices {
 
       return Networking.toJson(response.body);
     } else {
-      return await Loadfiles.loadJsonFile("assets/testdata/tag_data.json");
+      final data =
+          await Loadfiles.loadJsonFile("assets/testdata/tag_data.json");
+      return data;
     }
   }
 
@@ -81,22 +84,23 @@ class TagServices {
     }
 
     Future<List<Tag>> getSimilarTags() async {
-      Map<int, Tag> allTags = await getAllTags();
+      await getAllTags();
 
       List<Tag> allTagsList = [];
-      for (Tag tag in allTags.values) {
+      for (Tag tag in tagLookup.values) {
         if (List.from(chosenTags).contains(tag.id)) {
-          if (SearchServices.categoryIndex != null &&
-              tag.category != SearchServices.categoryIndex) {
+          if (SearchServices.categoryIndex.value != null &&
+              tag.category != SearchServices.categoryIndex.value) {
             continue;
           }
           allTagsList.add(tag);
         }
       }
-      for (Tag tag in allTags.values) {
+
+      for (Tag tag in tagLookup.values) {
         if (!List.from(chosenTags).contains(tag.id)) {
-          if (SearchServices.categoryIndex != null) {
-            if (tag.category != SearchServices.categoryIndex) {
+          if (SearchServices.categoryIndex.value != null) {
+            if (tag.category != SearchServices.categoryIndex.value) {
               continue;
             }
           }
@@ -104,9 +108,13 @@ class TagServices {
         }
       }
 
+      log.i("BARK : $allTagsList");
+
       if (tagSearchBarController.text != "") {
         allTagsList =
             searchSimilarTags(tagSearchBarController.text, allTagsList);
+      } else {
+        allTagsList = tagLookup.values.toList();
       }
 
       return allTagsList;
@@ -126,12 +134,14 @@ class TagServices {
                       return FutureBuilder(
                         future: getSimilarTags(),
                         builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return MyText(
+                              "${snapshot.error}",
+                              size: 10,
+                            );
+                          }
                           if (!snapshot.hasData) {
                             return const MyText("GETTING TAGS");
-                          }
-
-                          if (snapshot.hasError) {
-                            return MyText("${snapshot.error}");
                           }
 
                           List<Widget> allTagWidgets = [];
@@ -221,7 +231,6 @@ class TagServices {
         }).then((_) {
       justExitedTagChoose.value = !justExitedTagChoose.value;
     });
-    ;
   }
 
   static Widget showChosenTagWidget(BuildContext context,
@@ -278,17 +287,17 @@ class TagServices {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             MyText(tag.name,
                                 size: 13, color: AppColors.background),
-                            SizedBox(width: 20),
+                            const SizedBox(width: 20),
                             IconButton(
                               onPressed: () {
                                 chosenTags.remove(tag.id);
 
                                 updateTagWidget.value = !updateTagWidget.value;
                               },
-                              icon: Icon(Icons.cancel_outlined),
+                              icon: const Icon(Icons.cancel_outlined),
                               color: Colors.white,
                             ),
                           ],
