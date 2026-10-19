@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
-import 'package:nextfind/services/business_services.dart';
-import 'package:nextfind/services/search_services.dart';
-import 'package:nextfind/services/tag_services.dart';
 import 'package:nextfind/screens/homepage.dart';
 import 'package:nextfind/screens/searchpage.dart';
 import 'package:nextfind/screens/userpage.dart';

@@ -1,4 +1,3 @@
-import 'package:flutter/semantics.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/helpers/networking.dart';
 import 'package:nextfind/helpers/logger.dart';
@@ -60,6 +59,7 @@ class BusinessService {
   static DateTime trendingBusinessesLastUpdate =
       DateTime.fromMicrosecondsSinceEpoch(0);
 
+  //* Mini/Full Location Functions
   static MiniBusinessLoc? addBusinessLocationMini(
       Map<String, dynamic> locationData) {
     try {
@@ -126,49 +126,48 @@ class BusinessService {
     return retLookup;
   }
 
-  static Future<List<String>?> getTrendingBusinessIds(
+  //*Trending Businesses Functions
+  static Future<List<MiniBusinessLoc>?> _getTrendingBusinessesApiCall(
       {int limit = 30, int offset = 0}) async {
-    final response = await Networking.apiGet("homepage/trending",
-        params: {"limit": limit, "offset": offset});
+    List data;
 
-    if (response.statusCode != 200) {
-      log.e(
-          "FUNCTION : GET TRENDING BUSINESSES | Error ${jsonDecode(response.body)}");
-      return null;
+    if (NextfindDebugOptions.useBusinessDataTestData) {
+      data = List.from(await Loadfiles.loadJsonFile(
+          "assets/testdata/trending_businesses_data.json"));
+    } else {
+      final response = await Networking.apiGet("homepage/trending",
+          params: {"limit": limit, "offset": offset});
+
+      if (response.statusCode != 200) {
+        log.e(
+            "FUNCTION : GET TRENDING BUSINESSES | Error ${jsonDecode(response.body)}");
+        return null;
+      }
+
+      data = jsonDecode(response.body);
     }
 
-    final dynamic data = jsonDecode(response.body);
-    List<String> trendingBusinessIds = [];
-    for (Map bData in data) {
-      trendingBusinessIds.add(bData["location_id"]);
+    List<MiniBusinessLoc> returnedTrendingBusinesses = [];
+    for (Map trendingBusinessData in data) {
+      final trendingBusinessId = trendingBusinessData["location_id"];
+      final trendingBusinessLocation = (await getBusinessLocationMini(
+          [trendingBusinessId]))[trendingBusinessId]!;
+      returnedTrendingBusinesses.add(trendingBusinessLocation);
     }
 
-    return trendingBusinessIds;
+    return returnedTrendingBusinesses;
   }
 
   static Future<List<MiniBusinessLoc>?> getTrendingBusinesses() async {
     if (trendingBusinesses == null ||
         (DateTime.now().difference(trendingBusinessesLastUpdate).inMinutes >
             5)) {
-      final trendingBusinessesIds = await getTrendingBusinessIds();
-
-      if (trendingBusinessesIds != null) {
-        trendingBusinessesLastUpdate = DateTime.now();
-        Map<String, MiniBusinessLoc> trendingBusinessesMap =
-            await BusinessService.getBusinessLocationMini(
-                trendingBusinessesIds);
-
-        trendingBusinesses = trendingBusinessesIds
-            .map((b) => trendingBusinessesMap[b])
-            .cast<MiniBusinessLoc>()
-            .toList();
-
-        return trendingBusinesses;
-      }
+      trendingBusinesses = await _getTrendingBusinessesApiCall();
     }
     return trendingBusinesses;
   }
 
+  //* Business Image Functions
   static void startPreloadingLocationThumbnail(
     List<MiniBusinessLoc> locations,
     BuildContext context,
@@ -194,23 +193,23 @@ class BusinessService {
     }
   }
 
-  //* Api calling functions
-  static Future<dynamic> getNearbyBusinesses({
+  //* Api calling Functions
+  static Future<List<MiniBusinessLoc>?> getNearbyBusinesses({
     required List location,
     String macroTypes = "All",
     int? type,
     int maxdist = 6000,
     String sort = "RAT",
     String query = "",
-    bool idOnly = false,
     bool gasSafeOnly = false,
     bool elecSafeOnly = false,
     bool includeScore = false,
   }) async {
-    log.i("Getting Nearby Businesses");
+    // log.i("Getting Nearby Businesses");
     dynamic data;
     if (NextfindDebugOptions.useBusinessDataTestData) {
-      data = await Loadfiles.loadJsonFile("assets/testdata/nearby_business_data.json");
+      data = await Loadfiles.loadJsonFile(
+          "assets/testdata/nearby_business_data.json");
     } else {
       if (type == -1) {
         type = null;
@@ -226,7 +225,6 @@ class BusinessService {
         "sort": sort,
         "gas_safe_only": gasSafeOnly,
         "electricity_safe_only": elecSafeOnly,
-        "just_id": idOnly,
         "allow_base": macroTypes,
         "tags": TagServices.chosenTags,
         "location": "${location[0]} , ${location[1]}"
@@ -248,36 +246,20 @@ class BusinessService {
       data = jsonDecode(response.body);
     }
 
-    if (!idOnly) {
-      List<int> returnedMiniBusinessesLocationIds = [];
-      List<MiniBusinessLoc> returnedMiniBusinessesLocations = [];
+    List<MiniBusinessLoc> returnedMiniBusinessesLocations = [];
 
-      for (Map<String, dynamic> businessData in data) {
-        final newBusinessLocation = addBusinessLocationMini(businessData);
+    for (Map<String, dynamic> businessData in data) {
+      final newBusinessLocation = addBusinessLocationMini(businessData);
 
-        if (newBusinessLocation == null) {
-          log.e(
-              "FUNCTION : getNearbyBusinesses | Error creating business location class from data $newBusinessLocation");
-        } else {
-          returnedMiniBusinessesLocationIds.add(businessData["id"]);
-          returnedMiniBusinessesLocations.add(newBusinessLocation);
-        }
+      if (newBusinessLocation == null) {
+        log.e(
+            "FUNCTION : getNearbyBusinesses | Error creating business location class from data $newBusinessLocation");
+      } else {
+        returnedMiniBusinessesLocations.add(newBusinessLocation);
       }
-
-      return returnedMiniBusinessesLocations;
-    } else {
-      if (!includeScore) {
-        //Remove the score
-        List<String> newData = [];
-        for (List datachunk in data) {
-          newData.add(datachunk[0]);
-        }
-
-        return newData;
-      }
-
-      return data;
     }
+
+    return returnedMiniBusinessesLocations;
   }
 
   static Future<BusinessLocation?> getFullLocationData(
@@ -341,5 +323,3 @@ class BusinessService {
     return retrunedBusinessLocations;
   }
 }
-
-// var businessService = BusinessService();

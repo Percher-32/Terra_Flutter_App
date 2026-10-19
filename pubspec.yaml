@@ -39,6 +39,7 @@ flutter:
 
     - assets/testdata/nearby_business_data.json
     - assets/testdata/tag_data.json
+    - assets/testdata/trending_businesses_data.json
 
 
     - assets/icons/business_icons/

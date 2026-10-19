@@ -66,12 +66,12 @@ class _SearchPageState extends State<SearchPage> {
     SearchPageGlobals.hasWifi = await Networking.isOnline();
 
     SearchPageGlobals.miniBusinessLocations.value =
-        await BusinessService.getNearbyBusinesses(
+        (await BusinessService.getNearbyBusinesses(
       location: UserService.userLocation,
       query: SearchServices.controller.text,
       maxdist: SearchServices.searchRadius,
       type: SearchServices.categoryIndex.value,
-    );
+    ))!;
 
     if (!mounted) return;
 

@@ -19,8 +19,8 @@ class TagServices {
     if (DateTime.now().difference(timeSinceLastRefresh).inMinutes >= 10) {
       final rawTagData = await getRawTagData();
 
-      for (Map tagData in rawTagData) {
-        final newTag = Tag(tagData["id"], tagData["category"], tagData["name"]);
+      for (Map<String, dynamic> tagData in rawTagData) {
+        final newTag = Tag.fromJson(tagData);
         tagLookup[tagData["id"]] = newTag;
       }
       timeSinceLastRefresh = DateTime.now();
