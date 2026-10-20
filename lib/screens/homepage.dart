@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
 
     final trendingMiniBusLocations =
         await BusinessService.getTrendingBusinesses();
-
+    log.i("BARK BUILT PAGE");
     return (
       trendingBusinesses: trendingMiniBusLocations,
       nearbyBusinesses: nearbyBusinesses
@@ -52,6 +52,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    log.i("BARK HOMEPAGE");
     return Scaffold(
         appBar: SearchServices.createSearchBar(context),
         bottomNavigationBar: const NavBar(currentPage: AppPages.homepage),
@@ -68,17 +69,28 @@ class _HomePageState extends State<HomePage> {
                     })?>(
                   future: buildFeed(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
+                    if (snapshot.hasError) {
+                      log.i("BARK Error");
+
+                      showErrorMessage(context, "Error ${snapshot.error}");
+                      return const SizedBox();
+                    } else if (!snapshot.hasData) {
+                      log.i("BARK WIAT");
                       return const LinearProgressIndicator();
                     } else if (snapshot.data!.nearbyBusinesses == null) {
+                      log.i("BARK ERROR");
+
                       showErrorMessage(
                           context, "Error Geting Nearby Businesses");
                       return const SizedBox();
                     } else if (snapshot.data!.trendingBusinesses == null) {
+                      log.i("BARK ERROR");
+
                       showErrorMessage(
                           context, "Error Geting Trending Businesses");
                       return const SizedBox();
                     } else {
+                      log.i("BARK SHOWING TRENDIN BAR");
                       return SizedBox(
                         height: MediaQuery.of(context).size.height,
                         child: ListView.separated(
@@ -133,23 +145,23 @@ class TrendScrollWidget extends StatelessWidget {
           "Trending Now🔥",
           color: AppColors.text,
         ),
-        SizedBox(
-            height: 260,
-            child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return const SizedBox(width: 0);
-                  } else {
-                    String trendyBusinessId =
-                        trendingBusinesses[index - 1].businessId;
-                    return BusinessLocationThumbnail(
-                      locationId: trendyBusinessId,
-                    );
-                  }
-                },
-                separatorBuilder: (context, index) => const SizedBox(width: 20),
-                itemCount: trendingBusinesses.length + 1))
+        // SizedBox(
+        //     height: 260,
+        //     child: ListView.separated(
+        //         scrollDirection: Axis.horizontal,
+        //         itemBuilder: (context, index) {
+        //           if (index == 0) {
+        //             return const SizedBox(width: 0);
+        //           } else {
+        //             String trendyBusinessId =
+        //                 trendingBusinesses[index - 1].businessId;
+        //             return BusinessLocationThumbnail(
+        //               locationId: trendyBusinessId,
+        //             );
+        //           }
+        //         },
+        //         separatorBuilder: (context, index) => const SizedBox(width: 20),
+        //         itemCount: trendingBusinesses.length + 1))
       ],
     );
   }

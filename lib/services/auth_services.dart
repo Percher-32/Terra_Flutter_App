@@ -20,7 +20,7 @@ class AuthServices {
     refreshToken = await secureStorage.read(key: 'refresh_token');
   }
 
-  static Future<(bool, dynamic)> userSignup(
+  static Future<({bool succesful, dynamic message})> userSignup(
       {required String email, required String password}) async {
     ///doesnt perform login
     final response = await Networking.apiPost("auth/new_user", params: {
@@ -30,13 +30,13 @@ class AuthServices {
 
     if (response.statusCode != 200) {
       log.e("LOGIN ||| UNSUCCESFUL -> ${jsonDecode(response.body)}");
-      return (false, jsonDecode(response.body));
+      return (succesful : false, message : jsonDecode(response.body));
     }
 
-    return (true, "success");
+    return (succesful : true,message: "success");
   }
 
-  static Future<(bool, dynamic)> userLogin(
+  static Future<({bool succesful, dynamic message})> userLogin(
       {required String email, required String password}) async {
     ///Also updates user data
     final response = await Networking.apiPost("auth/login", params: {
@@ -47,7 +47,7 @@ class AuthServices {
 
     if (response.statusCode != 200) {
       log.e("LOGIN ||| UNSUCCESFUL -> ${jsonDecode(response.body)}");
-      return (false, jsonDecode(response.body));
+      return (succesful : false, message : jsonDecode(response.body));
     }
     final Map tokensData = jsonDecode(response.body);
 
@@ -55,7 +55,7 @@ class AuthServices {
     refreshToken = tokensData["refresh_token"];
     await saveRefreshToken();
 
-    return (true, "success");
+    return (succesful:true, message: "success");
   }
 
   static Future<bool> userLogout() async {

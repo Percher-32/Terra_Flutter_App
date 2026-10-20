@@ -67,15 +67,26 @@ class _UserSignupPageState extends State<UserSignupPage> {
 
   Future<void> onSignupButtonPressed() async {
     /// also performs login
-    await AuthServices.userSignup(
+    final signupResponse = await AuthServices.userSignup(
       email: emailcontroller.text,
       password: passwordcontroller.text,
     );
 
-    await AuthServices.userLogin(
+    if (!signupResponse.succesful) {
+      if (!mounted) return;
+      showErrorMessage(context, signupResponse.message);
+    }
+
+    final loginResponse = await AuthServices.userLogin(
       email: emailcontroller.text,
       password: passwordcontroller.text,
     );
+
+    if (!loginResponse.succesful) {
+      if (!mounted) return;
+      showErrorMessage(context, loginResponse.message);
+    }
+
     if (!mounted) return;
     goToUserPage(context);
   }

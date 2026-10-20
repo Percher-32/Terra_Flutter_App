@@ -131,9 +131,9 @@ class BusinessService {
       {int limit = 30, int offset = 0}) async {
     List data;
 
-    if (NextfindDebugOptions.useBusinessDataTestData) {
-      data = List.from(await Loadfiles.loadJsonFile(
-          "assets/testdata/trending_businesses_data.json"));
+    if (NextfindDebugOptions.useTestTrendingData) {
+      data = await Loadfiles.loadJsonFile(
+          "assets/testdata/trending_businesses_data.json");
     } else {
       final response = await Networking.apiGet("homepage/trending",
           params: {"limit": limit, "offset": offset});
