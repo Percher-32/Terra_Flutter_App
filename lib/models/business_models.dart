@@ -103,7 +103,7 @@ class MiniBusinessLoc {
       businessId: json["business_id"],
       name: json["business_name"],
       type: json["primary_type"],
-      location: json["Location"],
+      location: json["business_location_location"],
       address: json["address"],
       verified: json["verified"],
       distance: json["distance"] as double,

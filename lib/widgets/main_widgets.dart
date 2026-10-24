@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/helpers/conversions.dart';
+import 'package:nextfind/helpers/debug_options.dart';
 import 'package:nextfind/helpers/networking.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:nextfind/services/search_services.dart';
@@ -299,11 +300,12 @@ class _BaseImageState extends State<BaseImage> {
   void initState() {
     super.initState();
 
-    if (widget.url != "No Url") {
+
+    if (widget.url == "No Url" || NextfindDebugOptions.keepAllNetworkImagesAsDefault ) {
+      provider = const AssetImage("assets/img/kde.png");
+    } else {
       final trueUrl = Networking.getFullImageUrl(widget.url);
       provider = CachedNetworkImageProvider(trueUrl);
-    } else {
-      provider = const AssetImage("assets/img/kde.png");
     }
   }
 

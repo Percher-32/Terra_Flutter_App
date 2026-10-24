@@ -155,11 +155,11 @@ class _MapSearchViewState extends State<MapSearchView>
         map_gl.LatLng(
             miniBusinessLocation.location[0], miniBusinessLocation.location[1])
     ];
-    if (initComplete) {
-      for (final n in _markerOffsets) {
-        n.dispose();
-      }
-    }
+    // if (initComplete) {
+    //   for (final n in _markerOffsets) {
+    //     n.dispose();
+    //   }
+    // }
     _markerOffsets = List.generate(
       _markerPositions.length,
       (_) => ValueNotifier<Offset>(Offset.zero),

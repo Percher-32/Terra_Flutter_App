@@ -71,8 +71,9 @@ class _HomePageState extends State<HomePage> {
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       log.i("BARK Error");
-
-                      showErrorMessage(context, "Error ${snapshot.error}");
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        showErrorMessage(context, "Error ${snapshot.error}");
+                      });
                       return const SizedBox();
                     } else if (!snapshot.hasData) {
                       log.i("BARK WIAT");
@@ -145,23 +146,23 @@ class TrendScrollWidget extends StatelessWidget {
           "Trending Now🔥",
           color: AppColors.text,
         ),
-        // SizedBox(
-        //     height: 260,
-        //     child: ListView.separated(
-        //         scrollDirection: Axis.horizontal,
-        //         itemBuilder: (context, index) {
-        //           if (index == 0) {
-        //             return const SizedBox(width: 0);
-        //           } else {
-        //             String trendyBusinessId =
-        //                 trendingBusinesses[index - 1].businessId;
-        //             return BusinessLocationThumbnail(
-        //               locationId: trendyBusinessId,
-        //             );
-        //           }
-        //         },
-        //         separatorBuilder: (context, index) => const SizedBox(width: 20),
-        //         itemCount: trendingBusinesses.length + 1))
+        SizedBox(
+            height: 260,
+            child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return const SizedBox(width: 0);
+                  } else {
+                    String trendyBusinessLocationId =
+                        trendingBusinesses[index - 1].locationId;
+                    return BusinessLocationThumbnail(
+                      locationId: trendyBusinessLocationId,
+                    );
+                  }
+                },
+                separatorBuilder: (context, index) => const SizedBox(width: 20),
+                itemCount: trendingBusinesses.length + 1))
       ],
     );
   }

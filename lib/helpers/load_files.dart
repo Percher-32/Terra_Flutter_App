@@ -8,13 +8,11 @@ class Loadfiles {
     // try {
     // final file = File(path);
 
+    log.i("FILE CACHE HIT");
+
     String jsonString = await rootBundle.loadString(path);
 
-    log.d("$path |||| JSONDATA : $jsonString");
-
     var jsonData = jsonDecode(jsonString);
-
-    log.d("$path |||| DECODED : $jsonData");
 
     return jsonData;
     // }
