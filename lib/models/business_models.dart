@@ -44,19 +44,19 @@ class BusinessLocation {
 
   factory BusinessLocation.fromJson(Map<String, dynamic> json) {
     return BusinessLocation(
-          locationId: json["id"],
-          businessId: json["Business_id"],
-          name: json["Business_Name"],
-          type: json["Business_primary_type"],
-          location: json["Location"],
+          locationId: json["business_location_id"],
+          businessId: json["business_id"],
+          name: json["business_name"],
+          type: json["primary_type"],
+          location: json["location"],
           address: json["address"],
           verified: json["verified"],
           openHours: json["open_hours"],
           averageRating: json["rating_average"],
-          over18: json["Business_over_18"],
+          over18: json["over_18"],
           numRatings: json["rating_count"],
           description: json["description"] ?? "",
-          website: json["Business_Website"],
+          website: json["website"],
           links: json["links"],
           timeZone: json["timezone"] ?? "Europe/London",
           phoneNumber: json["phone_number"]

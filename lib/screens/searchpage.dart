@@ -50,7 +50,6 @@ class _SearchPageState extends State<SearchPage> {
 
 
     _runSearchFunction();
-    SearchPageGlobals.reloadMapPoints();
   }
 
   Future<void> _reloadMapFunction() async {
@@ -62,7 +61,6 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _runSearchFunction() async {
     // Prevent overlapping searches
 
-    SearchPageGlobals.reloadMapPoints();
 
     if (SearchPageGlobals.isLoading.value) return;
 
@@ -79,6 +77,9 @@ class _SearchPageState extends State<SearchPage> {
       maxdist: SearchServices.searchRadius,
       type: SearchServices.categoryIndex.value,
     ))!;
+
+    SearchPageGlobals.reloadMapPoints();
+
 
     if (!mounted) return;
 

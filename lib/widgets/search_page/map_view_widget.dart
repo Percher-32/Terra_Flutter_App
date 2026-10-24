@@ -93,36 +93,21 @@ class _MapSearchViewState extends State<MapSearchView>
   late final Ticker _ticker;
   bool initComplete = false;
 
-  List<ValueNotifier<Offset>> _markerOffsets = [];
+  List<(MiniBusinessLoc, Offset)> markerObjects = [];
   ValueNotifier<Offset> userOffset = ValueNotifier(Offset.zero);
 
-  List<double> _markerDist = [];
-
-  List<map_gl.LatLng> _markerPositions = [];
+  List<double> markerDist = [];
+  // List<map_gl.LatLng> _markerPositions = [];
 
   late map_gl.MapLibreMapController? mapController;
 
   final _iconCache = <String, Widget>{};
-
-  void moveToNewLocation(List<double> location) {
-    mapController?.animateCamera(
-      map_gl.CameraUpdate.newLatLngZoom(
-          map_gl.LatLng(location[0], location[1]), 16),
-    );
-  }
 
   @override
   void initState() {
     initComplete = false;
 
     super.initState();
-
-    changeMarkerStoredPositions();
-
-    //Chnage the stored marker posisionts after the business lactions are changed
-    SearchPageGlobals.reloadMapPointsTrigger.addListener(() {
-      changeMarkerStoredPositions();
-    });
 
     //Change the map locations after the changeMapLocationTrigger is changed
     SearchPageGlobals.changeMapLocationTrigger.addListener(() {
@@ -145,29 +130,12 @@ class _MapSearchViewState extends State<MapSearchView>
     initComplete = true;
   }
 
-  void changeMarkerStoredPositions() async {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      SearchPageGlobals.isLoading.value = true;
-
-      _markerPositions = [
-        for (MiniBusinessLoc miniBusinessLocation
-            in SearchPageGlobals.miniBusinessLocations.value)
-          map_gl.LatLng(miniBusinessLocation.location[0],
-              miniBusinessLocation.location[1])
-      ];
-      
-      _markerOffsets = List.generate(
-        _markerPositions.length,
-        (_) => ValueNotifier<Offset>(Offset.zero),
-      );
-
-      _markerDist = List.generate(
-        _markerPositions.length,
-        (_) => 1 * 10000000000,
-      );
-
-      SearchPageGlobals.isLoading.value = false;
-    });
+  void moveToNewLocation(List<double> location) {
+    // log.i("")
+    mapController?.animateCamera(
+      map_gl.CameraUpdate.newLatLngZoom(
+          map_gl.LatLng(location[0], location[1]), 16),
+    );
   }
 
   Widget getIcon(MiniBusinessLoc loc, double nearestDist, int index) {
@@ -178,9 +146,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
   @override
   void dispose() {
-    for (final n in _markerOffsets) {
-      n.dispose();
-    }
+    // markerObjects.dispose();
 
     _ticker.stop();
     _ticker.dispose();
@@ -193,32 +159,43 @@ class _MapSearchViewState extends State<MapSearchView>
         mapController != null &&
         !SearchPageGlobals.isLoading.value) {
       if (!lifecycle.isPaused) {
+        final miniBusinessLocations =
+            SearchPageGlobals.miniBusinessLocations.value;
         _frameCount += 1;
 
         if (_frameCount > 10000) _frameCount = 0;
 
         if (!_mapReady || mapController == null) return;
 
+        final List<map_gl.LatLng> markerPositions = [
+          for (MiniBusinessLoc miniBusinessLocation in miniBusinessLocations)
+            map_gl.LatLng(miniBusinessLocation.location[0],
+                miniBusinessLocation.location[1])
+        ];
+
         final points =
-            await mapController!.toScreenLocationBatch(_markerPositions);
+            await mapController!.toScreenLocationBatch(markerPositions);
 
         if (mounted) {
           // try {
-        // log.i("MOVING POS");
           final dpr = MediaQuery.of(context).devicePixelRatio;
           List<Point> dummyList = [];
 
-          final len = min(points.length, _markerOffsets.length);
+          markerObjects = [];
+          int len = points.length;
 
           for (int i = 0; i < len; i++) {
             final p = points[i];
 
             // if (i >= _markerOffsets.lenght)
 
-            _markerOffsets[i].value = Offset(
-              p.x.toDouble() / dpr,
-              p.y.toDouble() / dpr,
-            );
+            markerObjects.add((
+              miniBusinessLocations[i],
+              Offset(
+                p.x.toDouble() / dpr,
+                p.y.toDouble() / dpr,
+              )
+            ));
 
             // if (_frameCount % 4 == 0) {
             dummyList.add(Point(
@@ -236,8 +213,11 @@ class _MapSearchViewState extends State<MapSearchView>
           );
 
           if (_frameCount % 10 == 0) {
-            _markerDist = nearestDistances(dummyList);
+            markerDist = nearestDistances(dummyList);
+          } else if (markerDist.isEmpty) {
+            markerDist = List.generate(markerObjects.length, (index) => 0);
           }
+          SearchPageGlobals.reloadMapPoints();
         }
       }
     }
@@ -539,33 +519,22 @@ class _MapSearchViewState extends State<MapSearchView>
               //Icons
               RepaintBoundary(
                 child: ValueListenableBuilder(
-                  valueListenable: SearchPageGlobals.miniBusinessLocations,
-                  builder: (_, __, ___) {
-                    if (_markerOffsets.length !=
-                        SearchPageGlobals.miniBusinessLocations.value.length) {
-                      return const SizedBox();
-                    }
-
+                  valueListenable: SearchPageGlobals.reloadMapPointsTrigger,
+                  builder: (_, miniBusinessLocations, ___) {
                     return Stack(
-                      children: List.generate(
-                          SearchPageGlobals.miniBusinessLocations.value.length,
-                          (index) {
-                        final miniBusLoc = SearchPageGlobals
-                            .miniBusinessLocations.value[index];
+                      children: List.generate(markerObjects.length, (index) {
+                        final markerObject = markerObjects[index];
+                        final offset = markerObject.$2;
+                        final miniBusinessLocation = markerObject.$1;
+                        final nearestDist = markerDist[index];
 
-                        return ValueListenableBuilder<Offset>(
-                          valueListenable: _markerOffsets[index],
-                          builder: (_, offset, __) {
-                            final nearestDist = _markerDist[index];
-
-                            return Positioned(
-                              left: offset.dx - 20,
-                              top: offset.dy - 20,
-                              child: RepaintBoundary(
-                                child: getIcon(miniBusLoc, nearestDist, index),
-                              ),
-                            );
-                          },
+                        return Positioned(
+                          left: offset.dx - 20,
+                          top: offset.dy - 20,
+                          child: RepaintBoundary(
+                            child: getIcon(
+                                miniBusinessLocation, nearestDist, index),
+                          ),
                         );
                       }),
                     );

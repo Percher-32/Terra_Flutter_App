@@ -59,6 +59,25 @@ class BusinessService {
   static DateTime trendingBusinessesLastUpdate =
       DateTime.fromMicrosecondsSinceEpoch(0);
 
+  static bool storedAllFullLocationDataDEBUGOPTION = false;
+
+  static storeAllLocationData() async {
+    if (storedAllFullLocationDataDEBUGOPTION ||
+        !NextfindDebugOptions.useBusinessDataTestData) {
+      return;
+    }
+    final List allFullBusinessLocationData =
+        await Loadfiles.loadJsonFile("assets/testdata/full_business_data.json");
+
+    for (final fullBusinessLocationData in allFullBusinessLocationData) {
+      final fullBusinessLocation =
+          BusinessLocation.fromJson(fullBusinessLocationData);
+
+      businessLocationLookup[fullBusinessLocation.locationId] =
+          fullBusinessLocation;
+    }
+  }
+
   //* Mini/Full Location Functions
   static MiniBusinessLoc? addBusinessLocationMini(
       Map<String, dynamic> locationData) {
@@ -92,6 +111,7 @@ class BusinessService {
   }
 
   static Future<BusinessLocation> getBusinessLocation(String locationId) async {
+    await storeAllLocationData();
     if (businessLocationLookup.containsKey(locationId)) {
       return businessLocationLookup[locationId]!;
     } else {

@@ -13,23 +13,21 @@ class SearchPageGlobals {
       ValueNotifier(MainSearchPageMode.list);
   static final ValueNotifier<bool> reloadMapTrigger = ValueNotifier(false);
   static final ValueNotifier<bool> runSearchTrigger = ValueNotifier(false);
-  static final ValueNotifier<bool> reloadMapPointsTrigger = ValueNotifier(false);
+  static final ValueNotifier<bool> reloadMapPointsTrigger =
+      ValueNotifier(false);
   static final ValueNotifier<List<double>> changeMapLocationTrigger =
       ValueNotifier(UserService.userLocation);
-
 
   static final ValueNotifier<bool> isLoading = ValueNotifier(false);
 
   static final ValueNotifier<List<MiniBusinessLoc>> miniBusinessLocations =
       ValueNotifier([]);
 
-
-
   static bool hasWifi = false;
 
   static MiniBusinessLoc? chosenBusinessLocation;
 
-  static void reloadMapPoints(){
+  static void reloadMapPoints() {
     reloadMapPointsTrigger.value = !reloadMapPointsTrigger.value;
   }
 
