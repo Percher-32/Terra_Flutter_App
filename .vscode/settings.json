@@ -1,4 +1,5 @@
 {
     "dart.flutterSdkPath": "~/flutter",
-    "cmake.sourceDirectory": "C:/Users/User/Desktop/CODE/Flutter_Service_App/nextfind/linux"
+    "cmake.sourceDirectory": "C:/Users/User/Desktop/CODE/Flutter_Service_App/nextfind/linux",
+    "editor.fontFamily": "JetBrains Mono,Consolas, 'Courier New', monospace"
 }

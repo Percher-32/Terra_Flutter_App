@@ -3,21 +3,30 @@ import 'dart:convert';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+
+
 class Loadfiles {
+  static Map fileCache = {};
+
   static Future<dynamic> loadJsonFile(String path) async {
-    // try {
-    // final file = File(path);
+    if (fileCache.containsKey(path)) {
+      log.i("FILE CACHE HIT");
+      return fileCache[path];
+    } else {
+      // try {
+      // final file = File(path);
+      log.i("FILE CACHE Miss");
+      String jsonString = await rootBundle.loadString(path);
 
-    log.i("FILE CACHE HIT");
+      var jsonData = jsonDecode(jsonString);
 
-    String jsonString = await rootBundle.loadString(path);
+      fileCache[path] = jsonData;
 
-    var jsonData = jsonDecode(jsonString);
-
-    return jsonData;
-    // }
-    // catch (e) {
-    //   log.e("Error loading file $path || $e");
-    // }
+      return jsonData;
+      // }
+      // catch (e) {
+      //   log.e("Error loading file $path || $e");
+      // }
+    }
   }
 }

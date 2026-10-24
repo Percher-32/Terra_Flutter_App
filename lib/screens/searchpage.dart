@@ -33,7 +33,9 @@ class _SearchPageState extends State<SearchPage> {
 
     SearchPageGlobals.isLoading.value = false;
 
-    //Reload the map based on the global trigger
+    //All the globals trigers
+    SearchPageGlobals.miniBusinessLocations.addListener(() {});
+
     SearchPageGlobals.reloadMapTrigger.addListener(() async {
       if (SearchPageGlobals.mapMode.value != MainSearchPageMode.list) {
         await _reloadMapFunction();
@@ -46,7 +48,9 @@ class _SearchPageState extends State<SearchPage> {
 
     SearchPageGlobals.hasWifi = true;
 
+
     _runSearchFunction();
+    SearchPageGlobals.reloadMapPoints();
   }
 
   Future<void> _reloadMapFunction() async {
@@ -57,6 +61,9 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _runSearchFunction() async {
     // Prevent overlapping searches
+
+    SearchPageGlobals.reloadMapPoints();
+
     if (SearchPageGlobals.isLoading.value) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

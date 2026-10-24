@@ -93,12 +93,12 @@ class _MapSearchViewState extends State<MapSearchView>
   late final Ticker _ticker;
   bool initComplete = false;
 
-  late List<ValueNotifier<Offset>> _markerOffsets;
-  late ValueNotifier<Offset> userOffset;
+  List<ValueNotifier<Offset>> _markerOffsets = [];
+  ValueNotifier<Offset> userOffset = ValueNotifier(Offset.zero);
 
-  late List<double> _markerDist;
+  List<double> _markerDist = [];
 
-  late List<map_gl.LatLng> _markerPositions;
+  List<map_gl.LatLng> _markerPositions = [];
 
   late map_gl.MapLibreMapController? mapController;
 
@@ -117,12 +117,10 @@ class _MapSearchViewState extends State<MapSearchView>
 
     super.initState();
 
-    userOffset = ValueNotifier<Offset>(Offset.zero);
-
     changeMarkerStoredPositions();
 
     //Chnage the stored marker posisionts after the business lactions are changed
-    SearchPageGlobals.miniBusinessLocations.addListener(() {
+    SearchPageGlobals.reloadMapPointsTrigger.addListener(() {
       changeMarkerStoredPositions();
     });
 
@@ -136,6 +134,7 @@ class _MapSearchViewState extends State<MapSearchView>
           mapController != null &&
           !SearchPageGlobals.isLoading.value) {
         scheduleMicrotask(() {
+          log.i("RUNNING MICROTASK");
           _refreshOverlayPositions();
         }); // runs every frame
       }
@@ -147,30 +146,28 @@ class _MapSearchViewState extends State<MapSearchView>
   }
 
   void changeMarkerStoredPositions() async {
-    SearchPageGlobals.isLoading.value = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SearchPageGlobals.isLoading.value = true;
 
-    _markerPositions = [
-      for (MiniBusinessLoc miniBusinessLocation
-          in SearchPageGlobals.miniBusinessLocations.value)
-        map_gl.LatLng(
-            miniBusinessLocation.location[0], miniBusinessLocation.location[1])
-    ];
-    // if (initComplete) {
-    //   for (final n in _markerOffsets) {
-    //     n.dispose();
-    //   }
-    // }
-    _markerOffsets = List.generate(
-      _markerPositions.length,
-      (_) => ValueNotifier<Offset>(Offset.zero),
-    );
+      _markerPositions = [
+        for (MiniBusinessLoc miniBusinessLocation
+            in SearchPageGlobals.miniBusinessLocations.value)
+          map_gl.LatLng(miniBusinessLocation.location[0],
+              miniBusinessLocation.location[1])
+      ];
+      
+      _markerOffsets = List.generate(
+        _markerPositions.length,
+        (_) => ValueNotifier<Offset>(Offset.zero),
+      );
 
-    _markerDist = List.generate(
-      _markerPositions.length,
-      (_) => 1 * 10000000000,
-    );
+      _markerDist = List.generate(
+        _markerPositions.length,
+        (_) => 1 * 10000000000,
+      );
 
-    SearchPageGlobals.isLoading.value = false;
+      SearchPageGlobals.isLoading.value = false;
+    });
   }
 
   Widget getIcon(MiniBusinessLoc loc, double nearestDist, int index) {
@@ -207,6 +204,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
         if (mounted) {
           // try {
+        // log.i("MOVING POS");
           final dpr = MediaQuery.of(context).devicePixelRatio;
           List<Point> dummyList = [];
 
