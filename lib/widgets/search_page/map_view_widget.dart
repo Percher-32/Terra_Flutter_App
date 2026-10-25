@@ -15,6 +15,73 @@ import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/widgets/business_widgets.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/helpers/logger.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
+
+import 'package:flutter/services.dart';
+import 'dart:ui' as ui;
+
+Future<void> loadAndRegisterWidgetIcon(
+  BuildContext context,
+  Widget widget,
+  String customId,
+) async {
+  final GlobalKey repaintKey = GlobalKey();
+
+  // 1. Temporarily mount the widget off-screen so Flutter can layout & paint it
+  late OverlayEntry overlayEntry;
+  overlayEntry = OverlayEntry(
+    builder: (context) => Positioned(
+      left: -9999,
+      top: -9999,
+      child: Material(
+        color: Colors.transparent,
+        child: RepaintBoundary(
+          key: repaintKey,
+          child: widget,
+        ),
+      ),
+    ),
+  );
+
+  Overlay.of(context).insert(overlayEntry);
+
+  // Wait for the next frame so the widget is fully rendered
+  await WidgetsBinding.instance.endOfFrame;
+
+  try {
+    // 2. Capture the rendered boundary into raw PNG bytes
+    final RenderRepaintBoundary? boundary =
+        repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+
+    if (boundary != null) {
+      final ui.Image image =
+          await boundary.toImage(pixelRatio: 2.0); // 2.0 for sharp text
+      final ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      final Uint8List? list = byteData?.buffer.asUint8List();
+
+      if (list != null) {
+        // 3. Register it into MapLibre's style memory with your custom ID string
+        await SearchPageGlobals.mapController?.addImage(customId, list);
+      }
+    }
+  } finally {
+    // 4. Always remove the temporary overlay entry when finished
+    overlayEntry.remove();
+  }
+}
+
+Future<void> loadAndRegisterAssetIcon(MiniBusinessLoc miniBusinessLoc) async {
+  // 1. Load the image bytes from your assets folder
+  final ByteData bytes =
+      await rootBundle.load(businessIconLookup[miniBusinessLoc.type]!);
+  final Uint8List list = bytes.buffer.asUint8List();
+
+  // 2. Register it into MapLibre's style memory with a unique name
+  await SearchPageGlobals.mapController
+      ?.addImage('MARKERIMAGE${miniBusinessLoc.type}', list);
+}
 
 Future<Uint8List> loadMarkerImage() async {
   final data = await rootBundle.load('assets/icons/Vector.png');
@@ -73,6 +140,19 @@ class _MapSearchViewState extends State<MapSearchView>
 
   List<double> markerDist = [];
 
+  Future<void> addIconMarkerToMap(MiniBusinessLoc miniBusinessLoc) async {
+    await SearchPageGlobals.mapController?.addSymbol(
+      map_gl.SymbolOptions(
+        geometry: map_gl.LatLng(
+            miniBusinessLoc.location[0], miniBusinessLoc.location[1]),
+        iconImage:
+            'BUSINESSMARKER${miniBusinessLoc.name}', // Matches the key registered above
+        iconSize: 1.0, // Scale the icon if needed
+        iconAnchor: 'bottom', // Anchors the bottom of the pin to the coordinate
+      ),
+    );
+  }
+
   List<double> nearestDistances(List<Point> points) {
     final int length = points.length;
     final result = List<double>.filled(length, 0);
@@ -115,6 +195,25 @@ class _MapSearchViewState extends State<MapSearchView>
       moveToNewLocation(SearchPageGlobals.changeMapLocationTrigger.value);
     });
 
+    SearchPageGlobals.miniBusinessLocations.addListener(() async {
+      await SearchPageGlobals.mapController?.clearSymbols();
+      int index = 0;
+      for (final miniBusLoc in SearchPageGlobals.miniBusinessLocations.value) {
+        // SearchPageGlobals.mapController?.removeSymbol(symbol);
+        if (!mounted) return;
+        await loadAndRegisterWidgetIcon(
+            context,
+            BusinessMarker(
+                miniBusinessLocation: miniBusLoc,
+                nearestDist: double.infinity,
+                index: index),
+            "BUSINESSMARKER${miniBusLoc.name}");
+        await addIconMarkerToMap(miniBusLoc);
+
+        index += 1;
+      }
+    });
+
     initComplete = true;
   }
 
@@ -142,6 +241,7 @@ class _MapSearchViewState extends State<MapSearchView>
   }
 
   Future<void> _refreshOverlayPositions() async {
+    // return;
     if (_mapReady &&
         SearchPageGlobals.mapController != null &&
         !SearchPageGlobals.isLoading.value) {
@@ -180,7 +280,7 @@ class _MapSearchViewState extends State<MapSearchView>
             userPoint.x.toDouble() / dpr,
             userPoint.y.toDouble() / dpr,
           );
-
+          return;
           markerObjects = [];
 
           for (int i = 0; i < points.length; i++) {
@@ -290,32 +390,30 @@ class _MapSearchViewState extends State<MapSearchView>
                 compassEnabled: false,
               ),
 
-              //Icons
-              // RepaintBoundary(
-              ValueListenableBuilder(
-                valueListenable: SearchPageGlobals.reloadMapPointsTrigger,
-                builder: (_, __, ___) {
-                  return Stack(
-                    children: List.generate(markerObjects.length, (index) {
-                      final markerObject = markerObjects[index];
-                      final offset = markerObject.$2;
-                      final miniBusinessLocation = markerObject.$1;
-                      final nearestDist = markerDist[index];
+              // Icons
+              // ValueListenableBuilder(
+              //   valueListenable: SearchPageGlobals.reloadMapPointsTrigger,
+              //   builder: (_, __, ___) {
+              //     return Stack(
+              //       children: List.generate(markerObjects.length, (index) {
+              //         final markerObject = markerObjects[index];
+              //         final offset = markerObject.$2;
+              //         final miniBusinessLocation = markerObject.$1;
+              //         final nearestDist = markerDist[index];
 
-                      // final dpr = MediaQuery.of(context).devicePixelRatio;
+              //         // final dpr = MediaQuery.of(context).devicePixelRatio;
 
-                      return Transform.translate(
-                        offset: Offset(offset.dx, offset.dy),
-                        child: RepaintBoundary(
-                            child: BusinessMarker(
-                                miniBusinessLocation: miniBusinessLocation,
-                                nearestDist: nearestDist,
-                                index: index)),
-                      );
-                    }),
-                  );
-                },
-              ),
+              //         return Transform.translate(
+              //           offset: Offset(offset.dx, offset.dy),
+              //           child: RepaintBoundary(
+              //               child: BusinessMarker(
+              //                   miniBusinessLocation: miniBusinessLocation,
+              //                   nearestDist: nearestDist,
+              //                   index: index)),
+              //         );
+              //       }),
+              //     );
+              //   },
               // ),
 
               // USER LOCATION PIN
@@ -365,43 +463,23 @@ class _MapSearchViewState extends State<MapSearchView>
 }
 
 class BusinessMarker extends StatelessWidget {
-  const BusinessMarker(
-      {super.key,
-      required this.miniBusinessLocation,
-      required this.nearestDist,
-      required this.index});
+  const BusinessMarker({
+    super.key,
+    required this.miniBusinessLocation,
+    required this.nearestDist,
+    required this.index,
+  });
 
   final MiniBusinessLoc miniBusinessLocation;
   final double nearestDist;
   final int index;
 
-  void onIconClicked() {
-    SearchPageGlobals.mapController?.animateCamera(
-      map_gl.CameraUpdate.newLatLngZoom(
-        map_gl.LatLng(
-            miniBusinessLocation.location[0], miniBusinessLocation.location[1]),
-        16.0, // zoom level
-      ),
-    );
-
-    SearchPageGlobals.mapMode.value = MainSearchPageMode.thumbnail;
-    SearchPageGlobals.chosenBusinessLocation = miniBusinessLocation;
-  }
-
   @override
   Widget build(BuildContext context) {
     double normDist = ((nearestDist) * 0.00015).clamp(0, 1);
-
-    String iconPath = "assets/icons/svg_logo.png";
-
-    iconPath = businessIconLookup[miniBusinessLocation.type]!;
-
-    Widget trueWidget = const SizedBox();
-
-    Widget veriBadge = const SizedBox();
-
+    String iconPath = businessIconLookup[miniBusinessLocation.type] ??
+        "assets/icons/svg_logo.png";
     bool verified = miniBusinessLocation.verified;
-
     String ratingtext = "-";
 
     if (miniBusinessLocation.averageRating != null) {
@@ -415,22 +493,14 @@ class BusinessMarker extends StatelessWidget {
       normDist += 0.1 / 2;
     }
 
-    if (!verified) {
-      normDist += 0.2 / 2;
-      veriBadge = Positioned(
-        right: -5,
-        bottom: -5,
-        child: Image.asset(
-          "assets/icons/business_icons/unverified_badge_mini.png",
-          width: 15,
-          height: 15,
-        ),
-      );
-    }
+    Widget veriBadge = verified
+        ? const SizedBox.shrink()
+        : Image.asset("assets/icons/business_icons/unverified_badge_mini.png",
+            width: 15, height: 15);
 
-    // normDist = 0.5;
+    // Tier 1: Distance Dot
     if (normDist <= 0.4) {
-      trueWidget = Container(
+      return Container(
         width: 10,
         height: 10,
         decoration: const BoxDecoration(
@@ -438,120 +508,83 @@ class BusinessMarker extends StatelessWidget {
           shape: BoxShape.circle,
         ),
       );
-    } else if (normDist > 0.4 && normDist <= 0.9) {
-      trueWidget = Material(
-        color: const Color.fromARGB(0, 163, 73, 73),
-        child: InkWell(
-          onTap: () {
-            onIconClicked();
-          },
-          child: Stack(clipBehavior: Clip.none, children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Image.asset(
-                  iconPath,
-                  width: 32,
-                  height: 32, cacheWidth: 64, // (32 * 2x pixel density)
-                  cacheHeight: 64,
-                ),
-                Positioned(
-                  right: -10 - 20,
-                  top: -5,
-                  child: Container(
-                    width: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: AppColors.secondary,
-                    ),
-                    child: Center(
-                      child: MyText(
-                        (ratingtext).toString(),
-                        size: 10,
-                        color: AppColors.background,
-                      ),
-                    ),
+    }
+
+    // Tier 2 & 3: Rich Icon + Text Card (Using Row/Column to prevent clipping)
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Icon & Rating Stack
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Image.asset(
+                iconPath,
+                width: 32,
+                height: 32,
+                cacheWidth: 64,
+                cacheHeight: 64,
+              ),
+              Positioned(
+                right: -15,
+                top: -8,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.secondary,
+                  ),
+                  child: MyText(
+                    ratingtext,
+                    size: 9,
+                    color: AppColors.background,
                   ),
                 ),
-                veriBadge,
-              ],
-            ),
-          ]),
-        ),
-      );
-    } else {
-      trueWidget = GestureDetector(
-        onTap: () {
-          onIconClicked();
-        },
-        child: Row(
-          // crossAxisAlignment: CrossAxisAlignment.center,
-          // mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 30,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
+              ),
+            ],
+          ),
+
+          if (normDist > 0.9) ...[
+            const SizedBox(width: 8),
+            // Text Details
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset(
-                  iconPath,
-                  width: 32,
-                  height: 32, cacheWidth: 64, // (32 * 2x pixel density)
-                  cacheHeight: 64,
-                ),
-                Positioned(
-                  right: -10 - 20,
-                  top: -5,
-                  child: Container(
-                    width: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: AppColors.secondary,
-                    ),
-                    child: Center(
-                      child: MyText(
-                        (ratingtext).toString(),
-                        size: 10,
-                        color: AppColors.background,
-                      ),
-                    ),
+                SizedBox(
+                  width: 100,
+                  child: MyText(
+                    miniBusinessLocation.name,
+                    size: 12,
+                    overflow: TextOverflow.ellipsis,
+                    maxlines: 1,
                   ),
                 ),
-                veriBadge,
-                Positioned(
-                  left: 40,
-                  top: 10,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(
-                        height: 0,
-                      ),
-                      SizedBox(
-                        width: 100,
-                        // height: 100,
-                        child: MyText(
-                          miniBusinessLocation.name,
-                          size: 12,
-                          overflow: TextOverflow.ellipsis,
-                          maxlines: 1,
-                        ),
-                      ),
-                      MyText(
-                        businessTypeLookup[miniBusinessLocation.type]!,
-                        size: 12,
-                        overflow: TextOverflow.ellipsis,
-                        maxlines: 1,
-                      ),
-                    ],
+                SizedBox(
+                  width: 100,
+                  child: MyText(
+                    businessTypeLookup[miniBusinessLocation.type] ?? '',
+                    size: 10,
+                    overflow: TextOverflow.ellipsis,
+                    maxlines: 1,
                   ),
                 ),
               ],
             ),
           ],
-        ),
-      );
-    }
-
-    return trueWidget;
+        ],
+      ),
+    );
   }
 }
