@@ -1,0 +1,856 @@
+[
+    {
+      "id": 123,
+      "name": "fish and chips/chippy",
+      "category": 0,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:15.64563+00:00"
+    },
+    {
+      "id": 124,
+      "name": "pub/bar",
+      "category": 0,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:15.794101+00:00"
+    },
+    {
+      "id": 125,
+      "name": "African Cuisine",
+      "category": 0,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.006515+00:00"
+    },
+    {
+      "id": 126,
+      "name": "Indian Cuisine",
+      "category": 0,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.136586+00:00"
+    },
+    {
+      "id": 127,
+      "name": "Chinese Cuisine",
+      "category": 0,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.268997+00:00"
+    },
+    {
+      "id": 128,
+      "name": "Restaurant",
+      "category": 0,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.34526+00:00"
+    },
+    {
+      "id": 129,
+      "name": "Takeaway",
+      "category": 0,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.393741+00:00"
+    },
+    {
+      "id": 130,
+      "name": "Pizza",
+      "category": 0,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.444425+00:00"
+    },
+    {
+      "id": 131,
+      "name": "Burger",
+      "category": 0,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.548806+00:00"
+    },
+    {
+      "id": 132,
+      "name": "Coffee",
+      "category": 0,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.664151+00:00"
+    },
+    {
+      "id": 133,
+      "name": "Plumber",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.748929+00:00"
+    },
+    {
+      "id": 134,
+      "name": "Electrician",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.843788+00:00"
+    },
+    {
+      "id": 135,
+      "name": "Handyman",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.894172+00:00"
+    },
+    {
+      "id": 136,
+      "name": "Carpenter",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.94649+00:00"
+    },
+    {
+      "id": 137,
+      "name": "Painter & Decorator",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:16.996937+00:00"
+    },
+    {
+      "id": 138,
+      "name": "Roofing Specialist",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.045255+00:00"
+    },
+    {
+      "id": 139,
+      "name": "Window Repair",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.099418+00:00"
+    },
+    {
+      "id": 140,
+      "name": "House Cleaner",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.150361+00:00"
+    },
+    {
+      "id": 141,
+      "name": "Pressure Washing",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.199128+00:00"
+    },
+    {
+      "id": 142,
+      "name": "Gardener",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.253022+00:00"
+    },
+    {
+      "id": 143,
+      "name": "Landscaping",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.301314+00:00"
+    },
+    {
+      "id": 144,
+      "name": "Fence Installation",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.35186+00:00"
+    },
+    {
+      "id": 145,
+      "name": "Smart Home Setup",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.400935+00:00"
+    },
+    {
+      "id": 146,
+      "name": "Boiler Repair",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.448445+00:00"
+    },
+    {
+      "id": 147,
+      "name": "Home Inspection",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.495885+00:00"
+    },
+    {
+      "id": 148,
+      "name": "Moving",
+      "category": 1,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.545252+00:00"
+    },
+    {
+      "id": 149,
+      "name": "Gym",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.593733+00:00"
+    },
+    {
+      "id": 150,
+      "name": "Fitness Studio",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.705725+00:00"
+    },
+    {
+      "id": 151,
+      "name": "Yoga Studio",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.754323+00:00"
+    },
+    {
+      "id": 152,
+      "name": "Pilates Studio",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.803564+00:00"
+    },
+    {
+      "id": 153,
+      "name": "Martial Arts Centre",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.860212+00:00"
+    },
+    {
+      "id": 154,
+      "name": "Sports Club",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.909568+00:00"
+    },
+    {
+      "id": 155,
+      "name": "Spa",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:17.959657+00:00"
+    },
+    {
+      "id": 156,
+      "name": "Massage Clinic",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.016491+00:00"
+    },
+    {
+      "id": 157,
+      "name": "Chiropractic Clinic",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.067296+00:00"
+    },
+    {
+      "id": 158,
+      "name": "Physiotherapy Clinic",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.117716+00:00"
+    },
+    {
+      "id": 159,
+      "name": "Counselling Centre",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.166629+00:00"
+    },
+    {
+      "id": 160,
+      "name": "Wellness Centre",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.215237+00:00"
+    },
+    {
+      "id": 161,
+      "name": "Health Shop",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.265067+00:00"
+    },
+    {
+      "id": 162,
+      "name": "Meditation Studio",
+      "category": 2,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.312222+00:00"
+    },
+    {
+      "id": 163,
+      "name": "Supermarket",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.368087+00:00"
+    },
+    {
+      "id": 164,
+      "name": "Convenience Store",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.417888+00:00"
+    },
+    {
+      "id": 165,
+      "name": "Clothing Store",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.468558+00:00"
+    },
+    {
+      "id": 166,
+      "name": "Shoe Shop",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.518698+00:00"
+    },
+    {
+      "id": 167,
+      "name": "Charity Shop",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.567858+00:00"
+    },
+    {
+      "id": 168,
+      "name": "Bookshop",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.623498+00:00"
+    },
+    {
+      "id": 169,
+      "name": "Toy Shop",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.671811+00:00"
+    },
+    {
+      "id": 170,
+      "name": "Pet Store",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.722921+00:00"
+    },
+    {
+      "id": 171,
+      "name": "Garden Centre",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.769811+00:00"
+    },
+    {
+      "id": 172,
+      "name": "Market Stall",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.818691+00:00"
+    },
+    {
+      "id": 173,
+      "name": "African Market",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.869085+00:00"
+    },
+    {
+      "id": 174,
+      "name": "Asian Market",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.916887+00:00"
+    },
+    {
+      "id": 175,
+      "name": "Polish Market",
+      "category": 3,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:18.97112+00:00"
+    },
+    {
+      "id": 176,
+      "name": "Accountant",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.020372+00:00"
+    },
+    {
+      "id": 177,
+      "name": "Law Firm",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.070959+00:00"
+    },
+    {
+      "id": 178,
+      "name": "Consultancy",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.122835+00:00"
+    },
+    {
+      "id": 179,
+      "name": "IT Services",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.173436+00:00"
+    },
+    {
+      "id": 180,
+      "name": "Marketing",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.221589+00:00"
+    },
+    {
+      "id": 181,
+      "name": "Real Estate",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.271965+00:00"
+    },
+    {
+      "id": 182,
+      "name": "Financial Advisor",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.319595+00:00"
+    },
+    {
+      "id": 183,
+      "name": "Recruitment",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.370501+00:00"
+    },
+    {
+      "id": 184,
+      "name": "Business Services Centre",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.420629+00:00"
+    },
+    {
+      "id": 185,
+      "name": "Insurance Broker",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.473126+00:00"
+    },
+    {
+      "id": 186,
+      "name": "Agency",
+      "category": 4,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.521821+00:00"
+    },
+    {
+      "id": 187,
+      "name": "Mechanic",
+      "category": 5,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.570806+00:00"
+    },
+    {
+      "id": 188,
+      "name": "Repair",
+      "category": 5,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.618868+00:00"
+    },
+    {
+      "id": 189,
+      "name": "Car",
+      "category": 5,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.668444+00:00"
+    },
+    {
+      "id": 190,
+      "name": "Truck",
+      "category": 5,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.759734+00:00"
+    },
+    {
+      "id": 191,
+      "name": "Motorbike",
+      "category": 5,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.807962+00:00"
+    },
+    {
+      "id": 192,
+      "name": "Car Wash",
+      "category": 5,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.857018+00:00"
+    },
+    {
+      "id": 193,
+      "name": "Fuel Station",
+      "category": 5,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.907446+00:00"
+    },
+    {
+      "id": 194,
+      "name": "Body Shop",
+      "category": 5,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:19.954243+00:00"
+    },
+    {
+      "id": 195,
+      "name": "Vehicle Rental",
+      "category": 5,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.00264+00:00"
+    },
+    {
+      "id": 196,
+      "name": "Dealership",
+      "category": 5,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.067523+00:00"
+    },
+    {
+      "id": 197,
+      "name": "Barbershop",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.127804+00:00"
+    },
+    {
+      "id": 198,
+      "name": "African Style",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.178506+00:00"
+    },
+    {
+      "id": 199,
+      "name": "Turkish Style",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.232645+00:00"
+    },
+    {
+      "id": 200,
+      "name": "Asian Style",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.282692+00:00"
+    },
+    {
+      "id": 201,
+      "name": "Caribbean Style",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.334963+00:00"
+    },
+    {
+      "id": 202,
+      "name": "Unisex",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.385159+00:00"
+    },
+    {
+      "id": 203,
+      "name": "Hair Salon",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.433846+00:00"
+    },
+    {
+      "id": 204,
+      "name": "Nail Salon",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.486785+00:00"
+    },
+    {
+      "id": 205,
+      "name": "Beauty Salon",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.534901+00:00"
+    },
+    {
+      "id": 206,
+      "name": "Makeup Studio",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.589608+00:00"
+    },
+    {
+      "id": 207,
+      "name": "Skincare Clinic",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.636763+00:00"
+    },
+    {
+      "id": 208,
+      "name": "Tanning Studio",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.684745+00:00"
+    },
+    {
+      "id": 209,
+      "name": "Fragrance Shop",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.733909+00:00"
+    },
+    {
+      "id": 210,
+      "name": "Cosmetics Store",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.78296+00:00"
+    },
+    {
+      "id": 211,
+      "name": "Brow & Lash Studio",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.83102+00:00"
+    },
+    {
+      "id": 212,
+      "name": "Spa",
+      "category": 6,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.882928+00:00"
+    },
+    {
+      "id": 213,
+      "name": "Cinema",
+      "category": 7,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.931673+00:00"
+    },
+    {
+      "id": 214,
+      "name": "Nightlife",
+      "category": 7,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:20.982333+00:00"
+    },
+    {
+      "id": 215,
+      "name": "Live Music Venue",
+      "category": 7,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.031183+00:00"
+    },
+    {
+      "id": 216,
+      "name": "Arcade",
+      "category": 7,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.082417+00:00"
+    },
+    {
+      "id": 217,
+      "name": "Bowling Alley",
+      "category": 7,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.134294+00:00"
+    },
+    {
+      "id": 218,
+      "name": "Theatre",
+      "category": 7,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.185727+00:00"
+    },
+    {
+      "id": 219,
+      "name": "Sports Venue",
+      "category": 7,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.234296+00:00"
+    },
+    {
+      "id": 220,
+      "name": "Community Centre",
+      "category": 7,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.281767+00:00"
+    },
+    {
+      "id": 221,
+      "name": "School",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.333537+00:00"
+    },
+    {
+      "id": 222,
+      "name": "Tutor",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.382471+00:00"
+    },
+    {
+      "id": 223,
+      "name": "Gcse",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.430748+00:00"
+    },
+    {
+      "id": 224,
+      "name": "Maths",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.483137+00:00"
+    },
+    {
+      "id": 225,
+      "name": "Science",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.533855+00:00"
+    },
+    {
+      "id": 226,
+      "name": "English",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.582129+00:00"
+    },
+    {
+      "id": 227,
+      "name": "College",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.63253+00:00"
+    },
+    {
+      "id": 228,
+      "name": "University",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.682393+00:00"
+    },
+    {
+      "id": 229,
+      "name": "Training Centre",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.729685+00:00"
+    },
+    {
+      "id": 230,
+      "name": "Music",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.776224+00:00"
+    },
+    {
+      "id": 231,
+      "name": "Dance",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.827062+00:00"
+    },
+    {
+      "id": 232,
+      "name": "Engineering",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.888095+00:00"
+    },
+    {
+      "id": 233,
+      "name": "Childcare / Nursery",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.934809+00:00"
+    },
+    {
+      "id": 234,
+      "name": "Adult Learning Centre",
+      "category": 8,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:21.984882+00:00"
+    },
+    {
+      "id": 235,
+      "name": "Hotel",
+      "category": 9,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:22.032166+00:00"
+    },
+    {
+      "id": 236,
+      "name": "Motel",
+      "category": 9,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:22.080976+00:00"
+    },
+    {
+      "id": 237,
+      "name": "Hostel",
+      "category": 9,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:22.132616+00:00"
+    },
+    {
+      "id": 238,
+      "name": "Bed & Breakfast",
+      "category": 9,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:22.191521+00:00"
+    },
+    {
+      "id": 239,
+      "name": "Guest House",
+      "category": 9,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:22.241415+00:00"
+    },
+    {
+      "id": 240,
+      "name": "Holiday Park",
+      "category": 9,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:22.288795+00:00"
+    },
+    {
+      "id": 241,
+      "name": "Travel Agency",
+      "category": 9,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:22.337379+00:00"
+    },
+    {
+      "id": 242,
+      "name": "Tour Operator",
+      "category": 9,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:22.383548+00:00"
+    },
+    {
+      "id": 243,
+      "name": "Car Rental",
+      "category": 9,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:22.433907+00:00"
+    },
+    {
+      "id": 244,
+      "name": "Airport Shuttle Service",
+      "category": 9,
+      "num_businesses": null,
+      "created_at": "2026-08-03T09:35:22.48581+00:00"
+    }
+  ]
