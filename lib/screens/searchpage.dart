@@ -48,7 +48,6 @@ class _SearchPageState extends State<SearchPage> {
 
     SearchPageGlobals.hasWifi = true;
 
-
     _runSearchFunction();
   }
 
@@ -60,7 +59,6 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _runSearchFunction() async {
     // Prevent overlapping searches
-
 
     if (SearchPageGlobals.isLoading.value) return;
 
@@ -79,7 +77,6 @@ class _SearchPageState extends State<SearchPage> {
     ))!;
 
     SearchPageGlobals.reloadMapPoints();
-
 
     if (!mounted) return;
 
@@ -333,7 +330,7 @@ class SearchPageBody extends StatelessWidget {
         }
 
         if (!SearchPageGlobals.isLoading.value) {
-          if (mapMode == MainSearchPageMode.map) {
+          if (mapMode != MainSearchPageMode.list) {
             mainSearchPageWidget = const MapSearchView();
           } else if (mapMode == MainSearchPageMode.list) {
             mainSearchPageWidget = const ListSearchView();

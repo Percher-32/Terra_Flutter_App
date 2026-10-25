@@ -66,6 +66,8 @@ class _MapSearchViewState extends State<MapSearchView>
   bool _lockCamera = false;
   bool initComplete = false;
 
+  late Ticker _ticker;
+
   List<(MiniBusinessLoc, Offset)> markerObjects = [];
   ValueNotifier<Offset> userOffset = ValueNotifier(Offset.zero);
 
@@ -159,6 +161,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
         final points = await SearchPageGlobals.mapController!
             .toScreenLocationBatch(markerPositions);
+        List<Point> listOffALlPoints = [];
 
         if (mounted) {
           // try {
@@ -177,7 +180,6 @@ class _MapSearchViewState extends State<MapSearchView>
             userPoint.y.toDouble() / dpr,
           );
 
-          List<Point> dummyList = [];
           markerObjects = [];
 
           for (int i = 0; i < points.length; i++) {
@@ -198,15 +200,9 @@ class _MapSearchViewState extends State<MapSearchView>
             markerObjects.add(
                 (miniBusinessLocations[i], Offset(position[0], position[1])));
 
-            dummyList.add(Point(position[0], position[1]));
+            listOffALlPoints.add(Point(position[0], position[1]));
           }
-
-          if (_frameCount % 10 == 0 ||
-              markerDist.length != markerObjects.length) {
-            markerDist = nearestDistances(dummyList);
-          } else if (markerDist.isEmpty) {
-            markerDist = List.generate(markerObjects.length, (index) => 0);
-          }
+          markerDist = nearestDistances(listOffALlPoints);
 
           SearchPageGlobals.reloadMapPoints();
         }
@@ -440,7 +436,7 @@ class BusinessMarker extends StatelessWidget {
           shape: BoxShape.circle,
         ),
       );
-    } else if (normDist > 0.4 && normDist <= 0.8) {
+    } else if (normDist > 0.4 && normDist <= 0.9) {
       trueWidget = Material(
         color: const Color.fromARGB(0, 163, 73, 73),
         child: InkWell(
