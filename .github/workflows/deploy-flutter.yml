@@ -1,0 +1,45 @@
+name: Build and Deploy Flutter Web
+
+# 1. Trigger the workflow on pushes to the main branch
+on:
+  workflow_dispatch:
+
+# Grant permissions to read and write repository contents (required for pushing to a branch)
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 2: Check out your source code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 3: Set up the Flutter environment using official actions
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x' # Uses the latest stable Flutter 3 version (or specify exact version like '3.19.0')
+          channel: 'stable'
+          cache: true            # Caches dependencies to speed up future builds
+
+      # Step 4: Get project dependencies
+      - name: Install Dependencies
+        run: flutter pub get
+
+      # Step 5: Build the web version in release mode
+      - name: Build Flutter Web
+        run: flutter build web --release --base-href "/Terra_Flutter_App/"
+        # Note: If your app uses a custom base href (e.g., for GitHub Pages subpaths), 
+        # you might need: flutter build web --release --base-href "/your-repo-name/"
+
+      # Step 6: Deploy the built output to a separate branch (gh-pages)
+      - name: Deploy to Separate Branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages   # The separate branch that will hold only built code
+          publish_dir: build/web     # Flutter's compiled web output directory
+          keep_files: false          # Cleans old files on every new deployment
