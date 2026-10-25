@@ -89,7 +89,7 @@ class _MapSearchViewState extends State<MapSearchView>
         final dy = p.y - p2.y;
         final dx2 = dx * dx;
 
-        if (dx2 >= best || dy >= 10 || dx >= 10) continue;
+        if (dx2 >= best || dy >= 100 || dx >= 100) continue;
 
         final d = dx2 + (dy * dy);
 
@@ -161,6 +161,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
         final points = await SearchPageGlobals.mapController!
             .toScreenLocationBatch(markerPositions);
+
         List<Point> listOffALlPoints = [];
 
         if (mounted) {
@@ -203,6 +204,7 @@ class _MapSearchViewState extends State<MapSearchView>
             listOffALlPoints.add(Point(position[0], position[1]));
           }
           markerDist = nearestDistances(listOffALlPoints);
+          // markerDist = List.filled(markerDist.length, 0);
 
           SearchPageGlobals.reloadMapPoints();
         }
@@ -264,7 +266,7 @@ class _MapSearchViewState extends State<MapSearchView>
                   await _refreshOverlayPositions();
                 },
                 onMapIdle: () async {
-                  await _refreshOverlayPositions();
+                  // await _refreshOverlayPositions();
                 },
                 onMapClick: (_, map_gl.LatLng latLng) {
                   if (SearchPageGlobals.mapMode.value ==
@@ -450,7 +452,8 @@ class BusinessMarker extends StatelessWidget {
                 Image.asset(
                   iconPath,
                   width: 32,
-                  height: 32,
+                  height: 32, cacheWidth: 64, // (32 * 2x pixel density)
+                  cacheHeight: 64,
                 ),
                 Positioned(
                   right: -10 - 20,
@@ -492,7 +495,8 @@ class BusinessMarker extends StatelessWidget {
                 Image.asset(
                   iconPath,
                   width: 32,
-                  height: 32,
+                  height: 32, cacheWidth: 64, // (32 * 2x pixel density)
+                  cacheHeight: 64,
                 ),
                 Positioned(
                   right: -10 - 20,
