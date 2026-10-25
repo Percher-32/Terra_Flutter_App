@@ -90,7 +90,6 @@ class _MapSearchViewState extends State<MapSearchView>
   bool _mapReady = false;
   int _frameCount = 0;
   bool _lockCamera = false;
-  late final Ticker _ticker;
   bool initComplete = false;
 
   List<(MiniBusinessLoc, Offset)> markerObjects = [];
@@ -114,18 +113,6 @@ class _MapSearchViewState extends State<MapSearchView>
       moveToNewLocation(SearchPageGlobals.changeMapLocationTrigger.value);
     });
 
-    _ticker = createTicker((_) {
-      if (_mapReady &&
-          mapController != null &&
-          !SearchPageGlobals.isLoading.value) {
-        scheduleMicrotask(() {
-          log.i("RUNNING MICROTASK");
-          _refreshOverlayPositions();
-        }); // runs every frame
-      }
-    });
-
-    _ticker.start();
 
     initComplete = true;
   }
@@ -152,6 +139,13 @@ class _MapSearchViewState extends State<MapSearchView>
     _ticker.dispose();
     _mapReady = false;
     super.dispose();
+  }
+
+  void scheduleRefreshTask() {
+    scheduleMicrotask(() {
+      log.i("RUNNING MICROTASK");
+      _refreshOverlayPositions();
+    }); // runs every frame
   }
 
   Future<void> _refreshOverlayPositions() async {
@@ -212,11 +206,14 @@ class _MapSearchViewState extends State<MapSearchView>
             userPoint.y.toDouble() / dpr,
           );
 
-          if (_frameCount % 10 == 0) {
+          if (_frameCount % 10 == 0 || false) {
             markerDist = nearestDistances(dummyList);
           } else if (markerDist.isEmpty) {
             markerDist = List.generate(markerObjects.length, (index) => 0);
           }
+          markerDist =
+              List.generate(markerObjects.length, (index) => double.infinity);
+
           SearchPageGlobals.reloadMapPoints();
         }
       }
@@ -318,7 +315,7 @@ class _MapSearchViewState extends State<MapSearchView>
         ),
       );
     }
-
+    normDist = 0.5;
     if (normDist <= 0.4) {
       trueWidget = Container(
         width: 10,
@@ -477,6 +474,7 @@ class _MapSearchViewState extends State<MapSearchView>
                   tilt: 60,
                   zoom: 16,
                 ),
+                trackCameraPosition: true,
                 scrollGesturesEnabled: !_lockCamera,
                 zoomGesturesEnabled: !_lockCamera,
                 rotateGesturesEnabled: !_lockCamera,
@@ -492,7 +490,12 @@ class _MapSearchViewState extends State<MapSearchView>
                     _mapReady = true;
                   }
                 },
-                onCameraMove: (cameraPosition) {},
+                onCameraMove: (cameraPosition) async {
+                  await _refreshOverlayPositions();
+                },
+                onMapIdle: () async {
+                  await _refreshOverlayPositions();
+                },
                 onMapClick: (_, map_gl.LatLng latLng) {
                   if (SearchPageGlobals.mapMode.value ==
                       MainSearchPageMode.choosing) {
@@ -512,7 +515,6 @@ class _MapSearchViewState extends State<MapSearchView>
                     SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
                   }
                 },
-                onMapIdle: () {},
                 compassEnabled: false,
               ),
 
@@ -528,13 +530,12 @@ class _MapSearchViewState extends State<MapSearchView>
                         final miniBusinessLocation = markerObject.$1;
                         final nearestDist = markerDist[index];
 
-                        return Positioned(
-                          left: offset.dx - 20,
-                          top: offset.dy - 20,
-                          child: RepaintBoundary(
-                            child: getIcon(
-                                miniBusinessLocation, nearestDist, index),
-                          ),
+                        final dpr = MediaQuery.of(context).devicePixelRatio;
+
+                        return Transform.translate(
+                          offset: Offset(offset.dx, offset.dy),
+                          child:
+                              getIcon(miniBusinessLocation, nearestDist, index),
                         );
                       }),
                     );
@@ -586,4 +587,212 @@ class _MapSearchViewState extends State<MapSearchView>
       },
     );
   }
+}
+
+class BusinessMarker extends StatelessWidget {
+  const BusinessMarker({super.key,});
+
+
+  
+  void onIconClicked(MiniBusinessLoc miniBusLoc) {
+    mapController?.animateCamera(
+      map_gl.CameraUpdate.newLatLngZoom(
+        map_gl.LatLng(miniBusLoc.location[0], miniBusLoc.location[1]),
+        16.0, // zoom level
+      ),
+    );
+
+    SearchPageGlobals.mapMode.value = MainSearchPageMode.thumbnail;
+    SearchPageGlobals.chosenBusinessLocation = miniBusLoc;
+  }
+
+  Widget createBusinessMapIcon(BuildContext context, MiniBusinessLoc miniBusLoc,
+      double nearestDist, int index) {
+    double normDist = ((nearestDist) * 0.00015).clamp(0, 1);
+
+    String iconPath = "assets/icons/svg_logo.png";
+    if (miniBusLoc.type == 0) {
+      iconPath = "assets/icons/business_type_icons/food_and_dining_icon.png";
+    } else if (miniBusLoc.type == 1) {
+      iconPath = "assets/icons/business_type_icons/home_services_icon.png";
+    } else if (miniBusLoc.type == 2) {
+      iconPath =
+          "assets/icons/business_type_icons/health_and_wellness_icon.png";
+    } else if (miniBusLoc.type == 3) {
+      iconPath =
+          "assets/icons/business_type_icons/shopping_and_retail_icon.png";
+    } else if (miniBusLoc.type == 4) {
+      iconPath =
+          "assets/icons/business_type_icons/proffesional_services_icon.png";
+    } else if (miniBusLoc.type == 5) {
+      iconPath = "assets/icons/business_type_icons/automotive_icon.png";
+    } else if (miniBusLoc.type == 6) {
+      iconPath =
+          "assets/icons/business_type_icons/beauty_and_personal_care_icon.png";
+    } else if (miniBusLoc.type == 7) {
+      iconPath =
+          "assets/icons/business_type_icons/entertainment_and_leisure_icon.png";
+    } else if (miniBusLoc.type == 8) {
+      iconPath = "assets/icons/business_type_icons/education_icon.png";
+    } else if (miniBusLoc.type == 9) {
+      iconPath = "assets/icons/business_type_icons/lodging_and_travel_icon.png";
+    }
+
+    Widget trueWidget = const SizedBox();
+
+    Widget veriBadge = const SizedBox();
+
+    bool verified = miniBusLoc.verified;
+
+
+    String ratingtext = "-";
+
+    if (miniBusLoc.averageRating != null) {
+      ratingtext =
+          "${miniBusLoc.averageRating!.toStringAsFixed(1)}(${miniBusLoc.numRatings})";
+    }
+
+    if (index <= 3) {
+      normDist += 0.2 / 2;
+    } else if (index <= 10) {
+      normDist += 0.1 / 2;
+    }
+
+    if (!verified) {
+      normDist += 0.2 / 2;
+      veriBadge = Positioned(
+        right: -5,
+        bottom: -5,
+        child: Image.asset(
+          "assets/icons/business_icons/unverified_badge_mini.png",
+          width: 15,
+          height: 15,
+        ),
+      );
+    }
+    normDist = 0.5;
+    if (normDist <= 0.4) {
+      trueWidget = Container(
+        width: 10,
+        height: 10,
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
+        ),
+      );
+    } else if (normDist > 0.4 && normDist <= 0.8) {
+      trueWidget = Material(
+        color: const Color.fromARGB(0, 163, 73, 73),
+        child: InkWell(
+          onTap: () {
+            onIconClicked(miniBusLoc);
+          },
+          child: Stack(clipBehavior: Clip.none, children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Image.asset(
+                  iconPath,
+                  width: 32,
+                  height: 32,
+                ),
+                Positioned(
+                  right: -10 - 20,
+                  top: -5,
+                  child: Container(
+                    width: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.secondary,
+                    ),
+                    child: Center(
+                      child: MyText(
+                        (ratingtext).toString(),
+                        size: 10,
+                        color: AppColors.background,
+                      ),
+                    ),
+                  ),
+                ),
+                veriBadge,
+              ],
+            ),
+          ]),
+        ),
+      );
+    } else {
+      trueWidget = GestureDetector(
+        onTap: () {
+          onIconClicked(miniBusLoc);
+        },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 30,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Image.asset(
+                  iconPath,
+                  width: 32,
+                  height: 32,
+                ),
+                Positioned(
+                  right: -10 - 20,
+                  top: -5,
+                  child: Container(
+                    width: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.secondary,
+                    ),
+                    child: Center(
+                      child: MyText(
+                        (ratingtext).toString(),
+                        size: 10,
+                        color: AppColors.background,
+                      ),
+                    ),
+                  ),
+                ),
+                veriBadge,
+                Positioned(
+                  left: 40,
+                  top: 10,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(
+                        height: 0,
+                      ),
+                      SizedBox(
+                        width: 100,
+                        // height: 100,
+                        child: MyText(
+                          miniBusLoc.name,
+                          size: 12,
+                          overflow: TextOverflow.ellipsis,
+                          maxlines: 1,
+                        ),
+                      ),
+                      MyText(
+                        businessTypeLookup[miniBusLoc.type]!,
+                        size: 12,
+                        overflow: TextOverflow.ellipsis,
+                        maxlines: 1,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    return trueWidget;
+  }
+
 }
