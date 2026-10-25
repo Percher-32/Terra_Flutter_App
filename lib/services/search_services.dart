@@ -5,6 +5,7 @@ import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/services/tag_services.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/page_moves.dart';
+import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
 
 enum MainSearchPageMode { map, list, choosing, thumbnail }
 
@@ -27,6 +28,10 @@ class SearchPageGlobals {
 
   static MiniBusinessLoc? chosenBusinessLocation;
 
+
+  static map_gl.MapLibreMapController? mapController;
+
+
   static void reloadMapPoints() {
     reloadMapPointsTrigger.value = !reloadMapPointsTrigger.value;
   }
@@ -40,7 +45,15 @@ class SearchPageGlobals {
   }
 
   static void changeMapLocation(List<double> newLocation) {
-    changeMapLocationTrigger.value = newLocation;
+
+    if (mapController != null){
+
+    SearchPageGlobals.mapController!.animateCamera(
+      map_gl.CameraUpdate.newLatLngZoom(
+          map_gl.LatLng(newLocation[0], newLocation[1]), 16),
+    );
+    }
+    // changeMapLocationTrigger.value = newLocation;
   }
 }
 
