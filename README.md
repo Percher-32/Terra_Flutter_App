@@ -11,9 +11,14 @@ No part of this software—including source code, design, or assets—may be rep
 
 
 ## Demo
-Notice -> This demo only shows how the app function without a server present , I'm in the process of adding mockdata to allow anyone to test it
+Notice -> This demo only shows how the app function without a server present , I've added mock data to allow anyone to test it
 
 https://github.com/user-attachments/assets/adda66f1-8fb9-454b-9872-df7f32bcb02a
+
+## How To run
+if you have flutter you can just do `flutter run`
+The web demo however is found at https://percher-32.github.io/Terra_Flutter_App/
+
 
 --
 
