@@ -16,8 +16,9 @@ class SearchPageGlobals {
   static final ValueNotifier<bool> runSearchTrigger = ValueNotifier(false);
   static final ValueNotifier<bool> reloadMapPointsTrigger =
       ValueNotifier(false);
-  static final ValueNotifier<List<double>> changeMapLocationTrigger =
-      ValueNotifier(UserService.userLocation);
+
+  static final ValueNotifier<bool> reloadUserPositionTrigger =
+      ValueNotifier(false);
 
   static final ValueNotifier<bool> isLoading = ValueNotifier(false);
 
@@ -28,9 +29,7 @@ class SearchPageGlobals {
 
   static MiniBusinessLoc? chosenBusinessLocation;
 
-
   static map_gl.MapLibreMapController? mapController;
-
 
   static void reloadMapPoints() {
     reloadMapPointsTrigger.value = !reloadMapPointsTrigger.value;
@@ -40,18 +39,21 @@ class SearchPageGlobals {
     reloadMapTrigger.value = !reloadMapTrigger.value;
   }
 
+  static void reloadUserPosition(){
+    reloadUserPositionTrigger.value = !reloadUserPositionTrigger.value;
+
+  }
+
   static void runSearch() {
     runSearchTrigger.value = !runSearchTrigger.value;
   }
 
   static void changeMapLocation(List<double> newLocation) {
-
-    if (mapController != null){
-
-    SearchPageGlobals.mapController!.animateCamera(
-      map_gl.CameraUpdate.newLatLngZoom(
-          map_gl.LatLng(newLocation[0], newLocation[1]), 16),
-    );
+    if (mapController != null) {
+      SearchPageGlobals.mapController!.animateCamera(
+        map_gl.CameraUpdate.newLatLngZoom(
+            map_gl.LatLng(newLocation[0], newLocation[1]), 16),
+      );
     }
     // changeMapLocationTrigger.value = newLocation;
   }
