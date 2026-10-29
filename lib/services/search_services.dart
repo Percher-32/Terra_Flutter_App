@@ -6,8 +6,11 @@ import 'package:nextfind/services/tag_services.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/page_moves.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
+import 'dart:typed_data';
 
 enum MainSearchPageMode { map, list, choosing, thumbnail }
+
+enum BusinessMarkerLevel { full, reduced, mini }
 
 class SearchPageGlobals {
   static final ValueNotifier<MainSearchPageMode> mapMode =
@@ -22,6 +25,18 @@ class SearchPageGlobals {
   static final ValueNotifier<List<MiniBusinessLoc>> miniBusinessLocations =
       ValueNotifier([]);
 
+  static final Map<
+      ({
+        String locationId,
+        bool verified,
+        num? averageRating,
+        int? numRatings,
+        BusinessMarkerLevel businessMarkerLevel
+      }),
+      String> businessMarkerIconCache = {};
+
+  static final Map<String, Uint8List> cachedMapImageIcons = {};
+
   static bool hasWifi = false;
 
   static MiniBusinessLoc? chosenBusinessLocation;
@@ -32,9 +47,8 @@ class SearchPageGlobals {
     reloadMapTrigger.value = !reloadMapTrigger.value;
   }
 
-  static void reloadUserPosition(){
+  static void reloadUserPosition() {
     reloadUserPositionTrigger.value = !reloadUserPositionTrigger.value;
-
   }
 
   static void runSearch() {

@@ -1,4 +1,3 @@
-
 class BusinessLocation {
   BusinessLocation({
     required this.locationId,
@@ -40,29 +39,25 @@ class BusinessLocation {
   final String timeZone;
   List<String> imagePaths;
 
-
-
   factory BusinessLocation.fromJson(Map<String, dynamic> json) {
     return BusinessLocation(
-          locationId: json["business_location_id"],
-          businessId: json["business_id"],
-          name: json["business_name"],
-          type: json["primary_type"],
-          location: json["location"],
-          address: json["address"],
-          verified: json["verified"],
-          openHours: json["open_hours"],
-          averageRating: json["rating_average"],
-          over18: json["over_18"],
-          numRatings: json["rating_count"],
-          description: json["description"] ?? "",
-          website: json["website"],
-          links: json["links"],
-          timeZone: json["timezone"] ?? "Europe/London",
-          phoneNumber: json["phone_number"]
-          );
+        locationId: json["business_location_id"],
+        businessId: json["business_id"],
+        name: json["business_name"],
+        type: json["primary_type"],
+        location: json["location"],
+        address: json["address"],
+        verified: json["verified"],
+        openHours: json["open_hours"],
+        averageRating: json["rating_average"],
+        over18: json["over_18"],
+        numRatings: json["rating_count"],
+        description: json["description"] ?? "",
+        website: json["website"],
+        links: json["links"],
+        timeZone: json["timezone"] ?? "Europe/London",
+        phoneNumber: json["phone_number"]);
   }
-  
 }
 
 class MiniBusinessLoc {
@@ -96,6 +91,8 @@ class MiniBusinessLoc {
   final String? thumbnailPath;
   final bool over18;
   final int buildingNumber;
+
+
 
   factory MiniBusinessLoc.fromJson(Map<String, dynamic> json) {
     return MiniBusinessLoc(
