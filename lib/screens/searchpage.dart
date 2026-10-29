@@ -30,31 +30,16 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(lifecycle);
-
-    SearchPageGlobals.isLoading.value = false;
+    
+    SearchPageGlobals.hasWifi = true;
 
     //All the globals trigers
-    SearchPageGlobals.miniBusinessLocations.addListener(() {});
-
-    SearchPageGlobals.reloadMapTrigger.addListener(() async {
-      if (SearchPageGlobals.mapMode.value != MainSearchPageMode.list) {
-        await _reloadMapFunction();
-      }
-    });
-
     SearchPageGlobals.runSearchTrigger.addListener(() async {
       await _runSearchFunction();
     });
 
-    SearchPageGlobals.hasWifi = true;
 
-    _runSearchFunction();
-  }
-
-  Future<void> _reloadMapFunction() async {
-    await _runSearchFunction(); // refresh business markers
-
-    SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
+    SearchPageGlobals.runSearch();
   }
 
   Future<void> _runSearchFunction() async {
@@ -76,7 +61,7 @@ class _SearchPageState extends State<SearchPage> {
       type: SearchServices.categoryIndex.value,
     ))!;
 
-    SearchPageGlobals.reloadMapPoints();
+    SearchPageGlobals.reloadMap();
 
     if (!mounted) return;
 

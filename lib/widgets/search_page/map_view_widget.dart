@@ -38,18 +38,14 @@ class _MapSearchViewState extends State<MapSearchView>
 
   bool _sourceAddedAlready = false;
 
-  List<(MiniBusinessLoc, Offset)> markerObjects = [];
-
-  List<double> markerDist = [];
-
   @override
   void initState() {
     initComplete = false;
 
     super.initState();
 
-    SearchPageGlobals.miniBusinessLocations.addListener(() async {
-      _updateBusinessIconPotisions();
+    SearchPageGlobals.reloadMapTrigger.addListener(() async {
+      await _updateBusinessIconPotisions();
     });
 
     SearchPageGlobals.reloadUserPositionTrigger.addListener(() async {
@@ -65,79 +61,7 @@ class _MapSearchViewState extends State<MapSearchView>
     super.dispose();
   }
 
-  Future<void> _refreshHitboxPositions() async {
-    // return;
-    if (_mapReady &&
-        SearchPageGlobals.mapController != null &&
-        !SearchPageGlobals.isLoading.value) {
-      if (!lifecycle.isPaused) {
-        final miniBusinessLocations =
-            SearchPageGlobals.miniBusinessLocations.value;
-
-        final controller = SearchPageGlobals.mapController;
-
-        if (!_mapReady ||
-            controller == null ||
-            SearchPageGlobals.isLoading.value) {
-          return;
-        }
-
-        if (lifecycle.isPaused) return;
-
-        _frameCount += 1;
-
-        if (_frameCount > 10000) _frameCount = 0;
-
-        final List<map_gl.LatLng> markerPositions = [
-          for (MiniBusinessLoc miniBusinessLocation in miniBusinessLocations)
-            map_gl.LatLng(miniBusinessLocation.location[0],
-                miniBusinessLocation.location[1])
-        ];
-
-        final points = await controller.toScreenLocationBatch(markerPositions);
-
-        List<Point> listOffALlPoints = [];
-
-        if (mounted) {
-          // try {
-          final dpr = MediaQuery.of(context).devicePixelRatio;
-          final screenSize = MediaQuery.sizeOf(context);
-
-          final double screenWidth = screenSize.width;
-          final double screenHeight = screenSize.height;
-
-          return;
-          // markerObjects = [];
-
-          // for (int i = 0; i < points.length; i++) {
-          //   final mapPoint = points[i];
-
-          // if (i >= _markerOffsets.lenght)
-          //   final List position = [
-          //     mapPoint.x.toDouble() / dpr,
-          //     mapPoint.y.toDouble() / dpr
-          //   ];
-          //   final bool inView = position[0] >= -50 &&
-          //       position[0] <= screenWidth + 50 &&
-          //       position[1] >= -50 &&
-          //       position[1] <= screenHeight + 50;
-
-          //   if (!inView) continue;
-
-          //   markerObjects.add(
-          //       (miniBusinessLocations[i], Offset(position[0], position[1])));
-
-          //   listOffALlPoints.add(Point(position[0], position[1]));
-          // }
-          // SearchPageGlobals.reloadMapPoints();
-        }
-      }
-    }
-  }
-
-  /// This function removes the previous user icon from the app and adds a new one at <b>location</b>
-  void _updateUserPointPosition(List<double> newLocation) {}
-
+  /// To register a widget into the mapLibreMap
   Future<void> loadAndRegisterWidgetIcon(
     BuildContext context,
     Widget widget,
@@ -188,6 +112,9 @@ class _MapSearchViewState extends State<MapSearchView>
       overlayEntry.remove();
     }
   }
+
+  /// This function removes the previous user icon from the app and adds a new one at <b>location</b>
+  void _updateUserPointPosition(List<double> newLocation) {}
 
   /// Register an Icon with a string using location_id
   Future<void> addIconMiniBusinessToMap(
@@ -252,23 +179,46 @@ class _MapSearchViewState extends State<MapSearchView>
       }
     });
 
+    features.add({
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [51.5074, -0.1278]
+      },
+      "properties": {
+        "iconId":
+            "BUSINESSMARKERICON_INDEX:1", // Any custom data you want to attach
+        "name": "KAKA",
+        "index": index
+      }
+    });
+
     final geoJsonData = {"type": "FeatureCollection", "features": features};
 
-    String jsonGeoData = jsonEncode(geoJsonData);
+    // String jsonGeoData = jsonEncode(geoJsonData);
 
-    if (_sourceAddedAlready) {
+    // if (_sourceAddedAlready) {
+    //   await SearchPageGlobals.mapController!
+    //       .setGeoJsonSource("business_markers_source", geoJsonData);
+    //   return;
+    // }
+
+    try {
       await SearchPageGlobals.mapController!
-          .setGeoJsonSource("business_markers_source", geoJsonData);
-      return;
-    }
+          .removeSource("business_markers_source");
+      await SearchPageGlobals.mapController!
+          .removeLayer("unique_markers_layer");
+      await SearchPageGlobals.mapController!
+          .removeLayer("clustered_markers_layer");
+    } finally {}
 
     await SearchPageGlobals.mapController!.addSource(
       "business_markers_source",
       map_gl.GeojsonSourceProperties(
-        data: jsonGeoData,
+        data: geoJsonData,
         cluster: true,
-        clusterRadius: 50000, // Distance in pixels to group points
-        clusterMaxZoom: 1, // Zoom level where clustering stops
+        clusterRadius: 10, // Distance in pixels to group points
+        // clusterMaxZoom: 1, // Zoom level where clustering stops
         clusterProperties: {
           "max_index": [
             [
@@ -282,53 +232,54 @@ class _MapSearchViewState extends State<MapSearchView>
       ),
     );
 
-    await SearchPageGlobals.mapController!.addCircleLayer(
+    await SearchPageGlobals.mapController!.addSymbolLayer(
       "business_markers_source", // 1. The ID of the data source it connects to
       "unique_markers_layer", // 2. A unique ID for this layer itself
-      // filter: [
-        // '!',
-        // ['has', 'point_count']
-      // ],
-      map_gl.CircleLayerProperties(
-        circleRadius: 800.0,
-        circleColor: '#3b82f6', // Blue dots for individual businesses
-        circleStrokeWidth: 2.0,
-        circleStrokeColor: '#ffffff',
-      ),
-      // const map_gl.SymbolLayerProperties(
-      //   iconImage: [
-      //     'get',
-      //     'iconId'
-      //   ], // 3. Tells it to read the 'id' property from your GeoJSON
-      //   iconSize: 1.0, // 4. Size scaling
-      //   iconAllowOverlap:
-      //       true, // 5. Prevents close icons from hiding each other
+      filter: [
+        '!',
+        ['has', 'point_count']
+      ],
+      // map_gl.CircleLayerProperties(
+      //   circleRadius: 10.0,
+      //   circleColor: '#3b82f6', // Blue dots for individual businesses
+      //   circleStrokeWidth: 2.0,
+      //   circleStrokeColor: '#ffffff',
       // ),
+      const map_gl.SymbolLayerProperties(
+        iconImage: [
+          'get',
+          'iconId'
+        ], // 3. Tells it to read the 'id' property from your GeoJSON
+        iconSize: 1.0, // 4. Size scaling
+        iconAllowOverlap:
+            true, // 5. Prevents close icons from hiding each other
+      ),
     );
 
-    await SearchPageGlobals.mapController!.addCircleLayer(
+    await SearchPageGlobals.mapController!.addSymbolLayer(
       "business_markers_source", // 1. The ID of the data source it connects to
       "clustered_markers_layer", // 2. A unique ID for this layer itself
-      // filter: ['has', 'point_count'],
-      map_gl.CircleLayerProperties(
-        circleRadius: 1800.0,
-        circleColor: '#ef4444', // Red bubbles for clusters
-        circleStrokeWidth: 2.0,
-        circleStrokeColor: '#ffffff',
-      ),
-      // const map_gl.SymbolLayerProperties(
-      //   iconImage: [
-      //     "concat",
-      //     "BUSINESSMARKERICON_INDEX:",
-      //     [
-      //       'to-string',
-      //       ['get', 'max_index']
-      //     ]
-      //   ], // 3. Tells it to read the 'id' property from your GeoJSON
-      //   iconSize: 1.0, // 4. Size scaling
-      //   iconAllowOverlap:
-      //       true, // 5. Prevents close icons from hiding each other
+      filter: ['has', 'point_count'],
+      // map_gl.CircleLayerProperties(
+      //   circleRadius: 10.0,
+      //   circleColor: '#ef4444', // Red bubbles for clusters
+      //   circleStrokeWidth: 2.0,
+      //   circleStrokeColor: '#ffffff',
       // ),
+
+      map_gl.SymbolLayerProperties(
+        iconImage: [
+          "concat",
+          "BUSINESSMARKERICON_INDEX:",
+          [
+            'to-string',
+            ['get', 'max_index']
+          ]
+        ], // 3. Tells it to read the 'id' property from your GeoJSON
+        iconSize: 1.0, // 4. Size scaling
+        iconAllowOverlap:
+            true, // 5. Prevents close icons from hiding each other
+      ),
     );
 
     _sourceAddedAlready = true;
@@ -370,18 +321,13 @@ class _MapSearchViewState extends State<MapSearchView>
           tiltGesturesEnabled: !_lockCamera,
           onMapCreated: (controller) async {
             SearchPageGlobals.mapController = controller;
-            // _mapReady = true;
-            await Future.delayed(const Duration(milliseconds: 200));
-            // _refreshOverlayPositions();
           },
           onStyleLoadedCallback: () async {
             if (!lifecycle.isPaused) {
               _mapReady = true;
             }
           },
-          onCameraMove: (cameraPosition) async {
-            await _refreshHitboxPositions();
-          },
+          onCameraMove: (cameraPosition) async {},
           onMapIdle: () async {
             // await _refreshOverlayPositions();
           },

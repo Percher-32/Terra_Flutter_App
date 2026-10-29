@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:nextfind/helpers/debug_options.dart';
 import 'dart:convert';
 import 'package:nextfind/helpers/logger.dart';
 
@@ -105,8 +106,8 @@ abstract class Networking {
   }
 
   static Future<bool> isOnline() async {
-    if (!await hasNetwork()) return false;
-    return await hasInternet();
+    if (NextfindDebugOptions.keepIsOnlineAsTrue) return true;
+    return ((await hasInternet()) && (await hasNetwork()));
   }
 
   static String getFullImageUrl(String? url) {

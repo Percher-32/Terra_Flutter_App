@@ -4,4 +4,5 @@ class NextfindDebugOptions {
   static bool useTestTagData = true;
   static bool useTestUserData = true;
   static bool keepAllNetworkImagesAsDefault = true;
+  static bool keepIsOnlineAsTrue = true;
 }

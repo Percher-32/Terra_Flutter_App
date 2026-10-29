@@ -11,12 +11,9 @@ enum MainSearchPageMode { map, list, choosing, thumbnail }
 
 class SearchPageGlobals {
   static final ValueNotifier<MainSearchPageMode> mapMode =
-      ValueNotifier(MainSearchPageMode.list);
+      ValueNotifier(MainSearchPageMode.map);
   static final ValueNotifier<bool> reloadMapTrigger = ValueNotifier(false);
   static final ValueNotifier<bool> runSearchTrigger = ValueNotifier(false);
-  static final ValueNotifier<bool> reloadMapPointsTrigger =
-      ValueNotifier(false);
-
   static final ValueNotifier<bool> reloadUserPositionTrigger =
       ValueNotifier(false);
 
@@ -30,10 +27,6 @@ class SearchPageGlobals {
   static MiniBusinessLoc? chosenBusinessLocation;
 
   static map_gl.MapLibreMapController? mapController;
-
-  static void reloadMapPoints() {
-    reloadMapPointsTrigger.value = !reloadMapPointsTrigger.value;
-  }
 
   static void reloadMap() {
     reloadMapTrigger.value = !reloadMapTrigger.value;
