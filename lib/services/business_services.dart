@@ -52,10 +52,10 @@ const businessIconLookupAlt = {
 };
 
 class BusinessService {
-  static Map<String, MiniBusinessLoc> miniBusinessLocLookup = {};
+  static Map<String, MiniBusinessLocation> miniBusinessLocationLookup = {};
   static Map<String, BusinessLocation> businessLocationLookup = {};
 
-  static List<MiniBusinessLoc>? trendingBusinesses;
+  static List<MiniBusinessLocation>? trendingBusinesses;
   static DateTime trendingBusinessesLastUpdate =
       DateTime.fromMicrosecondsSinceEpoch(0);
 
@@ -79,12 +79,12 @@ class BusinessService {
   }
 
   //* Mini/Full Location Functions
-  static MiniBusinessLoc? addBusinessLocationMini(
+  static MiniBusinessLocation? addBusinessLocationMini(
       Map<String, dynamic> locationData) {
     try {
-      final newMiniBusiness = MiniBusinessLoc.fromJson(locationData);
+      final newMiniBusiness = MiniBusinessLocation.fromJson(locationData);
 
-      miniBusinessLocLookup[locationData["business_location_id"]] =
+      miniBusinessLocationLookup[locationData["business_location_id"]] =
           newMiniBusiness;
 
       return newMiniBusiness;
@@ -119,18 +119,18 @@ class BusinessService {
     }
   }
 
-  static Future<Map<String, MiniBusinessLoc>> getBusinessLocationMini(
+  static Future<Map<String, MiniBusinessLocation>> getBusinessLocationMini(
       List<String> locationIds) async {
-    Map<String, MiniBusinessLoc> retLookup = {};
+    Map<String, MiniBusinessLocation> retLookup = {};
     List<String> locationsToGet = [];
 
     for (var locationId in locationIds) {
       // log.d(
       // "GET MINI BUSINESS LOCATION || ABSTRACTED || LOCATION ID $locationId");
 
-      log.t(miniBusinessLocLookup.values);
-      if (miniBusinessLocLookup.containsKey(locationId)) {
-        retLookup[locationId] = miniBusinessLocLookup[locationId]!;
+      log.t(miniBusinessLocationLookup.values);
+      if (miniBusinessLocationLookup.containsKey(locationId)) {
+        retLookup[locationId] = miniBusinessLocationLookup[locationId]!;
       } else {
         locationsToGet.add(locationId);
       }
@@ -147,7 +147,7 @@ class BusinessService {
   }
 
   //*Trending Businesses Functions
-  static Future<List<MiniBusinessLoc>?> _getTrendingBusinessesApiCall(
+  static Future<List<MiniBusinessLocation>?> _getTrendingBusinessesApiCall(
       {int limit = 30, int offset = 0}) async {
     List data;
 
@@ -167,7 +167,7 @@ class BusinessService {
       data = jsonDecode(response.body);
     }
 
-    List<MiniBusinessLoc> returnedTrendingBusinesses = [];
+    List<MiniBusinessLocation> returnedTrendingBusinesses = [];
     for (Map trendingBusinessData in data) {
       final trendingBusinessId = trendingBusinessData["location_id"];
       final trendingBusinessLocation = (await getBusinessLocationMini(
@@ -178,7 +178,7 @@ class BusinessService {
     return returnedTrendingBusinesses;
   }
 
-  static Future<List<MiniBusinessLoc>?> getTrendingBusinesses() async {
+  static Future<List<MiniBusinessLocation>?> getTrendingBusinesses() async {
     if (trendingBusinesses == null ||
         (DateTime.now().difference(trendingBusinessesLastUpdate).inMinutes >
             5)) {
@@ -189,15 +189,15 @@ class BusinessService {
 
   //* Business Image Functions
   static void startPreloadingLocationThumbnail(
-    List<MiniBusinessLoc> locations,
+    List<MiniBusinessLocation> locations,
     BuildContext context,
   ) {
     _runPreloadLocationThumbnailTask(locations, context);
   }
 
   static Future<void> _runPreloadLocationThumbnailTask(
-      List<MiniBusinessLoc> locations, BuildContext context) async {
-    for (final MiniBusinessLoc location in locations) {
+      List<MiniBusinessLocation> locations, BuildContext context) async {
+    for (final MiniBusinessLocation location in locations) {
       Future.microtask(() async {
         if (!context.mounted) return;
         final String? locationThumbnailPath = location.thumbnailPath;
@@ -214,7 +214,7 @@ class BusinessService {
   }
 
   //* Api calling Functions
-  static Future<List<MiniBusinessLoc>?> getNearbyBusinesses({
+  static Future<List<MiniBusinessLocation>?> getNearbyBusinesses({
     required List location,
     String macroTypes = "All",
     int? type,
@@ -266,7 +266,7 @@ class BusinessService {
       data = jsonDecode(response.body);
     }
 
-    List<MiniBusinessLoc> returnedMiniBusinessesLocations = [];
+    List<MiniBusinessLocation> returnedMiniBusinessesLocations = [];
 
     for (Map<String, dynamic> businessData in data) {
       final newBusinessLocation = addBusinessLocationMini(businessData);
@@ -328,7 +328,7 @@ class BusinessService {
           "FUNCTION GET BUSINESSES MINI LOCATION API || statusCode : ${response.statusCode} || respData : $data || INPUTS $locationIds ");
       return null;
     }
-    Map<String, MiniBusinessLoc> retrunedBusinessLocations = {};
+    Map<String, MiniBusinessLocation> retrunedBusinessLocations = {};
     for (Map<String, dynamic> businessMiniData in data) {
       final newBusinessLoc = addBusinessLocationMini(businessMiniData);
 

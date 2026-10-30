@@ -72,16 +72,11 @@ class _MapSearchViewState extends State<MapSearchView>
   }
 
   /// To register a widget into the mapLibreMap
-  Future<String> loadAndRegisterWidgetIcon(
+  Future<Uint8List?> loadAndRegisterWidgetIcon(
     BuildContext context,
     Widget widget,
     String customId,
   ) async {
-    String customId = getRandomString(50);
-
-    while (SearchPageGlobals.cachedMapImageIcons.containsKey(customId)) {
-      customId = getRandomString(50);
-    }
     final GlobalKey repaintKey = GlobalKey();
 
     // 1. Temporarily mount the widget off-screen so Flutter can layout & paint it
@@ -115,21 +110,19 @@ class _MapSearchViewState extends State<MapSearchView>
             await boundary.toImage(pixelRatio: 2.0); // 2.0 for sharp text
         final ByteData? byteData =
             await image.toByteData(format: ui.ImageByteFormat.png);
-        final Uint8List? list = byteData?.buffer.asUint8List();
+        final Uint8List? imageList = byteData?.buffer.asUint8List();
 
-        if (list != null) {
+        if (imageList != null) {
           // 3. Register it into MapLibre's style memory with your custom ID string
 
-          SearchPageGlobals.cachedMapImageIcons[customId] = list;
-          await SearchPageGlobals.mapController?.addImage(customId, list);
+          await SearchPageGlobals.mapController?.addImage(customId, imageList);
+          return imageList;
         }
       }
     } finally {
       // 4. Always remove the temporary overlay entry when finished
       overlayEntry.remove();
     }
-
-    return customId;
   }
 
   /// This function removes the previous user icon from the app and adds a new one at <b>location</b>
@@ -137,92 +130,86 @@ class _MapSearchViewState extends State<MapSearchView>
 
   /// Register an Icon with a string using location_id
   Future<void> addIconMiniBusinessToMap(
-      MiniBusinessLoc miniBusinessLoc, int index) async {
+      MiniBusinessLocation miniBusinessLocation, int index) async {
+    // log.i("${SearchPageGlobals}");
     // Full Icons
     if (!mounted) return;
-    var searchKey = (
-      locationId: miniBusinessLoc.locationId,
-      verified: miniBusinessLoc.verified,
-      averageRating: miniBusinessLoc.averageRating,
-      numRatings: miniBusinessLoc.numRatings,
-      businessMarkerLevel: BusinessMarkerLevel.full
-    );
-
-    if (SearchPageGlobals.businessMarkerIconCache.containsKey(searchKey)) {
-      final widgetList = SearchPageGlobals.cachedMapImageIcons[
-          SearchPageGlobals.businessMarkerIconCache[searchKey]]!;
+    if (SearchPageGlobals.businessMarkerIconCache
+        .containsKey((miniBusinessLocation, BusinessMarkerLevel.full))) {
+      log.i("ICON CACHE HIT");
+      final widgetList = SearchPageGlobals.businessMarkerIconCache[(
+        miniBusinessLocation,
+        BusinessMarkerLevel.full
+      )]!;
       await SearchPageGlobals.mapController
           ?.addImage("BUSINESSMARKERICON_INDEXFULL:$index", widgetList);
     } else {
-      final String fullIconCustomId = await loadAndRegisterWidgetIcon(
+      final Uint8List fullIconImage = (await loadAndRegisterWidgetIcon(
           context,
           BusinessMarker(
-              miniBusinessLocation: miniBusinessLoc,
+              miniBusinessLocation: miniBusinessLocation,
               businessMarkerLevel: BusinessMarkerLevel.full,
               index: index),
-          "BUSINESSMARKERICON_INDEXFULL:$index");
+          "BUSINESSMARKERICON_INDEXFULL:$index"))!;
 
-      SearchPageGlobals.businessMarkerIconCache[searchKey] = fullIconCustomId;
+      SearchPageGlobals.businessMarkerIconCache[(
+        miniBusinessLocation,
+        BusinessMarkerLevel.full
+      )] = fullIconImage;
     }
 
     // Reduced Icons
     if (!mounted) return;
-    searchKey = (
-      locationId: miniBusinessLoc.locationId,
-      verified: miniBusinessLoc.verified,
-      averageRating: miniBusinessLoc.averageRating,
-      numRatings: miniBusinessLoc.numRatings,
-      businessMarkerLevel: BusinessMarkerLevel.reduced
-    );
 
-    if (SearchPageGlobals.businessMarkerIconCache.containsKey(searchKey)) {
-      final widgetList = SearchPageGlobals.cachedMapImageIcons[
-          SearchPageGlobals.businessMarkerIconCache[searchKey]]!;
+    if (SearchPageGlobals.businessMarkerIconCache
+        .containsKey((miniBusinessLocation, BusinessMarkerLevel.reduced))) {
+      log.i("ICON CACHE HIT");
+      final widgetList = SearchPageGlobals.businessMarkerIconCache[(
+        miniBusinessLocation,
+        BusinessMarkerLevel.reduced
+      )]!;
       await SearchPageGlobals.mapController
           ?.addImage("BUSINESSMARKERICON_INDEXREDUCED:$index", widgetList);
     } else {
-      final String reducedIconCustomId = await loadAndRegisterWidgetIcon(
+      final Uint8List reducedIconImage = (await loadAndRegisterWidgetIcon(
           context,
           BusinessMarker(
-              miniBusinessLocation: miniBusinessLoc,
+              miniBusinessLocation: miniBusinessLocation,
               businessMarkerLevel: BusinessMarkerLevel.reduced,
               index: index),
-          "BUSINESSMARKERICON_INDEXREDUCED:$index");
+          "BUSINESSMARKERICON_INDEXREDUCED:$index"))!;
 
-      SearchPageGlobals.businessMarkerIconCache[searchKey] =
-          reducedIconCustomId;
+      SearchPageGlobals.businessMarkerIconCache[(
+        miniBusinessLocation,
+        BusinessMarkerLevel.reduced
+      )] = reducedIconImage;
     }
-
-    SearchPageGlobals.businessMarkerIconCache.values;
-
-    log.i(
-        "LLLLLLLLLLLL : ${getUnion(SearchPageGlobals.businessMarkerIconCache.values.toList(), SearchPageGlobals.cachedMapImageIcons.keys.toList()).length}");
 
     //Mini Icons
     if (!mounted) return;
-    searchKey = (
-      locationId: miniBusinessLoc.locationId,
-      verified: miniBusinessLoc.verified,
-      averageRating: miniBusinessLoc.averageRating,
-      numRatings: miniBusinessLoc.numRatings,
-      businessMarkerLevel: BusinessMarkerLevel.mini
-    );
+    if (SearchPageGlobals.businessMarkerIconCache
+        .containsKey((miniBusinessLocation, BusinessMarkerLevel.mini))) {
+      log.i("ICON CACHE HIT");
+      final widgetList = SearchPageGlobals.businessMarkerIconCache[(
+        miniBusinessLocation,
+        BusinessMarkerLevel.mini
+      )]!;
 
-    if (SearchPageGlobals.businessMarkerIconCache.containsKey(searchKey)) {
-      final widgetList = SearchPageGlobals.cachedMapImageIcons[
-          SearchPageGlobals.businessMarkerIconCache[searchKey]]!;
       await SearchPageGlobals.mapController
           ?.addImage("BUSINESSMARKERICON_INDEXMINI:$index", widgetList);
     } else {
-      final String miniIconCustomId = await loadAndRegisterWidgetIcon(
+      final Uint8List miniIconImage = (await loadAndRegisterWidgetIcon(
           context,
           BusinessMarker(
-              miniBusinessLocation: miniBusinessLoc,
+              miniBusinessLocation: miniBusinessLocation,
               businessMarkerLevel: BusinessMarkerLevel.mini,
               index: index),
-          "BUSINESSMARKERICON_INDEXMINI:$index");
+          "BUSINESSMARKERICON_INDEXMINI:$index"))!;
 
-      SearchPageGlobals.businessMarkerIconCache[searchKey] = miniIconCustomId;
+      SearchPageGlobals.businessMarkerIconCache[(
+        miniBusinessLocation,
+        BusinessMarkerLevel.mini
+      )] = miniIconImage;
     }
   }
 
@@ -238,7 +225,7 @@ class _MapSearchViewState extends State<MapSearchView>
     List<Map> features = [];
     final miniBusinessLocations = SearchPageGlobals.miniBusinessLocations.value;
 
-    for (MiniBusinessLoc miniBusinessLocation in miniBusinessLocations) {
+    for (MiniBusinessLocation miniBusinessLocation in miniBusinessLocations) {
       await addIconMiniBusinessToMap(miniBusinessLocation, index);
       final feature = {
         "type": "Feature",
@@ -269,6 +256,8 @@ class _MapSearchViewState extends State<MapSearchView>
     if (_sourceAddedAlready) {
       await SearchPageGlobals.mapController!
           .setGeoJsonSource("business_markers_source", geoJsonData);
+      SearchPageGlobals.isLoading.value = false;
+
       return;
     }
 
@@ -289,8 +278,8 @@ class _MapSearchViewState extends State<MapSearchView>
       map_gl.GeojsonSourceProperties(
         data: geoJsonData,
         cluster: true,
-        clusterRadius: 40, // Distance in pixels to group points
-        // clusterMaxZoom: 50, // Zoom level where clustering stops
+        clusterRadius: 60, // Distance in pixels to group points
+        // clusterMaxZoom: 5, // Zoom level where clustering stops
         clusterProperties: {
           "max_index": [
             [
@@ -361,6 +350,7 @@ class _MapSearchViewState extends State<MapSearchView>
             true, // 5. Prevents close icons from hiding each other
       ),
     );
+
     SearchPageGlobals.isLoading.value = false;
 
     _sourceAddedAlready = true;
@@ -492,7 +482,7 @@ class BusinessMarker extends StatelessWidget {
     required this.index,
   });
 
-  final MiniBusinessLoc miniBusinessLocation;
+  final MiniBusinessLocation miniBusinessLocation;
   final BusinessMarkerLevel businessMarkerLevel;
   final int index;
 

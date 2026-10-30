@@ -20,6 +20,14 @@ if you have flutter you can just do `flutter run`
 The web demo however is found at https://percher-32.github.io/Terra_Flutter_App/
 
 
+## WEB BUILD NOTICE FOR ME
+when i run the build action I have to ensure to this to the index.html
+
+```
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+```
+
 --
 
 ## About

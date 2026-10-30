@@ -28,8 +28,8 @@ class _HomePageState extends State<HomePage> {
 
   Future<
       ({
-        List<MiniBusinessLoc>? trendingBusinesses,
-        List<MiniBusinessLoc>? nearbyBusinesses
+        List<MiniBusinessLocation>? trendingBusinesses,
+        List<MiniBusinessLocation>? nearbyBusinesses
       })?> buildFeed() async {
     _hasWifi = await Networking.isOnline();
 
@@ -64,8 +64,8 @@ class _HomePageState extends State<HomePage> {
                 right: 0,
                 child: FutureBuilder<
                     ({
-                      List<MiniBusinessLoc>? trendingBusinesses,
-                      List<MiniBusinessLoc>? nearbyBusinesses
+                      List<MiniBusinessLocation>? trendingBusinesses,
+                      List<MiniBusinessLocation>? nearbyBusinesses
                     })?>(
                   future: buildFeed(),
                   builder: (context, snapshot) {
@@ -135,7 +135,7 @@ class _HomePageState extends State<HomePage> {
 class TrendScrollWidget extends StatelessWidget {
   const TrendScrollWidget({super.key, required this.trendingBusinesses});
 
-  final List<MiniBusinessLoc> trendingBusinesses;
+  final List<MiniBusinessLocation> trendingBusinesses;
 
   @override
   Widget build(BuildContext context) {

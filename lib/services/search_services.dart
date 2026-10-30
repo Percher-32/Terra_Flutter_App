@@ -22,24 +22,14 @@ class SearchPageGlobals {
 
   static final ValueNotifier<bool> isLoading = ValueNotifier(false);
 
-  static final ValueNotifier<List<MiniBusinessLoc>> miniBusinessLocations =
+  static final ValueNotifier<List<MiniBusinessLocation>> miniBusinessLocations =
       ValueNotifier([]);
 
-  static final Map<
-      ({
-        String locationId,
-        bool verified,
-        num? averageRating,
-        int? numRatings,
-        BusinessMarkerLevel businessMarkerLevel
-      }),
-      String> businessMarkerIconCache = {};
-
-  static final Map<String, Uint8List> cachedMapImageIcons = {};
+  static final Map<(MiniBusinessLocation,BusinessMarkerLevel), Uint8List> businessMarkerIconCache = {};
 
   static bool hasWifi = false;
 
-  static MiniBusinessLoc? chosenBusinessLocation;
+  static MiniBusinessLocation? chosenBusinessLocation;
 
   static map_gl.MapLibreMapController? mapController;
 

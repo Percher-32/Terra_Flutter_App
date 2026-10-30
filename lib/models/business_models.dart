@@ -60,8 +60,8 @@ class BusinessLocation {
   }
 }
 
-class MiniBusinessLoc {
-  const MiniBusinessLoc(
+class MiniBusinessLocation {
+  const MiniBusinessLocation(
       {required this.locationId,
       required this.businessId,
       required this.name,
@@ -92,10 +92,50 @@ class MiniBusinessLoc {
   final bool over18;
   final int buildingNumber;
 
+  @override
+  bool operator ==(Object other) {
+    // 1. Check if they are the exact same instance in memory
+    if (identical(this, other)) return true;
 
+    // 2. Check if 'other' is of the same type
+    return other is MiniBusinessLocation &&
+        // 3. Compare all the fields you care about
+        other.locationId == locationId &&
+        other.businessId == businessId &&
+        other.name == name &&
+        other.type == type &&
+        other.location == location &&
+        other.address == address &&
+        other.verified == verified &&
+        other.distance == distance &&
+        other.openHours == openHours &&
+        other.averageRating == averageRating &&
+        other.over18 == over18 &&
+        other.numRatings == numRatings &&
+        other.thumbnailPath == thumbnailPath &&
+        other.buildingNumber == buildingNumber;
+  }
 
-  factory MiniBusinessLoc.fromJson(Map<String, dynamic> json) {
-    return MiniBusinessLoc(
+  @override
+  int get hashCode => Object.hash(
+        locationId,
+        businessId,
+        name,
+        type,
+        location,
+        address,
+        verified,
+        distance,
+        openHours,
+        averageRating,
+        over18,
+        numRatings,
+        thumbnailPath,
+        buildingNumber,
+      );
+
+  factory MiniBusinessLocation.fromJson(Map<String, dynamic> json) {
+    return MiniBusinessLocation(
       locationId: json["business_location_id"],
       businessId: json["business_id"],
       name: json["business_name"],

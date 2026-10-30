@@ -37,7 +37,7 @@ class BusinessLocationThumbnail extends StatefulWidget {
 
 class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
     with AutomaticKeepAliveClientMixin {
-  late Future<Map<String, MiniBusinessLoc>> _future;
+  late Future<Map<String, MiniBusinessLocation>> _future;
 
   @override
   bool get wantKeepAlive => true;
@@ -49,7 +49,7 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
   }
 
   Widget buildWidget(BuildContext context,
-      AsyncSnapshot<Map<String, MiniBusinessLoc>> snapshot) {
+      AsyncSnapshot<Map<String, MiniBusinessLocation>> snapshot) {
     if (snapshot.hasData) {
       if (snapshot.data is! Map) {
         return const SizedBox();
@@ -337,7 +337,7 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
     return FutureBuilder(
         future: _future,
         builder: (BuildContext context,
-            AsyncSnapshot<Map<String, MiniBusinessLoc>> snapshot) {
+            AsyncSnapshot<Map<String, MiniBusinessLocation>> snapshot) {
           return buildWidget(context, snapshot);
         });
   }

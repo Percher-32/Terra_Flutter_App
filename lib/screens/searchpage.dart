@@ -28,19 +28,21 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
-    SearchPageGlobals.isLoading.value = false;
 
-    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+    SearchPageGlobals.isLoading.value = false;
+    // _counter.value = newValue; // Safe because the build phase is complete
+  });
+
     super.initState();
     WidgetsBinding.instance.addObserver(lifecycle);
-    
+
     SearchPageGlobals.hasWifi = true;
 
     //All the globals trigers
     SearchPageGlobals.runSearchTrigger.addListener(() async {
       await _runSearchFunction();
     });
-
 
     SearchPageGlobals.runSearch();
   }
