@@ -5,4 +5,12 @@ class NextfindDebugOptions {
   static bool useTestUserData = true;
   static bool keepAllNetworkImagesAsDefault = true;
   static bool keepIsOnlineAsTrue = true;
+
+
+
+
+
+
+  //* Non Mock Data Related
+  static bool cacheBusinessMarkerIcons = true;
 }

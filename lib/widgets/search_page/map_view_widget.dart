@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
+import 'package:nextfind/helpers/debug_options.dart';
 import 'package:nextfind/services/business_services.dart';
 import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/services/search_services.dart';
@@ -123,6 +124,7 @@ class _MapSearchViewState extends State<MapSearchView>
       // 4. Always remove the temporary overlay entry when finished
       overlayEntry.remove();
     }
+    return null;
   }
 
   /// This function removes the previous user icon from the app and adds a new one at <b>location</b>
@@ -135,7 +137,8 @@ class _MapSearchViewState extends State<MapSearchView>
     // Full Icons
     if (!mounted) return;
     if (SearchPageGlobals.businessMarkerIconCache
-        .containsKey((miniBusinessLocation, BusinessMarkerLevel.full))) {
+            .containsKey((miniBusinessLocation, BusinessMarkerLevel.full)) &
+        !NextfindDebugOptions.cacheBusinessMarkerIcons) {
       log.i("ICON CACHE HIT");
       final widgetList = SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
@@ -162,7 +165,8 @@ class _MapSearchViewState extends State<MapSearchView>
     if (!mounted) return;
 
     if (SearchPageGlobals.businessMarkerIconCache
-        .containsKey((miniBusinessLocation, BusinessMarkerLevel.reduced))) {
+            .containsKey((miniBusinessLocation, BusinessMarkerLevel.reduced)) &
+        !NextfindDebugOptions.cacheBusinessMarkerIcons) {
       log.i("ICON CACHE HIT");
       final widgetList = SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
@@ -188,7 +192,8 @@ class _MapSearchViewState extends State<MapSearchView>
     //Mini Icons
     if (!mounted) return;
     if (SearchPageGlobals.businessMarkerIconCache
-        .containsKey((miniBusinessLocation, BusinessMarkerLevel.mini))) {
+            .containsKey((miniBusinessLocation, BusinessMarkerLevel.mini)) &
+        !NextfindDebugOptions.cacheBusinessMarkerIcons) {
       log.i("ICON CACHE HIT");
       final widgetList = SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
@@ -503,6 +508,43 @@ class BusinessMarker extends StatelessWidget {
         : Image.asset("assets/icons/business_icons/unverified_badge_mini.png",
             width: 15, height: 15);
 
+    final Widget businessMarkerMain = SizedBox(
+        width: 50,
+        height: 44,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: AlignmentGeometry.center,
+          children: [
+            Positioned(
+                left: 0,
+                bottom: 0,
+                child: Image.asset(
+                  iconPath,
+                  width: 32,
+                  height: 32,
+                  cacheWidth: 64,
+                  cacheHeight: 64,
+                )),
+            Positioned(
+              left: 15,
+              top: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.secondary,
+                ),
+                child: MyText(
+                  ratingtext,
+                  size: 9,
+                  color: AppColors.background,
+                ),
+              ),
+            ),
+            Positioned(left: 32, bottom: 0, child: veriBadge),
+          ],
+        ));
+
     // Tier 1: Distance Dot
     if (businessMarkerLevel == BusinessMarkerLevel.mini) {
       return Container(
@@ -513,60 +555,20 @@ class BusinessMarker extends StatelessWidget {
           shape: BoxShape.circle,
         ),
       );
-    }
-
-    // Tier 2 & 3: Rich Icon + Text Card (Using Row/Column to prevent clipping)
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Icon & Rating Stack
-          Stack(
-            clipBehavior: Clip.none,
+    } else if (businessMarkerLevel == BusinessMarkerLevel.reduced) {
+      return businessMarkerMain;
+    } else {
+      return Container(
+          width: 180,
+          height: 70,
+          child: Stack(
             children: [
-              Image.asset(
-                iconPath,
-                width: 32,
-                height: 32,
-                cacheWidth: 64,
-                cacheHeight: 64,
-              ),
               Positioned(
-                right: -15,
-                top: -8,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: AppColors.secondary,
-                  ),
-                  child: MyText(
-                    ratingtext,
-                    size: 9,
-                    color: AppColors.background,
-                  ),
-                ),
+                left: 0,
+                bottom: 0,
+                child: businessMarkerMain
               ),
-            ],
-          ),
-
-          if (businessMarkerLevel == BusinessMarkerLevel.full) ...[
-            const SizedBox(width: 8),
-            // Text Details
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
+              Column(children: [
                 SizedBox(
                   width: 100,
                   child: MyText(
@@ -585,11 +587,41 @@ class BusinessMarker extends StatelessWidget {
                     maxlines: 1,
                   ),
                 ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
+              ]),
+            ],
+          ));
+    }
+
+    //       if (businessMarkerLevel == BusinessMarkerLevel.full) ...[
+    //         const SizedBox(width: 8),
+    //         // Text Details
+    //         Column(
+    //           crossAxisAlignment: CrossAxisAlignment.start,
+    //           mainAxisSize: MainAxisSize.min,
+    //           children: [
+    //             SizedBox(
+    //               width: 100,
+    //               child: MyText(
+    //                 miniBusinessLocation.name,
+    //                 size: 12,
+    //                 overflow: TextOverflow.ellipsis,
+    //                 maxlines: 1,
+    //               ),
+    //             ),
+    //             SizedBox(
+    //               width: 100,
+    //               child: MyText(
+    //                 businessTypeLookup[miniBusinessLocation.type] ?? '',
+    //                 size: 10,
+    //                 overflow: TextOverflow.ellipsis,
+    //                 maxlines: 1,
+    //               ),
+    //             ),
+    //           ],
+    //         ),
+    //       ],
+    //     ],
+    //   ),
+    // );
   }
 }
