@@ -48,7 +48,7 @@ class _MapSearchViewState extends State<MapSearchView>
   bool initComplete = false;
   bool userMarkerAdded = false;
 
-  map_gl.Symbol? userMarkerSymbol;
+  bool userSourceAdded = false;
 
   bool _sourceAddedAlready = false;
 
@@ -143,30 +143,44 @@ class _MapSearchViewState extends State<MapSearchView>
 
   /// This function removes the previous user icon from the app and adds a new one at <b>location</b>
   Future<void> _updateUserPointPosition(List<double> newLocation) async {
-    if (userMarkerSymbol != null) {
-      await SearchPageGlobals.mapController?.updateSymbol(
-        userMarkerSymbol!,
-        map_gl.SymbolOptions(
-          geometry: map_gl.LatLng(
-              newLocation[0], newLocation[1]), // Your target coordinates
-          iconImage: 'user_marker', // The key you registered above
-          iconSize: 2.0, // Scale factor
-          zIndex: 999,
+    final List features = [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [newLocation[1], newLocation[0]]
+        }
+      }
+    ];
 
-        ),
-      );
+    final geoJsonData = {"type": "FeatureCollection", "features": features};
+
+    if (userSourceAdded) {
+      await SearchPageGlobals.mapController!
+          .setGeoJsonSource("user_marker_source", geoJsonData);
     } else {
       await registerImageToMap("assets/icons/user_marker.png", "user_marker");
 
-      userMarkerSymbol = await SearchPageGlobals.mapController?.addSymbol(
-        map_gl.SymbolOptions(
-          geometry: map_gl.LatLng(
-              newLocation[0], newLocation[1]), // Your target coordinates
-          iconImage: 'user_marker', // The key you registered above
-          iconSize: 2.0, // Scale factor
-          zIndex: 999,
+      await SearchPageGlobals.mapController?.addSource(
+        "user_marker_source",
+        map_gl.GeojsonSourceProperties(
+          data: geoJsonData,
+          cluster: false,
         ),
       );
+
+      await SearchPageGlobals.mapController?.addLayer(
+        "user_marker_source",
+        "user_marker_layer",
+        const map_gl.SymbolLayerProperties(
+          iconImage: "user_marker",
+          iconSize: 2.0,
+          iconAllowOverlap: true,
+          iconIgnorePlacement: true,
+        ),
+      );
+
+      userSourceAdded = true;
     }
   }
 
@@ -263,7 +277,6 @@ class _MapSearchViewState extends State<MapSearchView>
     if (!_mapReady) return;
 
     // This is here to allow a new add symbol to happen
-    userMarkerSymbol = null;
     SearchPageGlobals.isLoading.value = true;
 
     await SearchPageGlobals.mapController?.clearSymbols();
@@ -350,6 +363,7 @@ class _MapSearchViewState extends State<MapSearchView>
     await SearchPageGlobals.mapController!.addSymbolLayer(
       "business_markers_source_mini_icons",
       "mini_icons_layer",
+      belowLayerId: "user_marker_layer",
       const map_gl.SymbolLayerProperties(
         iconImage: [
           'get',
@@ -364,6 +378,7 @@ class _MapSearchViewState extends State<MapSearchView>
     await SearchPageGlobals.mapController!.addSymbolLayer(
       "business_markers_source",
       "unique_markers_layer",
+      belowLayerId: "user_marker_layer",
       filter: [
         '!',
         ['has', 'point_count']
@@ -376,12 +391,14 @@ class _MapSearchViewState extends State<MapSearchView>
         iconSize: 1.2, // 4. Size scaling
         iconAllowOverlap:
             true, // 5. Prevents close icons from hiding each other
+        iconOffset: [180 / 4, 0.0],
       ),
     );
 
     await SearchPageGlobals.mapController!.addSymbolLayer(
       "business_markers_source",
       "clustered_markers_layer",
+      belowLayerId: "user_marker_layer",
       filter: ['has', 'point_count'],
       const map_gl.SymbolLayerProperties(
         iconImage: [
@@ -403,8 +420,6 @@ class _MapSearchViewState extends State<MapSearchView>
     });
 
     SearchPageGlobals.isLoading.value = false;
-
-    SearchPageGlobals.reloadUserPosition();
 
     _sourceAddedAlready = true;
   }
@@ -572,7 +587,7 @@ class BusinessMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String iconPath = businessIconLookup[miniBusinessLocation.type] ??
+    String iconPath = businessIconLookupAlt[miniBusinessLocation.type] ??
         "assets/icons/svg_logo.png";
     bool verified = miniBusinessLocation.verified;
     String ratingtext = "-";
@@ -611,12 +626,12 @@ class BusinessMarker extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: AppColors.secondary,
+                  color: AppColors.background,
                 ),
                 child: MyText(
                   ratingtext,
                   size: 9,
-                  color: AppColors.background,
+                  color: AppColors.accent,
                 ),
               ),
             ),
@@ -637,42 +652,46 @@ class BusinessMarker extends StatelessWidget {
     } else if (businessMarkerLevel == BusinessMarkerLevel.reduced) {
       return businessMarkerMain;
     } else {
-      return Container(
-          width: 180,
-          height: 65,
-          decoration: const BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.all(Radius.circular(40))),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Stack(
-            alignment: AlignmentGeometry.center,
-            children: [
-              Positioned(left: 0, bottom: 65 / 4, child: businessMarkerMain),
-              Positioned(
-                  left: 55,
-                  bottom: 65 / 4,
-                  child: Column(children: [
-                    SizedBox(
-                      width: 100,
-                      child: MyText(
-                        miniBusinessLocation.name,
-                        size: 12,
-                        overflow: TextOverflow.ellipsis,
-                        maxlines: 1,
-                      ),
-                    ),
-                    SizedBox(
-                      width: 100,
-                      child: MyText(
-                        businessTypeLookup[miniBusinessLocation.type] ?? '',
-                        size: 10,
-                        overflow: TextOverflow.ellipsis,
-                        maxlines: 1,
-                      ),
-                    ),
-                  ])),
-            ],
-          ));
+      return Center(
+          child: Container(
+              width: 180,
+              height: 65,
+              decoration: const BoxDecoration(
+                  // color: AppColors.background,
+                  borderRadius: BorderRadius.all(Radius.circular(40))),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Stack(
+                // alignment: AlignmentGeometry.centerLeft,
+                children: [
+                  Positioned(
+                      left: 0, bottom: 65 / 4, child: businessMarkerMain),
+                  Positioned(
+                      left: 40,
+                      bottom: 0,
+                      child: Column(children: [
+                        SizedBox(
+                          width: 100,
+                          child: MyText(
+                            color: AppColors.primary,
+                            miniBusinessLocation.name,
+                            size: 12,
+                            overflow: TextOverflow.ellipsis,
+                            maxlines: 1,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 100,
+                          child: MyText(
+                            color: AppColors.primary,
+                            businessTypeLookup[miniBusinessLocation.type] ?? '',
+                            size: 10,
+                            overflow: TextOverflow.ellipsis,
+                            maxlines: 1,
+                          ),
+                        ),
+                      ])),
+                ],
+              )));
     }
 
     //       if (businessMarkerLevel == BusinessMarkerLevel.full) ...[

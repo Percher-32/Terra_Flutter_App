@@ -1,7 +1,7 @@
 import 'package:nextfind/services/auth_services.dart';
 
 class UserService {
-  static List<double> userLocation = [51.5074, -0.1278 + 0.001];
+  static List<double> userLocation = [51.5074 + 0.006, -0.1278];
 
   static bool isLoggedIn = false;
   static String? username;

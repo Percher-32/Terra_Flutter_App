@@ -7,5 +7,5 @@ class NextfindDebugOptions {
   static bool keepIsOnlineAsTrue = true;
 
   //* Non Mock Data Related
-  static bool cacheBusinessMarkerIcons = true;
+  static bool cacheBusinessMarkerIcons = false;
 }
