@@ -75,7 +75,7 @@ class MiniBusinessLocation {
       this.thumbnailPath,
       this.numRatings,
       this.over18 = false,
-      required this.buildingNumber});
+      required this.buildingNumber,required this.tags});
 
   final String locationId;
   final String businessId;
@@ -91,6 +91,7 @@ class MiniBusinessLocation {
   final String? thumbnailPath;
   final bool over18;
   final int buildingNumber;
+  final List<int> tags;
 
   @override
   bool operator ==(Object other) {
@@ -113,7 +114,8 @@ class MiniBusinessLocation {
         other.over18 == over18 &&
         other.numRatings == numRatings &&
         other.thumbnailPath == thumbnailPath &&
-        other.buildingNumber == buildingNumber;
+        other.buildingNumber == buildingNumber &&
+        other.tags == tags;
   }
 
   @override
@@ -132,6 +134,7 @@ class MiniBusinessLocation {
         numRatings,
         thumbnailPath,
         buildingNumber,
+        tags
       );
 
   factory MiniBusinessLocation.fromJson(Map<String, dynamic> json) {
@@ -140,7 +143,8 @@ class MiniBusinessLocation {
       businessId: json["business_id"],
       name: json["business_name"],
       type: json["primary_type"],
-      location: List<double>.from(json["business_location_location"]) ,
+      location: List<double>.from(json["business_location_location"]),
+      tags: List<int>.from(json["tags"]),
       address: json["address"],
       verified: json["verified"],
       distance: json["distance"] as double,

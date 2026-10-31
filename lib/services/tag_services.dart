@@ -233,6 +233,36 @@ class TagServices {
     });
   }
 
+  static Widget showTag(int tagId) {
+    final Tag tag = tagLookup[tagId]!;
+    return Padding(
+        padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(width: 10 / 2),
+              MyText(tag.name, size: 10, color: AppColors.background),
+              const SizedBox(width: 20 / 2),
+              IconButton(
+                onPressed: () {
+                  chosenTags.remove(tag.id);
+
+                  updateTagWidget.value = !updateTagWidget.value;
+                },
+                icon: const Icon(Icons.cancel_outlined),
+                color: Colors.white,
+              ),
+            ],
+          ),
+        ));
+  }
+
   static Widget showChosenTagWidget(BuildContext context,
       {bool leveled = true}) {
     return ValueListenableBuilder<bool>(

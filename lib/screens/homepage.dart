@@ -43,7 +43,6 @@ class _HomePageState extends State<HomePage> {
 
     final trendingMiniBusLocations =
         await BusinessService.getTrendingBusinesses();
-    log.i("BARK BUILT PAGE");
     return (
       trendingBusinesses: trendingMiniBusLocations,
       nearbyBusinesses: nearbyBusinesses
@@ -52,7 +51,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    log.i("BARK HOMEPAGE");
     return Scaffold(
         appBar: SearchServices.createSearchBar(context),
         bottomNavigationBar: const NavBar(currentPage: AppPages.homepage),
@@ -70,17 +68,13 @@ class _HomePageState extends State<HomePage> {
                   future: buildFeed(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      log.i("BARK Error");
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         showErrorMessage(context, "Error ${snapshot.error}");
                       });
                       return const SizedBox();
                     } else if (!snapshot.hasData) {
-                      log.i("BARK WIAT");
                       return const LinearProgressIndicator();
                     } else if (snapshot.data!.nearbyBusinesses == null) {
-                      log.i("BARK ERROR");
-
                       showErrorMessage(
                           context, "Error Geting Nearby Businesses");
                       return const SizedBox();
@@ -91,16 +85,18 @@ class _HomePageState extends State<HomePage> {
                           context, "Error Geting Trending Businesses");
                       return const SizedBox();
                     } else {
-                      log.i("BARK SHOWING TRENDIN BAR");
                       return SizedBox(
                         height: MediaQuery.of(context).size.height,
-                        child: ListView.separated(
+                        child: 
+                        
+                        ListView.separated(
                           controller: ScrollController(initialScrollOffset: 0),
                           physics: const BouncingScrollPhysics(
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
                           itemCount:
                               snapshot.data!.nearbyBusinesses!.length + 2,
+                          
                           itemBuilder: (context, index) {
                             if (index == 0) {
                               return const SizedBox(
@@ -147,7 +143,7 @@ class TrendScrollWidget extends StatelessWidget {
           color: AppColors.text,
         ),
         SizedBox(
-            height: 260,
+            height: 290,
             child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {

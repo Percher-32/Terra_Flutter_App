@@ -5,6 +5,7 @@ import 'package:nextfind/helpers/conversions.dart';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:nextfind/services/search_services.dart';
 import 'package:nextfind/page_moves.dart';
+import 'package:nextfind/services/tag_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:intl/intl.dart';
 
@@ -55,275 +56,9 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
         return const SizedBox();
       }
 
-      final minibusinessLocation = snapshot.data![widget.locationId]!;
-      String ratings = "No Ratings";
-      if (minibusinessLocation.numRatings != null) {
-        ratings =
-            "${minibusinessLocation.averageRating!.toStringAsFixed(2)}/10 (${minibusinessLocation.numRatings!})";
-      }
-
-      bool open = false;
-      String? signTime;
-      String openString = "";
-
-      final openTimes = minibusinessLocation.openHours;
-
-      if (openTimes != null) {
-        final weekday = DateTime.now().weekday.toString();
-
-        if (openTimes.containsKey(weekday)) {
-          List<dynamic> times = openTimes[weekday];
-
-          final openTime = DateFormat("HH:mm").parse(times[0]);
-          final closeTime = DateFormat("HH:mm").parse(times[1]);
-          final timeNow =
-              DateTime(1970, 1, 1, DateTime.now().hour, DateTime.now().minute);
-
-          if (isBetween(openTime, closeTime, timeNow) == true) {
-            open = true;
-            signTime = times[1];
-          } else {
-            signTime = times[0];
-          }
-        }
-
-        if (signTime == null) {
-          openString = "Closed Forever";
-        } else {
-          if (open) {
-            openString = "Open - Closes $signTime";
-          } else {
-            openString = "Closed - Opens $signTime";
-          }
-        }
-      }
-
-      Widget unVerifiedBadge = const SizedBox();
-
-      if (!minibusinessLocation.verified) {
-        unVerifiedBadge = Image.asset(
-            "assets/icons/business_icons/unverified_badge.png",
-            scale: 3);
-      }
-
-      String iconPath = "assets/icons/svg_logo.png";
-      if (minibusinessLocation.type == 0) {
-        iconPath =
-            "assets/icons/business_type_icons/food_and_dining_icon_alt.png";
-      } else if (minibusinessLocation.type == 1) {
-        iconPath =
-            "assets/icons/business_type_icons/home_services_icon_alt.png";
-      } else if (minibusinessLocation.type == 2) {
-        iconPath =
-            "assets/icons/business_type_icons/health_and_wellness_icon_alt.png";
-      } else if (minibusinessLocation.type == 3) {
-        iconPath =
-            "assets/icons/business_type_icons/shopping_and_retail_icon_alt.png";
-      } else if (minibusinessLocation.type == 4) {
-        iconPath =
-            "assets/icons/business_type_icons/proffesional_services_icon_alt.png";
-      } else if (minibusinessLocation.type == 5) {
-        iconPath = "assets/icons/business_type_icons/automotive_icon_alt.png";
-      } else if (minibusinessLocation.type == 6) {
-        iconPath =
-            "assets/icons/business_type_icons/beauty_and_personal_care_icon_alt.png";
-      } else if (minibusinessLocation.type == 7) {
-        iconPath =
-            "assets/icons/business_type_icons/entertainment_and_leisure_icon_alt.png";
-      } else if (minibusinessLocation.type == 8) {
-        iconPath = "assets/icons/business_type_icons/education_icon_alt.png";
-      } else if (minibusinessLocation.type == 9) {
-        iconPath =
-            "assets/icons/business_type_icons/lodging_and_travel_icon_alt.png";
-      }
-
-      return SizedBox(
-        width: 380,
-        height: 260,
-        child: Stack(
-          children: [
-            // SHADOW ONLY
-            Positioned(
-              left: 0,
-              top: 0,
-              child: IgnorePointer(
-                child: Container(
-                  width: 380,
-                  height: 240,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color.fromARGB(62, 101, 101, 101),
-                        blurRadius: 10,
-                        offset: Offset(-7, 10),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // ACTUAL CARD (Material + InkWell)
-            Positioned(
-              left: 0,
-              top: 0,
-              child: Material(
-                color: Colors.white,
-                // surfaceTintColor: app,
-                borderRadius: BorderRadius.circular(30),
-                clipBehavior: Clip.hardEdge,
-                child: InkWell(
-                  splashColor: const Color.fromARGB(255, 229, 233, 234),
-                  onTap: () {
-                    goToBusinessPage(context, minibusinessLocation.locationId);
-                  },
-                  child: SizedBox(
-                    width: 380,
-                    height: 240,
-                    child: Stack(
-                      children: [
-                        // RIGHT SIDE CONTENT
-                        Positioned(
-                          left: 210,
-                          top: 10,
-                          child: SizedBox(
-                            width: 150,
-                            child: Column(
-                              spacing: 5,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                      minWidth: 150,
-                                      maxWidth: 150,
-                                      minHeight: 30,
-                                      maxHeight: 100),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      MyText(
-                                        minibusinessLocation.name,
-                                        color: AppColors.primary,
-                                        size: 20,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      SizedBox(
-                                          width: 200,
-                                          height: 50 - 13,
-                                          child: Stack(
-                                              alignment:
-                                                  AlignmentGeometry.center,
-                                              children: [
-                                                Positioned(
-                                                    left: -2,
-                                                    child: Image.asset(iconPath,
-                                                        width: 30, height: 30)),
-                                                Positioned(
-                                                    left: 30,
-                                                    child: MyText(
-                                                      color: AppColors.primary,
-                                                      businessTypeLookup[
-                                                          minibusinessLocation
-                                                              .type]!,
-                                                      size: 14,
-                                                    )),
-                                              ])),
-                                    ],
-                                  ),
-                                ),
-                                Stack(
-                                    alignment: AlignmentDirectional.center,
-                                    // fit: StackFit.expand,
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      Positioned(
-                                          child: Image.asset(
-                                              "assets/icons/business_icons/rating_star.png")),
-                                      Positioned(
-                                          top: -1,
-                                          left: 30,
-                                          child: Small(ratings))
-                                    ]),
-                                Stack(
-                                    alignment: AlignmentDirectional.center,
-                                    // fit: StackFit.expand,
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      const Positioned(
-                                          // left: 0,
-                                          // top: 0,
-                                          child: Icon(Icons.location_on_sharp)),
-                                      Positioned(
-                                          top: -1,
-                                          left: 30,
-                                          child: MyText(
-                                            parseAddress(
-                                                minibusinessLocation.address,
-                                                minibusinessLocation
-                                                    .buildingNumber),
-                                            size: 13,
-                                          ))
-                                    ]),
-                                const SizedBox(
-                                  height: 15,
-                                ),
-                                Stack(
-                                  alignment: AlignmentDirectional.center,
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Positioned(
-                                        child: Image.asset(
-                                            "assets/icons/business_icons/distance_icon.png")),
-                                    Positioned(
-                                      top: -10,
-                                      left: 30,
-                                      child: ValueListenableBuilder(
-                                          valueListenable:
-                                              SearchServices.isMetric,
-                                          builder: (_, __, ___) {
-                                            return Small(SearchServices
-                                                    .isMetric.value
-                                                ? "${minibusinessLocation.distance.toStringAsFixed(2)} km"
-                                                : "${kmToMiles(minibusinessLocation.distance).toStringAsFixed(2)} miles");
-                                          }),
-                                    )
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        // UNVERIFIED BADGE
-                        Positioned(
-                            bottom: 10, right: 10, child: unVerifiedBadge),
-
-                        // LEFT SIDE IMAGE + STATUS
-                        Positioned(
-                          left: 13.15,
-                          top: 13.15,
-                          child: Column(
-                            spacing: 10,
-                            children: [
-                              BaseImage(
-                                url: minibusinessLocation.thumbnailPath ??
-                                    "No Url",
-                              ),
-                              Small(openString),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+      final miniBusinessLocation = snapshot.data![widget.locationId]!;
+      return BusinessLocationThumbnailBodyWidget(
+          miniBusinessLocation: miniBusinessLocation);
     } else if (snapshot.hasError) {
       return Text('Error: ${snapshot.error}');
     } else {
@@ -340,5 +75,242 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
             AsyncSnapshot<Map<String, MiniBusinessLocation>> snapshot) {
           return buildWidget(context, snapshot);
         });
+  }
+}
+
+class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
+  const BusinessLocationThumbnailBodyWidget(
+      {super.key, required this.miniBusinessLocation});
+  final MiniBusinessLocation miniBusinessLocation;
+
+  @override
+  Widget build(BuildContext context) {
+    String ratings = "No Ratings";
+    if (miniBusinessLocation.numRatings != null) {
+      ratings =
+          "${miniBusinessLocation.averageRating!.toStringAsFixed(2)}/10 (${miniBusinessLocation.numRatings!})";
+    }
+
+    bool open = false;
+    String? signTime;
+    String openString = "";
+
+    final openTimes = miniBusinessLocation.openHours;
+
+    if (openTimes != null) {
+      final weekday = DateTime.now().weekday.toString();
+
+      if (openTimes.containsKey(weekday)) {
+        List<dynamic> times = openTimes[weekday];
+
+        final openTime = DateFormat("HH:mm").parse(times[0]);
+        final closeTime = DateFormat("HH:mm").parse(times[1]);
+        final timeNow =
+            DateTime(1970, 1, 1, DateTime.now().hour, DateTime.now().minute);
+
+        if (isBetween(openTime, closeTime, timeNow) == true) {
+          open = true;
+          signTime = times[1];
+        } else {
+          signTime = times[0];
+        }
+      }
+
+      if (signTime == null) {
+        openString = "Closed Forever";
+      } else {
+        if (open) {
+          openString = "Open - Closes $signTime";
+        } else {
+          openString = "Closed - Opens $signTime";
+        }
+      }
+    }
+
+    Widget unVerifiedBadge = const SizedBox();
+
+    if (!miniBusinessLocation.verified) {
+      unVerifiedBadge = Image.asset(
+          "assets/icons/business_icons/unverified_badge.png",
+          scale: 3);
+    }
+
+    String iconPath = "assets/icons/svg_logo.png";
+    if (miniBusinessLocation.type == 0) {
+      iconPath =
+          "assets/icons/business_type_icons/food_and_dining_icon_alt.png";
+    } else if (miniBusinessLocation.type == 1) {
+      iconPath = "assets/icons/business_type_icons/home_services_icon_alt.png";
+    } else if (miniBusinessLocation.type == 2) {
+      iconPath =
+          "assets/icons/business_type_icons/health_and_wellness_icon_alt.png";
+    } else if (miniBusinessLocation.type == 3) {
+      iconPath =
+          "assets/icons/business_type_icons/shopping_and_retail_icon_alt.png";
+    } else if (miniBusinessLocation.type == 4) {
+      iconPath =
+          "assets/icons/business_type_icons/proffesional_services_icon_alt.png";
+    } else if (miniBusinessLocation.type == 5) {
+      iconPath = "assets/icons/business_type_icons/automotive_icon_alt.png";
+    } else if (miniBusinessLocation.type == 6) {
+      iconPath =
+          "assets/icons/business_type_icons/beauty_and_personal_care_icon_alt.png";
+    } else if (miniBusinessLocation.type == 7) {
+      iconPath =
+          "assets/icons/business_type_icons/entertainment_and_leisure_icon_alt.png";
+    } else if (miniBusinessLocation.type == 8) {
+      iconPath = "assets/icons/business_type_icons/education_icon_alt.png";
+    } else if (miniBusinessLocation.type == 9) {
+      iconPath =
+          "assets/icons/business_type_icons/lodging_and_travel_icon_alt.png";
+    }
+
+    return SizedBox(
+      width: 380,
+      height: 260 + 20,
+      child: Stack(
+        children: [
+          // SHADOW ONLY
+          Positioned(
+            left: 0,
+            top: 0,
+            child: IgnorePointer(
+              child: Container(
+                width: 380,
+                height: 260,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color.fromARGB(62, 101, 101, 101),
+                      blurRadius: 10,
+                      offset: Offset(-7, 10),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // ACTUAL CARD (Material + InkWell)
+          Positioned(
+            left: 0,
+            top: 0,
+            child: Material(
+              color: Colors.white,
+              // surfaceTintColor: app,
+              borderRadius: BorderRadius.circular(20),
+              clipBehavior: Clip.hardEdge,
+              child: InkWell(
+                splashColor: const Color.fromARGB(255, 229, 233, 234),
+                onTap: () {
+                  goToBusinessPage(context, miniBusinessLocation.locationId);
+                },
+                child: SizedBox(
+                  width: 380,
+                  height: 260,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      BaseImage(
+                          radius: 10,
+                          width: 380,
+                          height: 165,
+                          url: miniBusinessLocation.thumbnailPath ?? "No Url"),
+                      Row(children: [
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        MyText(
+                          miniBusinessLocation.name,
+                          color: AppColors.primary,
+                          size: 17,
+                          fontWeight: FontWeight.w200,
+                          maxlines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      ]),
+                      const SizedBox(
+                        height: 0,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Image.asset(
+                              "assets/icons/business_icons/rating_star.png"),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          MyText(
+                            ratings,
+                            color: AppColors.primary,
+                            size: 15,
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          Image.asset(iconPath, width: 25, height: 25),
+                          MyText(
+                            color: AppColors.primary,
+                            businessTypeLookup[miniBusinessLocation.type]!,
+                            size: 15,
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          RepaintBoundary(
+                              child: ValueListenableBuilder(
+                                  valueListenable: SearchServices.isMetric,
+                                  builder: (_, __, ___) {
+                                    return MyText(
+                                      "${miniBusinessLocation.distance.toStringAsFixed(2)} ${SearchServices.isMetric.value ? "km" : "mi"}",
+                                      size: 15,
+                                      color: AppColors.primary,
+                                    );
+                                  })),
+                          // unVerifiedBadge
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      Row(children: [
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        ...[
+                          for (int tagId in miniBusinessLocation.tags)
+                            Row(children: [
+                              MyText(
+                                  "${TagServices.tagLookup[tagId]!.name}  ${(tagId == miniBusinessLocation.tags.last) ? "" : "•"}",
+                                  size: 12,
+                                  maxlines: 1,
+                                  overflow: TextOverflow.clip,
+                                  color: AppColors.primary),
+                              const SizedBox(
+                                width: 4,
+                              )
+                            ])
+                        ],
+                      ])
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          Positioned(
+            right: 10,
+            top: 10,
+            child: unVerifiedBadge,
+          ),
+        ],
+      ),
+    );
   }
 }

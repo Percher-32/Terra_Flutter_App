@@ -121,6 +121,8 @@ class BusinessService {
 
   static Future<Map<String, MiniBusinessLocation>> getBusinessLocationMini(
       List<String> locationIds) async {
+    await TagServices.getAllTags();
+
     Map<String, MiniBusinessLocation> retLookup = {};
     List<String> locationsToGet = [];
 

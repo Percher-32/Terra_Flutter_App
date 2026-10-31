@@ -4,7 +4,6 @@ import 'package:nextfind/helpers/networking.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 
-
 void main() {
   HttpOverrides.global = MyHttpOverrides();
   runApp(
@@ -13,7 +12,6 @@ void main() {
     ),
   );
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
