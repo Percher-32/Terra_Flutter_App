@@ -50,6 +50,10 @@ flutter:
     - assets/icons/business_icons/unverified_badge.png
 
     - assets/img/
+
+
+    - assets/icons/user_marker.png
+
     - assets/icons/business_type_icons/
     
     - assets/icons/business_type_icons/food_and_dining_icon.png

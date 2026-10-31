@@ -46,6 +46,9 @@ class _MapSearchViewState extends State<MapSearchView>
   bool _mapReady = false;
   bool _lockCamera = false;
   bool initComplete = false;
+  bool userMarkerAdded = false;
+
+  map_gl.Symbol? userMarkerSymbol;
 
   bool _sourceAddedAlready = false;
 
@@ -60,7 +63,7 @@ class _MapSearchViewState extends State<MapSearchView>
     });
 
     SearchPageGlobals.reloadUserPositionTrigger.addListener(() async {
-      _updateUserPointPosition(UserService.userLocation);
+      await _updateUserPointPosition(UserService.userLocation);
     });
 
     initComplete = true;
@@ -72,7 +75,6 @@ class _MapSearchViewState extends State<MapSearchView>
     super.dispose();
   }
 
-  /// To register a widget into the mapLibreMap
   Future<Uint8List?> loadAndRegisterWidgetIcon(
     BuildContext context,
     Widget widget,
@@ -100,6 +102,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
     // Wait for the next frame so the widget is fully rendered
     await WidgetsBinding.instance.endOfFrame;
+    // await Future.delayed(const Duration(milliseconds: 20));
 
     try {
       // 2. Capture the rendered boundary into raw PNG bytes
@@ -127,8 +130,45 @@ class _MapSearchViewState extends State<MapSearchView>
     return null;
   }
 
+  Future<Uint8List> registerImageToMap(
+      String assetPath, String customID) async {
+    final ByteData byteData = await rootBundle.load(assetPath);
+
+    final Uint8List uint8List = byteData.buffer.asUint8List();
+
+    SearchPageGlobals.mapController?.addImage(customID, uint8List);
+
+    return uint8List;
+  }
+
   /// This function removes the previous user icon from the app and adds a new one at <b>location</b>
-  void _updateUserPointPosition(List<double> newLocation) {}
+  Future<void> _updateUserPointPosition(List<double> newLocation) async {
+    if (userMarkerSymbol != null) {
+      await SearchPageGlobals.mapController?.updateSymbol(
+        userMarkerSymbol!,
+        map_gl.SymbolOptions(
+          geometry: map_gl.LatLng(
+              newLocation[0], newLocation[1]), // Your target coordinates
+          iconImage: 'user_marker', // The key you registered above
+          iconSize: 2.0, // Scale factor
+          zIndex: 999,
+
+        ),
+      );
+    } else {
+      await registerImageToMap("assets/icons/user_marker.png", "user_marker");
+
+      userMarkerSymbol = await SearchPageGlobals.mapController?.addSymbol(
+        map_gl.SymbolOptions(
+          geometry: map_gl.LatLng(
+              newLocation[0], newLocation[1]), // Your target coordinates
+          iconImage: 'user_marker', // The key you registered above
+          iconSize: 2.0, // Scale factor
+          zIndex: 999,
+        ),
+      );
+    }
+  }
 
   /// Register an Icon with a string using location_id
   Future<void> addIconMiniBusinessToMap(
@@ -222,6 +262,8 @@ class _MapSearchViewState extends State<MapSearchView>
   Future<void> _updateBusinessIconPotisions() async {
     if (!_mapReady) return;
 
+    // This is here to allow a new add symbol to happen
+    userMarkerSymbol = null;
     SearchPageGlobals.isLoading.value = true;
 
     await SearchPageGlobals.mapController?.clearSymbols();
@@ -283,14 +325,14 @@ class _MapSearchViewState extends State<MapSearchView>
       map_gl.GeojsonSourceProperties(
         data: geoJsonData,
         cluster: true,
-        clusterRadius: 60, // Distance in pixels to group points
+        clusterRadius: 70, // Distance in pixels to group points
         // clusterMaxZoom: 5, // Zoom level where clustering stops
         clusterProperties: {
-          "max_index": [
+          "min_index": [
             [
-              'max',
+              'min',
               ['accumulated'],
-              ['get', 'max_index']
+              ['get', 'min_index']
             ],
             ['get', 'index']
           ],
@@ -306,8 +348,8 @@ class _MapSearchViewState extends State<MapSearchView>
     );
 
     await SearchPageGlobals.mapController!.addSymbolLayer(
-      "business_markers_source_mini_icons", // 1. The ID of the data source it connects to
-      "mini_icons_layer", // 2. A unique ID for this layer itself
+      "business_markers_source_mini_icons",
+      "mini_icons_layer",
       const map_gl.SymbolLayerProperties(
         iconImage: [
           'get',
@@ -320,8 +362,8 @@ class _MapSearchViewState extends State<MapSearchView>
     );
 
     await SearchPageGlobals.mapController!.addSymbolLayer(
-      "business_markers_source", // 1. The ID of the data source it connects to
-      "unique_markers_layer", // 2. A unique ID for this layer itself
+      "business_markers_source",
+      "unique_markers_layer",
       filter: [
         '!',
         ['has', 'point_count']
@@ -338,8 +380,8 @@ class _MapSearchViewState extends State<MapSearchView>
     );
 
     await SearchPageGlobals.mapController!.addSymbolLayer(
-      "business_markers_source", // 1. The ID of the data source it connects to
-      "clustered_markers_layer", // 2. A unique ID for this layer itself
+      "business_markers_source",
+      "clustered_markers_layer",
       filter: ['has', 'point_count'],
       const map_gl.SymbolLayerProperties(
         iconImage: [
@@ -347,18 +389,55 @@ class _MapSearchViewState extends State<MapSearchView>
           "BUSINESSMARKERICON_INDEXREDUCED:",
           [
             'to-string',
-            ['get', 'max_index']
+            ['get', 'min_index']
           ]
         ], // 3. Tells it to read the 'id' property from your GeoJSON
-        iconSize: 1.2, // 4. Size scaling
-        iconAllowOverlap:
-            true, // 5. Prevents close icons from hiding each other
+        iconSize: 1.3,
+        iconAllowOverlap: true,
       ),
     );
 
+    SearchPageGlobals.mapController!.onFeatureTapped
+        .add((point, coordinates, id, layerId, annotation) async {
+      await onBusinessMarkerTapped(point, coordinates, id, layerId, annotation);
+    });
+
     SearchPageGlobals.isLoading.value = false;
 
+    SearchPageGlobals.reloadUserPosition();
+
     _sourceAddedAlready = true;
+  }
+
+  Future<void> onBusinessMarkerTapped(
+      Point<double> point,
+      map_gl.LatLng coordinates,
+      String id,
+      String layerId,
+      map_gl.Annotation? annotation) async {
+    final List? features = await SearchPageGlobals.mapController
+        ?.queryRenderedFeatures(
+            point, ["clustered_markers_layer", "unique_markers_layer"], null);
+
+    if (features != null && features.isNotEmpty) {
+      final Map<String, dynamic> properties =
+          features.first["properties"] as Map<String, dynamic>;
+
+      bool isCluster = properties['cluster'] == true ||
+          properties.containsKey('point_count');
+
+      late int chosenIndex;
+      if (isCluster) {
+        chosenIndex = (properties["min_index"] as double).toInt();
+      } else {
+        chosenIndex = (properties["index"] as double).toInt();
+      }
+
+      final selectedMiniBusinessLocation =
+          SearchPageGlobals.miniBusinessLocations.value[chosenIndex];
+
+      SearchPageGlobals.setChosenBusinessLocation(selectedMiniBusinessLocation);
+    }
   }
 
   @override
@@ -366,10 +445,6 @@ class _MapSearchViewState extends State<MapSearchView>
     if (!initComplete) {
       return const SizedBox();
     }
-
-    // return LayoutBuilder(
-    //   builder: (context, constraints) {
-    // final size = constraints.biggest;
 
     return Stack(
       children: [
@@ -401,6 +476,11 @@ class _MapSearchViewState extends State<MapSearchView>
           onStyleLoadedCallback: () async {
             if (!lifecycle.isPaused) {
               _mapReady = true;
+              await SearchPageGlobals.mapController
+                  ?.setSymbolIconAllowOverlap(true);
+              await SearchPageGlobals.mapController
+                  ?.setSymbolIconIgnorePlacement(true);
+              SearchPageGlobals.reloadUserPosition();
             }
           },
           onCameraMove: (cameraPosition) async {},
@@ -417,6 +497,7 @@ class _MapSearchViewState extends State<MapSearchView>
               UserService.userLocation = UserService.userLocation;
 
               SearchPageGlobals.changeMapLocation(UserService.userLocation);
+              SearchPageGlobals.reloadUserPosition();
 
               SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
             } else {
@@ -474,8 +555,6 @@ class _MapSearchViewState extends State<MapSearchView>
         ),
       ],
     );
-    // },
-    // );
   }
 }
 
@@ -509,7 +588,7 @@ class BusinessMarker extends StatelessWidget {
             width: 15, height: 15);
 
     final Widget businessMarkerMain = SizedBox(
-        width: 50,
+        width: 58,
         height: 44,
         child: Stack(
           clipBehavior: Clip.none,
@@ -541,7 +620,7 @@ class BusinessMarker extends StatelessWidget {
                 ),
               ),
             ),
-            Positioned(left: 32, bottom: 0, child: veriBadge),
+            Positioned(left: 32 - 8, bottom: 0, child: veriBadge),
           ],
         ));
 
@@ -560,34 +639,38 @@ class BusinessMarker extends StatelessWidget {
     } else {
       return Container(
           width: 180,
-          height: 70,
+          height: 65,
+          decoration: const BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.all(Radius.circular(40))),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Stack(
+            alignment: AlignmentGeometry.center,
             children: [
+              Positioned(left: 0, bottom: 65 / 4, child: businessMarkerMain),
               Positioned(
-                left: 0,
-                bottom: 0,
-                child: businessMarkerMain
-              ),
-              Column(children: [
-                SizedBox(
-                  width: 100,
-                  child: MyText(
-                    miniBusinessLocation.name,
-                    size: 12,
-                    overflow: TextOverflow.ellipsis,
-                    maxlines: 1,
-                  ),
-                ),
-                SizedBox(
-                  width: 100,
-                  child: MyText(
-                    businessTypeLookup[miniBusinessLocation.type] ?? '',
-                    size: 10,
-                    overflow: TextOverflow.ellipsis,
-                    maxlines: 1,
-                  ),
-                ),
-              ]),
+                  left: 55,
+                  bottom: 65 / 4,
+                  child: Column(children: [
+                    SizedBox(
+                      width: 100,
+                      child: MyText(
+                        miniBusinessLocation.name,
+                        size: 12,
+                        overflow: TextOverflow.ellipsis,
+                        maxlines: 1,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 100,
+                      child: MyText(
+                        businessTypeLookup[miniBusinessLocation.type] ?? '',
+                        size: 10,
+                        overflow: TextOverflow.ellipsis,
+                        maxlines: 1,
+                      ),
+                    ),
+                  ])),
             ],
           ));
     }

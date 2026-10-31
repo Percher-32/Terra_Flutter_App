@@ -25,13 +25,21 @@ class SearchPageGlobals {
   static final ValueNotifier<List<MiniBusinessLocation>> miniBusinessLocations =
       ValueNotifier([]);
 
-  static final Map<(MiniBusinessLocation,BusinessMarkerLevel), Uint8List> businessMarkerIconCache = {};
+  static final Map<(MiniBusinessLocation, BusinessMarkerLevel), Uint8List>
+      businessMarkerIconCache = {};
 
   static bool hasWifi = false;
 
   static MiniBusinessLocation? chosenBusinessLocation;
 
   static map_gl.MapLibreMapController? mapController;
+
+  static void setChosenBusinessLocation(
+      MiniBusinessLocation miniBusinessLocation) {
+    chosenBusinessLocation = miniBusinessLocation;
+    mapMode.value = MainSearchPageMode.thumbnail;
+    changeMapLocation(miniBusinessLocation.location);
+  }
 
   static void reloadMap() {
     reloadMapTrigger.value = !reloadMapTrigger.value;

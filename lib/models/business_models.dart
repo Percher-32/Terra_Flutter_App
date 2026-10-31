@@ -81,7 +81,7 @@ class MiniBusinessLocation {
   final String businessId;
   final String name;
   final int type;
-  final List location;
+  final List<double> location;
   final Map address;
   final bool verified;
   final double distance;
@@ -140,7 +140,7 @@ class MiniBusinessLocation {
       businessId: json["business_id"],
       name: json["business_name"],
       type: json["primary_type"],
-      location: json["business_location_location"],
+      location: List<double>.from(json["business_location_location"]) ,
       address: json["address"],
       verified: json["verified"],
       distance: json["distance"] as double,
