@@ -16,8 +16,15 @@ Notice -> This demo only shows how the app function without a server present , I
 https://github.com/user-attachments/assets/adda66f1-8fb9-454b-9872-df7f32bcb02a
 
 ## How To run
-if you have flutter you can just do `flutter run`
-The web demo however is found at https://percher-32.github.io/Terra_Flutter_App/
+### Flutter
+if you have flutter you can clone this repository and run  `flutter run` on any device 
+
+### Mobile
+There is an apk file in the releases page
+
+### Web
+The web demo is found at https://percher-32.github.io/Terra_Flutter_App/
+
 
 
 ## WEB BUILD NOTICE FOR ME
