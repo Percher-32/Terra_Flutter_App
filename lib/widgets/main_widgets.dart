@@ -6,17 +6,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:nextfind/services/search_services.dart';
 
 class AppColors {
-  static const background = Color.fromARGB(255, 255, 255, 255);
-  final a = const Color.fromRGBO(237, 231, 246, 1);
-  static const leveled = Color.fromRGBO(237, 231, 246, 1);
+  static const background = Color.fromARGB(255, 1, 29, 0);
+  static const leveled = Color.fromARGB(255, 25, 44, 0);
+  static const secondaryLeveled = Color.fromARGB(255, 37, 65, 0);
   // fromARGB(255, 255, 255, 255);
 
   static const halfLeveled = Color.fromRGBO(251, 248, 255, 1);
 
-  static const text = Color.fromARGB(255, 0, 0, 0);
-  static const primary = Color.fromARGB(255, 252, 130, 74);
+  static const text = Color.fromARGB(255, 255, 255, 255);
+  static const secondaryText = Color.fromARGB(255, 163, 222, 0);
+  static const highlightText = Color.fromARGB(255, 187, 255, 0);
+
+  static const primary = Color.fromARGB(255, 55, 98, 0);
   static const secondary = Color.fromARGB(255, 101, 44, 145);
-  static const accent = Color.fromARGB(255, 34, 139, 219);
 }
 
 class MyInputField extends StatelessWidget {
@@ -300,8 +302,8 @@ class _BaseImageState extends State<BaseImage> {
   void initState() {
     super.initState();
 
-
-    if (widget.url == "No Url" || NextfindDebugOptions.keepAllNetworkImagesAsDefault ) {
+    if (widget.url == "No Url" ||
+        NextfindDebugOptions.keepAllNetworkImagesAsDefault) {
       provider = const AssetImage("assets/img/kde.png");
     } else {
       final trueUrl = Networking.getFullImageUrl(widget.url);
@@ -565,7 +567,7 @@ class MyMultiToggleState extends State<MyMultiToggle> {
             child: Text(
               label,
               style: TextStyle(
-                  color: active ? Colors.white : Colors.black87,
+                  color: active ? AppColors.text : AppColors.secondaryText,
                   fontWeight: FontWeight.w400,
                   fontSize: 17,
                   fontFamily: "LilitaOne"),
@@ -581,7 +583,7 @@ class MyMultiToggleState extends State<MyMultiToggle> {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: AppColors.leveled,
+        color: AppColors.secondaryLeveled,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -810,4 +812,3 @@ class RoundButton extends StatelessWidget {
     // return
   }
 }
-

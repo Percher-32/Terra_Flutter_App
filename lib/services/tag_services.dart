@@ -174,15 +174,15 @@ class TagServices {
                                         ),
                                         backgroundColor: selected
                                             ? AppColors.primary
-                                            : AppColors.halfLeveled,
+                                            : AppColors.secondaryLeveled,
                                       ),
                                       child: MyText(
                                         tag.name,
                                         size: 13,
                                         textAlign: TextAlign.center,
                                         color: selected
-                                            ? AppColors.background
-                                            : AppColors.text,
+                                            ? AppColors.text
+                                            : AppColors.secondaryText,
                                       ),
                                     ),
                                   );
@@ -273,7 +273,7 @@ class TagServices {
         return Container(
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: leveled ? AppColors.leveled : Colors.white,
+            color: leveled ? AppColors.secondaryLeveled : AppColors.leveled,
             borderRadius: BorderRadius.circular(20),
           ),
           width: 500,
@@ -318,8 +318,7 @@ class TagServices {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             const SizedBox(width: 10),
-                            MyText(tag.name,
-                                size: 13, color: AppColors.background),
+                            MyText(tag.name, size: 13, color: AppColors.text),
                             const SizedBox(width: 20),
                             IconButton(
                               onPressed: () {

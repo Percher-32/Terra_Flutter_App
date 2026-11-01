@@ -43,14 +43,12 @@ class MapSearchView extends StatefulWidget {
 
 class _MapSearchViewState extends State<MapSearchView>
     with SingleTickerProviderStateMixin {
-  bool _mapReady = false;
   bool _lockCamera = false;
   bool initComplete = false;
-  bool userMarkerAdded = false;
 
   bool userSourceAdded = false;
 
-  bool _sourceAddedAlready = false;
+  bool sourceAddedAlready = false;
 
   @override
   void initState() {
@@ -71,7 +69,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
   @override
   void dispose() {
-    _mapReady = false;
+    SearchPageGlobals.mapReady = false;
     super.dispose();
   }
 
@@ -191,8 +189,8 @@ class _MapSearchViewState extends State<MapSearchView>
     // Full Icons
     if (!mounted) return;
     if (SearchPageGlobals.businessMarkerIconCache
-            .containsKey((miniBusinessLocation, BusinessMarkerLevel.full)) &
-        !NextfindDebugOptions.cacheBusinessMarkerIcons) {
+            .containsKey((miniBusinessLocation, BusinessMarkerLevel.full)) &&
+        NextfindDebugOptions.cacheBusinessMarkerIcons) {
       log.i("ICON CACHE HIT");
       final widgetList = SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
@@ -219,8 +217,8 @@ class _MapSearchViewState extends State<MapSearchView>
     if (!mounted) return;
 
     if (SearchPageGlobals.businessMarkerIconCache
-            .containsKey((miniBusinessLocation, BusinessMarkerLevel.reduced)) &
-        !NextfindDebugOptions.cacheBusinessMarkerIcons) {
+            .containsKey((miniBusinessLocation, BusinessMarkerLevel.reduced)) &&
+        NextfindDebugOptions.cacheBusinessMarkerIcons) {
       log.i("ICON CACHE HIT");
       final widgetList = SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
@@ -246,8 +244,8 @@ class _MapSearchViewState extends State<MapSearchView>
     //Mini Icons
     if (!mounted) return;
     if (SearchPageGlobals.businessMarkerIconCache
-            .containsKey((miniBusinessLocation, BusinessMarkerLevel.mini)) &
-        !NextfindDebugOptions.cacheBusinessMarkerIcons) {
+            .containsKey((miniBusinessLocation, BusinessMarkerLevel.mini)) &&
+        NextfindDebugOptions.cacheBusinessMarkerIcons) {
       log.i("ICON CACHE HIT");
       final widgetList = SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
@@ -274,7 +272,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
   /// This function removes all the previous icons and adds new ones.
   Future<void> _updateBusinessIconPotisions() async {
-    if (!_mapReady) return;
+    if (!SearchPageGlobals.mapReady) return;
 
     // This is here to allow a new add symbol to happen
     SearchPageGlobals.isLoading.value = true;
@@ -313,25 +311,15 @@ class _MapSearchViewState extends State<MapSearchView>
 
     // String jsonGeoData = jsonEncode(geoJsonData);
 
-    if (_sourceAddedAlready) {
+    final allSourceIds = await SearchPageGlobals.mapController!.getSourceIds();
+
+    if (sourceAddedAlready) {
       await SearchPageGlobals.mapController!
           .setGeoJsonSource("business_markers_source", geoJsonData);
       SearchPageGlobals.isLoading.value = false;
 
       return;
     }
-
-    // try {
-    //   await SearchPageGlobals.mapController!
-    //       .removeSource("business_markers_source");
-    //   await SearchPageGlobals.mapController!
-    //       .removeSource("business_markers_source_mini_icons");
-    //   await SearchPageGlobals.mapController!
-    //       .removeLayer("unique_markers_layer");
-    //   await SearchPageGlobals.mapController!
-    //       .removeLayer("clustered_markers_layer");
-    //   await SearchPageGlobals.mapController!.removeLayer("mini_icons_layer");
-    // } finally {}
 
     await SearchPageGlobals.mapController!.addSource(
       "business_markers_source",
@@ -421,7 +409,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
     SearchPageGlobals.isLoading.value = false;
 
-    _sourceAddedAlready = true;
+    sourceAddedAlready = true;
   }
 
   Future<void> onBusinessMarkerTapped(
@@ -466,7 +454,7 @@ class _MapSearchViewState extends State<MapSearchView>
         // MAP
         map_gl.MapLibreMap(
           styleString:
-              "https://api.maptiler.com/maps/019fa3e4-e15f-7004-817f-b2c8f21d06d9/style.json?key=6qbiNDxrdNlr98KHQ1F9",
+              "https://api.maptiler.com/maps/01a196d6-bda3-74d5-b701-fd441b3d6892/style.json?key=6qbiNDxrdNlr98KHQ1F9",
           initialCameraPosition: map_gl.CameraPosition(
             target:
                 //Use the user position or the chosen location to start of with
@@ -490,17 +478,20 @@ class _MapSearchViewState extends State<MapSearchView>
           },
           onStyleLoadedCallback: () async {
             if (!lifecycle.isPaused) {
-              _mapReady = true;
+              SearchPageGlobals.mapReady = true;
               await SearchPageGlobals.mapController
                   ?.setSymbolIconAllowOverlap(true);
               await SearchPageGlobals.mapController
                   ?.setSymbolIconIgnorePlacement(true);
               SearchPageGlobals.reloadUserPosition();
             }
+            SearchPageGlobals.reloadMap();
           },
-          onCameraMove: (cameraPosition) async {},
+          onCameraMove: (cameraPosition) async {
+            SearchPageGlobals.mapReady = true;
+          },
           onMapIdle: () async {
-            // await _refreshOverlayPositions();
+            SearchPageGlobals.mapReady = true;
           },
           onMapClick: (_, map_gl.LatLng latLng) {
             if (SearchPageGlobals.mapMode.value ==
@@ -523,30 +514,6 @@ class _MapSearchViewState extends State<MapSearchView>
           },
           compassEnabled: false,
         ),
-
-        // Icons
-        // ValueListenableBuilder(
-        //   valueListenable: SearchPageGlobals.reloadMapPointsTrigger,
-        //   builder: (_, __, ___) {
-        //     return Stack(
-        //       children: List.generate(markerObjects.length, (index) {
-        //         final markerObject = markerObjects[index];
-        //         final offset = markerObject.$2;
-        //         final miniBusinessLocation = markerObject.$1;
-        //         final nearestDist = markerDist[index];
-
-        //         return Transform.translate(
-        //           offset: Offset(offset.dx, offset.dy),
-        //           child: RepaintBoundary(
-        //               child: BusinessMarker(
-        //                   miniBusinessLocation: miniBusinessLocation,
-        //                   nearestDist: nearestDist,
-        //                   index: index)),
-        //         );
-        //       }),
-        //     );
-        //   },
-        // ),
 
         // THUMBNAIL OVERLAY
         ValueListenableBuilder<MainSearchPageMode>(
@@ -626,12 +593,12 @@ class BusinessMarker extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: AppColors.background,
+                  color: AppColors.leveled,
                 ),
                 child: MyText(
                   ratingtext,
                   size: 9,
-                  color: AppColors.accent,
+                  color: AppColors.text,
                 ),
               ),
             ),
@@ -672,7 +639,7 @@ class BusinessMarker extends StatelessWidget {
                         SizedBox(
                           width: 100,
                           child: MyText(
-                            color: AppColors.primary,
+                            color: AppColors.text,
                             miniBusinessLocation.name,
                             size: 12,
                             overflow: TextOverflow.ellipsis,
@@ -682,7 +649,7 @@ class BusinessMarker extends StatelessWidget {
                         SizedBox(
                           width: 100,
                           child: MyText(
-                            color: AppColors.primary,
+                            color: AppColors.text,
                             businessTypeLookup[miniBusinessLocation.type] ?? '',
                             size: 10,
                             overflow: TextOverflow.ellipsis,

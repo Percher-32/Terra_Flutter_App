@@ -16,15 +16,11 @@ class ListSearchView extends StatefulWidget {
 class _ListSearchViewState extends State<ListSearchView> {
   late final ScrollController scrollController;
 
-
   @override
   void initState() {
     super.initState();
     scrollController = ScrollController(initialScrollOffset: 0);
-    
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +28,7 @@ class _ListSearchViewState extends State<ListSearchView> {
       height: MediaQuery.of(context).size.height,
       child: RefreshIndicator(
           onRefresh: () async {
-            SearchPageGlobals.reloadMap();
+            SearchPageGlobals.runSearch();
           },
           child: ListView.separated(
             controller: scrollController,

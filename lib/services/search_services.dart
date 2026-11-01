@@ -20,6 +20,10 @@ class SearchPageGlobals {
   static final ValueNotifier<bool> reloadUserPositionTrigger =
       ValueNotifier(false);
 
+
+  static bool mapReady = false;
+
+
   static final ValueNotifier<bool> isLoading = ValueNotifier(false);
 
   static final ValueNotifier<List<MiniBusinessLocation>> miniBusinessLocations =
@@ -42,7 +46,9 @@ class SearchPageGlobals {
   }
 
   static void reloadMap() {
-    reloadMapTrigger.value = !reloadMapTrigger.value;
+    if (mapMode.value == MainSearchPageMode.map){
+      reloadMapTrigger.value = !reloadMapTrigger.value;
+    }
   }
 
   static void reloadUserPosition() {
@@ -114,7 +120,7 @@ class SearchServices {
 
     showModalBottomSheet(
       context: parentContext,
-      // backgroundColor: Colors.deepPurple.shade50,
+      backgroundColor: AppColors.leveled,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -132,7 +138,6 @@ class SearchServices {
                 size: 30,
               ),
               const SizedBox(height: 30),
-              // //TTILE DONE
 
               Container(
                   decoration: BoxDecoration(
@@ -213,7 +218,7 @@ class SearchServices {
               MyButton(
                 height: 60,
                 width: 300,
-                child: const Body("Search", color: AppColors.background),
+                child: const MyText("Search", color: AppColors.text),
                 onPressed: () {
                   // goToSearchPage(parentContext);
                 },
@@ -382,7 +387,7 @@ class CategoryDropDownState extends State<CategoryDropDown> {
               borderRadius: BorderRadius.circular(12),
             ),
             backgroundColor:
-                isChosen ? AppColors.primary : AppColors.background,
+                isChosen ? AppColors.primary : AppColors.secondaryLeveled,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -390,7 +395,7 @@ class CategoryDropDownState extends State<CategoryDropDown> {
               itemWidget,
               MyText(
                 itemValue.toString(),
-                color: isChosen ? AppColors.background : AppColors.text,
+                color: isChosen ? AppColors.text : AppColors.secondaryText,
                 textAlign: TextAlign.center,
                 size: 13,
               ),
@@ -459,7 +464,7 @@ class CategoryDropDownState extends State<CategoryDropDown> {
                   businessTypeLookup[SearchServices.categoryIndex.value]
                       .toString(),
                   textAlign: TextAlign.center,
-                  color: AppColors.background,
+                  color: AppColors.text,
                 ),
               ),
               const Positioned(

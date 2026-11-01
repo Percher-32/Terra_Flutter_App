@@ -59,7 +59,7 @@ class NavBar extends StatelessWidget {
               topLeft: Radius.circular(10),
               topRight: Radius.circular(10),
             ),
-            color: AppColors.primary,
+            color: AppColors.leveled,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -108,12 +108,11 @@ class NavBar extends StatelessWidget {
     required String label,
   }) {
     final isSelected = currentPage == page;
-    final midColor = Color.lerp(AppColors.background, AppColors.primary, 0.5)!;
 
     return IconButton(
       icon: Icon(
         icon,
-        color: isSelected ? Colors.white : midColor,
+        color: isSelected ? AppColors.text : AppColors.secondaryText,
         size: 35,
       ),
       iconSize: 35,

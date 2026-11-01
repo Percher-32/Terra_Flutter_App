@@ -171,33 +171,33 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
       child: Stack(
         children: [
           // SHADOW ONLY
-          Positioned(
-            left: 0,
-            top: 0,
-            child: IgnorePointer(
-              child: Container(
-                width: 380,
-                height: 260,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromARGB(62, 101, 101, 101),
-                      blurRadius: 10,
-                      offset: Offset(-7, 10),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          // Positioned(
+          //   left: 0,
+          //   top: 0,
+          //   child: IgnorePointer(
+          //     child: Container(
+          //       width: 380,
+          //       height: 260,
+          //       decoration: BoxDecoration(
+          //         borderRadius: BorderRadius.circular(30),
+          //         boxShadow: const [
+          //           BoxShadow(
+          //             color: Color.fromARGB(62, 101, 101, 101),
+          //             blurRadius: 10,
+          //             offset: Offset(-7, 10),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
 
           // ACTUAL CARD (Material + InkWell)
           Positioned(
             left: 0,
             top: 0,
             child: Material(
-              color: Colors.white,
+              color: AppColors.leveled,
               // surfaceTintColor: app,
               borderRadius: BorderRadius.circular(20),
               clipBehavior: Clip.hardEdge,
@@ -223,7 +223,7 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
                         ),
                         MyText(
                           miniBusinessLocation.name,
-                          color: AppColors.primary,
+                          color: AppColors.highlightText,
                           size: 17,
                           fontWeight: FontWeight.w200,
                           maxlines: 1,
@@ -247,7 +247,7 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
                           ),
                           MyText(
                             ratings,
-                            color: AppColors.primary,
+                            color: AppColors.text,
                             size: 15,
                           ),
                           const SizedBox(
@@ -255,7 +255,7 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
                           ),
                           Image.asset(iconPath, width: 25, height: 25),
                           MyText(
-                            color: AppColors.primary,
+                            color: AppColors.text,
                             businessTypeLookup[miniBusinessLocation.type]!,
                             size: 15,
                           ),
@@ -269,7 +269,7 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
                                     return MyText(
                                       "${miniBusinessLocation.distance.toStringAsFixed(2)} ${SearchServices.isMetric.value ? "km" : "mi"}",
                                       size: 15,
-                                      color: AppColors.primary,
+                                      color: AppColors.text,
                                     );
                                   })),
                           // unVerifiedBadge
@@ -290,7 +290,7 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
                                   size: 12,
                                   maxlines: 1,
                                   overflow: TextOverflow.clip,
-                                  color: AppColors.primary),
+                                  color: AppColors.text),
                               const SizedBox(
                                 width: 4,
                               )

@@ -28,11 +28,10 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-    SearchPageGlobals.isLoading.value = false;
-    // _counter.value = newValue; // Safe because the build phase is complete
-  });
+      SearchPageGlobals.isLoading.value = false;
+      // _counter.value = newValue; // Safe because the build phase is complete
+    });
 
     super.initState();
     WidgetsBinding.instance.addObserver(lifecycle);
@@ -49,7 +48,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _runSearchFunction() async {
     // Prevent overlapping searches
-
+    log.d("${SearchPageGlobals.isLoading.value}");
     if (SearchPageGlobals.isLoading.value) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -66,11 +65,13 @@ class _SearchPageState extends State<SearchPage> {
       type: SearchServices.categoryIndex.value,
     ))!;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SearchPageGlobals.isLoading.value = false;
+    });
     SearchPageGlobals.reloadMap();
 
     if (!mounted) return;
 
-    SearchPageGlobals.isLoading.value = false;
     setState(() {});
   }
 
@@ -78,16 +79,15 @@ class _SearchPageState extends State<SearchPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // allows full height
-      backgroundColor: Colors.transparent, // optional
+      backgroundColor: AppColors.leveled, // optional
+      barrierColor: AppColors.leveled, // optional
       builder: (sheetContext) {
         return Container(
-            // color: AppColors.background,
-            // padding: EdgeInsets.only(left: 10, right: 10),
             decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(40),
                     topRight: Radius.circular(40)),
-                color: AppColors.background),
+                color: AppColors.leveled),
             height: 250,
             child: Center(
                 child: SizedBox(
@@ -115,7 +115,7 @@ class _SearchPageState extends State<SearchPage> {
                         vertical: 18, horizontal: 10),
                     child: const MyText(
                       "Use My Location",
-                      color: AppColors.background,
+                      color: AppColors.text,
                     ),
                   ),
                   MyButton(
@@ -130,7 +130,7 @@ class _SearchPageState extends State<SearchPage> {
                         vertical: 18, horizontal: 10),
                     child: const MyText(
                       "Choose Location",
-                      color: AppColors.background,
+                      color: AppColors.text,
                     ),
                   ),
                 ],
@@ -249,13 +249,13 @@ class SearchPageBody extends StatelessWidget {
       backgroundColor: Colors.transparent, // optional
       builder: (sheetContext) {
         return Container(
-            // color: AppColors.background,
+            // color: AppColors.text,
             // padding: EdgeInsets.only(left: 10, right: 10),
             decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(40),
                     topRight: Radius.circular(40)),
-                color: AppColors.background),
+                color: AppColors.text),
             height: 250,
             child: Center(
                 child: SizedBox(
@@ -282,7 +282,7 @@ class SearchPageBody extends StatelessWidget {
                         vertical: 18, horizontal: 10),
                     child: const MyText(
                       "Use My Location",
-                      color: AppColors.background,
+                      color: AppColors.text,
                     ),
                   ),
                   MyButton(
@@ -298,7 +298,7 @@ class SearchPageBody extends StatelessWidget {
                         vertical: 18, horizontal: 10),
                     child: const MyText(
                       "Choose Location",
-                      color: AppColors.background,
+                      color: AppColors.text,
                     ),
                   ),
                 ],
@@ -346,7 +346,7 @@ class SearchPageBody extends StatelessWidget {
                 child: Icon(
                   Icons.location_on,
                   size: 35,
-                  color: AppColors.background,
+                  color: AppColors.text,
                 ),
               ),
             ),
@@ -372,7 +372,7 @@ class SearchPageBody extends StatelessWidget {
                 child: Icon(
                   Icons.location_searching,
                   size: 35,
-                  color: AppColors.background,
+                  color: AppColors.text,
                 ),
               ),
             ),
@@ -398,7 +398,7 @@ class SearchPageBody extends StatelessWidget {
                 child: Icon(
                   Icons.list,
                   size: 35,
-                  color: AppColors.background,
+                  color: AppColors.text,
                 ),
               ),
             ),
@@ -424,7 +424,7 @@ class SearchPageBody extends StatelessWidget {
                 child: Icon(
                   Icons.search,
                   size: 35,
-                  color: AppColors.background,
+                  color: AppColors.text,
                 ),
               ),
             ),
@@ -450,7 +450,7 @@ class SearchPageBody extends StatelessWidget {
                 child: Icon(
                   Icons.search,
                   size: 35,
-                  color: AppColors.background,
+                  color: AppColors.text,
                 ),
               ),
             ),
@@ -477,7 +477,7 @@ class SearchPageBody extends StatelessWidget {
                 child: Icon(
                   Icons.map_outlined,
                   size: 35,
-                  color: AppColors.background,
+                  color: AppColors.text,
                 ),
               ),
             ),
@@ -495,7 +495,7 @@ class SearchPageBody extends StatelessWidget {
                     child: MyText(
                   "Tap anywhere on the map to choose a location",
                   size: 20,
-                  color: AppColors.background,
+                  color: AppColors.text,
                   textAlign: TextAlign.center,
                 ))));
 
@@ -506,11 +506,11 @@ class SearchPageBody extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8.0),
           child: const MyText(
             "Back",
-            color: AppColors.background,
+            color: AppColors.text,
           ),
           onPressed: () {
+            SearchPageGlobals.mapReady = false;
             SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
-            SearchPageGlobals.reloadMap();
           },
         ));
 

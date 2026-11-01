@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/screens/homepage.dart';
+import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/helpers/networking.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
@@ -22,15 +23,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Next Find',
       theme: ThemeData(
-        brightness: Brightness.light,
+        scaffoldBackgroundColor: AppColors.background,
       ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
-        ),
-      ),
-      themeMode: ThemeMode.light,
+      themeMode: ThemeMode.dark,
       home: const HomePage(),
     );
   }
