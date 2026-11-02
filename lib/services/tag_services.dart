@@ -300,7 +300,7 @@ class TagServices {
                         child: const Center(
                             child: Icon(Icons.add_rounded,
                                 // fontWeight: FontWeight(10),
-                                color: Colors.white,
+                                color: AppColors.text,
                                 size: 40)),
                       ));
                 } else {

@@ -10,12 +10,10 @@ class Loadfiles {
 
   static Future<dynamic> loadJsonFile(String path) async {
     if (fileCache.containsKey(path)) {
-      log.i("FILE CACHE HIT");
       return fileCache[path];
     } else {
       // try {
       // final file = File(path);
-      log.i("FILE CACHE Miss");
       String jsonString = await rootBundle.loadString(path);
 
       var jsonData = jsonDecode(jsonString);

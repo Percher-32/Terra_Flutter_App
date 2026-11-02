@@ -20,9 +20,7 @@ class SearchPageGlobals {
   static final ValueNotifier<bool> reloadUserPositionTrigger =
       ValueNotifier(false);
 
-
   static bool mapReady = false;
-
 
   static final ValueNotifier<bool> isLoading = ValueNotifier(false);
 
@@ -46,7 +44,7 @@ class SearchPageGlobals {
   }
 
   static void reloadMap() {
-    if (mapMode.value == MainSearchPageMode.map){
+    if (mapMode.value == MainSearchPageMode.map) {
       reloadMapTrigger.value = !reloadMapTrigger.value;
     }
   }
@@ -66,7 +64,6 @@ class SearchPageGlobals {
             map_gl.LatLng(newLocation[0], newLocation[1]), 16),
       );
     }
-    // changeMapLocationTrigger.value = newLocation;
   }
 }
 
@@ -82,7 +79,6 @@ class SearchServices {
   static final ValueNotifier<int> searchRadiusIndex = () {
     final notifier = ValueNotifier(3);
 
-    // Make the search radius value auto-update
     notifier.addListener(() {
       searchRadius = searchRadiusValues[notifier.value];
     });
@@ -138,7 +134,6 @@ class SearchServices {
                 size: 30,
               ),
               const SizedBox(height: 30),
-
               Container(
                   decoration: BoxDecoration(
                       color: AppColors.primary,
@@ -149,9 +144,7 @@ class SearchServices {
                     controller: SearchServices.controller,
                     onSubmitted: (value) => goToSearchPage(parentContext),
                   )),
-
               const SizedBox(height: 20),
-
               ValueListenableBuilder(
                 valueListenable: SearchServices.searchRadiusIndex,
                 builder: (_, __, ___) {
@@ -165,7 +158,6 @@ class SearchServices {
                 },
               ),
               const SizedBox(height: 10),
-
               MyMultiToggle(
                 initial: SearchServices.isMetric.value ? 0 : 1,
                 options: const [
@@ -178,20 +170,14 @@ class SearchServices {
                 },
               ),
               const SizedBox(height: 20),
-              // //Choose Units Done
-
-              const Body(
+              const LabelText(
                 "Category",
                 color: AppColors.text,
               ),
               const SizedBox(height: 10),
-
               const CategoryDropDown(),
-
               const SizedBox(height: 20),
-              // //Category DROPDOWN DONE
-
-              const Body(
+              const LabelText(
                 "Sort By",
                 color: AppColors.text,
               ),
@@ -204,23 +190,19 @@ class SearchServices {
                 },
               ),
               const SizedBox(height: 20),
-              // //TTILE SEARCH POWER DONE
-
-              const Body(
+              const LabelText(
                 "Tags",
                 color: AppColors.text,
               ),
               const SizedBox(height: 10),
               TagServices.showChosenTagWidget(parentContext),
               const SizedBox(height: 40),
-              // //Tag Chooser Done
-
               MyButton(
                 height: 60,
                 width: 300,
                 child: const MyText("Search", color: AppColors.text),
                 onPressed: () {
-                  // goToSearchPage(parentContext);
+                  goToSearchPage(parentContext);
                 },
               ),
             ],
@@ -244,7 +226,6 @@ class SearchServices {
                 color: AppColors.primary,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  // mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(width: 10),
                     const Icon(Icons.search, color: Colors.white, size: 40),
@@ -252,6 +233,8 @@ class SearchServices {
                       child: HeaderInput(
                         hint: "find a business",
                         controller: controller,
+                        color: AppColors.text,
+                        size: 25,
                         onSubmitted: (value) => goToSearchPage(context),
                       ),
                     ),
@@ -422,14 +405,11 @@ class CategoryDropDownState extends State<CategoryDropDown> {
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
-                      height: 500, // limit height
-                      // width: ,
+                      height: 500,
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          // how wide each item should be
                           const itemWidth = 110.0;
 
-                          // calculate how many items fit
                           final columns =
                               (constraints.maxWidth / itemWidth).floor();
 

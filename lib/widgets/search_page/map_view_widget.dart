@@ -56,6 +56,8 @@ class _MapSearchViewState extends State<MapSearchView>
 
     super.initState();
 
+    SearchPageGlobals.mapReady = false;
+
     SearchPageGlobals.reloadMapTrigger.addListener(() async {
       await _updateBusinessIconPotisions();
     });
@@ -65,12 +67,6 @@ class _MapSearchViewState extends State<MapSearchView>
     });
 
     initComplete = true;
-  }
-
-  @override
-  void dispose() {
-    SearchPageGlobals.mapReady = false;
-    super.dispose();
   }
 
   Future<Uint8List?> loadAndRegisterWidgetIcon(
@@ -115,6 +111,10 @@ class _MapSearchViewState extends State<MapSearchView>
         final Uint8List? imageList = byteData?.buffer.asUint8List();
 
         if (imageList != null) {
+          if (!SearchPageGlobals.mapReady ||
+              SearchPageGlobals.mapMode.value == MainSearchPageMode.list) {
+            return null;
+          }
           // 3. Register it into MapLibre's style memory with your custom ID string
 
           await SearchPageGlobals.mapController?.addImage(customId, imageList);
@@ -167,18 +167,20 @@ class _MapSearchViewState extends State<MapSearchView>
         ),
       );
 
-      await SearchPageGlobals.mapController?.addLayer(
-        "user_marker_source",
-        "user_marker_layer",
-        const map_gl.SymbolLayerProperties(
-          iconImage: "user_marker",
-          iconSize: 2.0,
-          iconAllowOverlap: true,
-          iconIgnorePlacement: true,
-        ),
-      );
+      try {
+        await SearchPageGlobals.mapController?.addLayer(
+          "user_marker_source",
+          "user_marker_layer",
+          const map_gl.SymbolLayerProperties(
+            iconImage: "user_marker",
+            iconSize: 2.0,
+            iconAllowOverlap: true,
+            iconIgnorePlacement: true,
+          ),
+        );
 
-      userSourceAdded = true;
+        userSourceAdded = true;
+      } finally {}
     }
   }
 
@@ -187,7 +189,13 @@ class _MapSearchViewState extends State<MapSearchView>
       MiniBusinessLocation miniBusinessLocation, int index) async {
     // log.i("${SearchPageGlobals}");
     // Full Icons
+
     if (!mounted) return;
+    if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
+        !SearchPageGlobals.mapReady) {
+      return;
+    }
+
     if (SearchPageGlobals.businessMarkerIconCache
             .containsKey((miniBusinessLocation, BusinessMarkerLevel.full)) &&
         NextfindDebugOptions.cacheBusinessMarkerIcons) {
@@ -199,23 +207,32 @@ class _MapSearchViewState extends State<MapSearchView>
       await SearchPageGlobals.mapController
           ?.addImage("BUSINESSMARKERICON_INDEXFULL:$index", widgetList);
     } else {
-      final Uint8List fullIconImage = (await loadAndRegisterWidgetIcon(
+      final Uint8List? fullIconImage = (await loadAndRegisterWidgetIcon(
           context,
           BusinessMarker(
               miniBusinessLocation: miniBusinessLocation,
               businessMarkerLevel: BusinessMarkerLevel.full,
               index: index),
-          "BUSINESSMARKERICON_INDEXFULL:$index"))!;
+          "BUSINESSMARKERICON_INDEXFULL:$index"));
+
+      if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
+          !SearchPageGlobals.mapReady) {
+        return;
+      }
 
       SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
         BusinessMarkerLevel.full
-      )] = fullIconImage;
+      )] = fullIconImage!;
     }
 
     // Reduced Icons
     if (!mounted) return;
-
+    if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
+        !SearchPageGlobals.mapReady) {
+      return;
+    }
+    ;
     if (SearchPageGlobals.businessMarkerIconCache
             .containsKey((miniBusinessLocation, BusinessMarkerLevel.reduced)) &&
         NextfindDebugOptions.cacheBusinessMarkerIcons) {
@@ -227,22 +244,32 @@ class _MapSearchViewState extends State<MapSearchView>
       await SearchPageGlobals.mapController
           ?.addImage("BUSINESSMARKERICON_INDEXREDUCED:$index", widgetList);
     } else {
-      final Uint8List reducedIconImage = (await loadAndRegisterWidgetIcon(
+      final Uint8List? reducedIconImage = (await loadAndRegisterWidgetIcon(
           context,
           BusinessMarker(
               miniBusinessLocation: miniBusinessLocation,
               businessMarkerLevel: BusinessMarkerLevel.reduced,
               index: index),
-          "BUSINESSMARKERICON_INDEXREDUCED:$index"))!;
+          "BUSINESSMARKERICON_INDEXREDUCED:$index"));
+
+      if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
+          !SearchPageGlobals.mapReady) {
+        return;
+      }
 
       SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
         BusinessMarkerLevel.reduced
-      )] = reducedIconImage;
+      )] = reducedIconImage!;
     }
 
     //Mini Icons
     if (!mounted) return;
+    if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
+        !SearchPageGlobals.mapReady) {
+      return;
+    }
+    ;
     if (SearchPageGlobals.businessMarkerIconCache
             .containsKey((miniBusinessLocation, BusinessMarkerLevel.mini)) &&
         NextfindDebugOptions.cacheBusinessMarkerIcons) {
@@ -255,18 +282,23 @@ class _MapSearchViewState extends State<MapSearchView>
       await SearchPageGlobals.mapController
           ?.addImage("BUSINESSMARKERICON_INDEXMINI:$index", widgetList);
     } else {
-      final Uint8List miniIconImage = (await loadAndRegisterWidgetIcon(
+      final Uint8List? miniIconImage = (await loadAndRegisterWidgetIcon(
           context,
           BusinessMarker(
               miniBusinessLocation: miniBusinessLocation,
               businessMarkerLevel: BusinessMarkerLevel.mini,
               index: index),
-          "BUSINESSMARKERICON_INDEXMINI:$index"))!;
+          "BUSINESSMARKERICON_INDEXMINI:$index"));
+
+      if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
+          !SearchPageGlobals.mapReady) {
+        return;
+      }
 
       SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
         BusinessMarkerLevel.mini
-      )] = miniIconImage;
+      )] = miniIconImage!;
     }
   }
 
@@ -309,107 +341,105 @@ class _MapSearchViewState extends State<MapSearchView>
 
     final geoJsonData = {"type": "FeatureCollection", "features": features};
 
-    // String jsonGeoData = jsonEncode(geoJsonData);
+    try {
+      final allSourceIds =
+          await SearchPageGlobals.mapController!.getSourceIds();
 
-    final allSourceIds = await SearchPageGlobals.mapController!.getSourceIds();
+      if (sourceAddedAlready) {
+        await SearchPageGlobals.mapController!
+            .setGeoJsonSource("business_markers_source", geoJsonData);
+        SearchPageGlobals.isLoading.value = false;
 
-    if (sourceAddedAlready) {
-      await SearchPageGlobals.mapController!
-          .setGeoJsonSource("business_markers_source", geoJsonData);
-      SearchPageGlobals.isLoading.value = false;
+        return;
+      }
 
-      return;
-    }
-
-    await SearchPageGlobals.mapController!.addSource(
-      "business_markers_source",
-      map_gl.GeojsonSourceProperties(
-        data: geoJsonData,
-        cluster: true,
-        clusterRadius: 70, // Distance in pixels to group points
-        // clusterMaxZoom: 5, // Zoom level where clustering stops
-        clusterProperties: {
-          "min_index": [
-            [
-              'min',
-              ['accumulated'],
-              ['get', 'min_index']
+      await SearchPageGlobals.mapController!.addSource(
+        "business_markers_source",
+        map_gl.GeojsonSourceProperties(
+          data: geoJsonData,
+          cluster: true,
+          clusterRadius: 70,
+          clusterProperties: {
+            "min_index": [
+              [
+                'min',
+                ['accumulated'],
+                ['get', 'min_index']
+              ],
+              ['get', 'index']
             ],
-            ['get', 'index']
-          ],
-        },
-      ),
-    );
+          },
+        ),
+      );
 
-    await SearchPageGlobals.mapController!.addSource(
-      "business_markers_source_mini_icons",
-      map_gl.GeojsonSourceProperties(
-        data: geoJsonData,
-      ),
-    );
+      await SearchPageGlobals.mapController!.addSource(
+        "business_markers_source_mini_icons",
+        map_gl.GeojsonSourceProperties(
+          data: geoJsonData,
+        ),
+      );
 
-    await SearchPageGlobals.mapController!.addSymbolLayer(
-      "business_markers_source_mini_icons",
-      "mini_icons_layer",
-      belowLayerId: "user_marker_layer",
-      const map_gl.SymbolLayerProperties(
-        iconImage: [
-          'get',
-          'iconIdMINI'
-        ], // 3. Tells it to read the 'id' property from your GeoJSON
-        iconSize: 1.0, // 4. Size scaling
-        iconAllowOverlap:
-            true, // 5. Prevents close icons from hiding each other
-      ),
-    );
+      await SearchPageGlobals.mapController!.addSymbolLayer(
+        "business_markers_source_mini_icons",
+        "mini_icons_layer",
+        belowLayerId: "user_marker_layer",
+        const map_gl.SymbolLayerProperties(
+          iconImage: ['get', 'iconIdMINI'],
+          iconSize: 1.0,
+          iconAllowOverlap: true,
+        ),
+      );
 
-    await SearchPageGlobals.mapController!.addSymbolLayer(
-      "business_markers_source",
-      "unique_markers_layer",
-      belowLayerId: "user_marker_layer",
-      filter: [
-        '!',
-        ['has', 'point_count']
-      ],
-      const map_gl.SymbolLayerProperties(
-        iconImage: [
-          'get',
-          'iconIdFULL'
-        ], // 3. Tells it to read the 'id' property from your GeoJSON
-        iconSize: 1.2, // 4. Size scaling
-        iconAllowOverlap:
-            true, // 5. Prevents close icons from hiding each other
-        iconOffset: [180 / 4, 0.0],
-      ),
-    );
+      await SearchPageGlobals.mapController!.addSymbolLayer(
+        "business_markers_source",
+        "unique_markers_layer",
+        belowLayerId: "user_marker_layer",
+        filter: [
+          '!',
+          ['has', 'point_count']
+        ],
+        const map_gl.SymbolLayerProperties(
+          iconImage: [
+            'get',
+            'iconIdFULL'
+          ], // 3. Tells it to read the 'id' property from your GeoJSON
+          iconSize: 1.2, // 4. Size scaling
+          iconAllowOverlap:
+              true, // 5. Prevents close icons from hiding each other
+          iconOffset: [180 / 4, 0.0],
+        ),
+      );
 
-    await SearchPageGlobals.mapController!.addSymbolLayer(
-      "business_markers_source",
-      "clustered_markers_layer",
-      belowLayerId: "user_marker_layer",
-      filter: ['has', 'point_count'],
-      const map_gl.SymbolLayerProperties(
-        iconImage: [
-          "concat",
-          "BUSINESSMARKERICON_INDEXREDUCED:",
-          [
-            'to-string',
-            ['get', 'min_index']
-          ]
-        ], // 3. Tells it to read the 'id' property from your GeoJSON
-        iconSize: 1.3,
-        iconAllowOverlap: true,
-      ),
-    );
+      await SearchPageGlobals.mapController!.addSymbolLayer(
+        "business_markers_source",
+        "clustered_markers_layer",
+        belowLayerId: "user_marker_layer",
+        filter: ['has', 'point_count'],
+        const map_gl.SymbolLayerProperties(
+          iconImage: [
+            "concat",
+            "BUSINESSMARKERICON_INDEXREDUCED:",
+            [
+              'to-string',
+              ['get', 'min_index']
+            ]
+          ], // 3. Tells it to read the 'id' property from your GeoJSON
+          iconSize: 1.3,
+          iconAllowOverlap: true,
+        ),
+      );
 
-    SearchPageGlobals.mapController!.onFeatureTapped
-        .add((point, coordinates, id, layerId, annotation) async {
-      await onBusinessMarkerTapped(point, coordinates, id, layerId, annotation);
-    });
-
-    SearchPageGlobals.isLoading.value = false;
-
-    sourceAddedAlready = true;
+      SearchPageGlobals.mapController!.onFeatureTapped
+          .add((point, coordinates, id, layerId, annotation) async {
+        await onBusinessMarkerTapped(
+            point, coordinates, id, layerId, annotation);
+      });
+    } catch (e) {
+      SearchPageGlobals.mapReady = false;
+    } finally {
+      SearchPageGlobals.isLoading.value = false;
+      sourceAddedAlready = true;
+    }
   }
 
   Future<void> onBusinessMarkerTapped(
@@ -449,93 +479,63 @@ class _MapSearchViewState extends State<MapSearchView>
       return const SizedBox();
     }
 
-    return Stack(
-      children: [
-        // MAP
-        map_gl.MapLibreMap(
-          styleString:
-              "https://api.maptiler.com/maps/01a196d6-bda3-74d5-b701-fd441b3d6892/style.json?key=6qbiNDxrdNlr98KHQ1F9",
-          initialCameraPosition: map_gl.CameraPosition(
-            target:
-                //Use the user position or the chosen location to start of with
-                SearchPageGlobals.chosenBusinessLocation != null
-                    ? map_gl.LatLng(
-                        SearchPageGlobals.chosenBusinessLocation!.location[0],
-                        SearchPageGlobals.chosenBusinessLocation!.location[1],
-                      )
-                    : map_gl.LatLng(UserService.userLocation[0],
-                        UserService.userLocation[1]),
-            tilt: 60,
-            zoom: 16,
-          ),
-          trackCameraPosition: true,
-          scrollGesturesEnabled: !_lockCamera,
-          zoomGesturesEnabled: !_lockCamera,
-          rotateGesturesEnabled: !_lockCamera,
-          tiltGesturesEnabled: !_lockCamera,
-          onMapCreated: (controller) async {
-            SearchPageGlobals.mapController = controller;
-          },
-          onStyleLoadedCallback: () async {
-            if (!lifecycle.isPaused) {
-              SearchPageGlobals.mapReady = true;
-              await SearchPageGlobals.mapController
-                  ?.setSymbolIconAllowOverlap(true);
-              await SearchPageGlobals.mapController
-                  ?.setSymbolIconIgnorePlacement(true);
-              SearchPageGlobals.reloadUserPosition();
-            }
-            SearchPageGlobals.reloadMap();
-          },
-          onCameraMove: (cameraPosition) async {
-            SearchPageGlobals.mapReady = true;
-          },
-          onMapIdle: () async {
-            SearchPageGlobals.mapReady = true;
-          },
-          onMapClick: (_, map_gl.LatLng latLng) {
-            if (SearchPageGlobals.mapMode.value ==
-                MainSearchPageMode.choosing) {
-              final tappedLat = latLng.latitude;
-              final tappedLng = latLng.longitude;
+    return map_gl.MapLibreMap(
+      styleString:
+          "https://api.maptiler.com/maps/01a196d6-bda3-74d5-b701-fd441b3d6892/style.json?key=6qbiNDxrdNlr98KHQ1F9",
+      initialCameraPosition: map_gl.CameraPosition(
+        target:
+            //Use the user position or the chosen location to start of with
+            SearchPageGlobals.chosenBusinessLocation != null
+                ? map_gl.LatLng(
+                    SearchPageGlobals.chosenBusinessLocation!.location[0],
+                    SearchPageGlobals.chosenBusinessLocation!.location[1],
+                  )
+                : map_gl.LatLng(
+                    UserService.userLocation[0], UserService.userLocation[1]),
+        tilt: 60,
+        zoom: 16,
+      ),
+      trackCameraPosition: true,
+      scrollGesturesEnabled: !_lockCamera,
+      zoomGesturesEnabled: !_lockCamera,
+      rotateGesturesEnabled: !_lockCamera,
+      tiltGesturesEnabled: !_lockCamera,
+      onMapCreated: (controller) async {
+        SearchPageGlobals.mapReady = false;
+        SearchPageGlobals.mapController = controller;
+      },
+      onStyleLoadedCallback: () async {
+        if (!lifecycle.isPaused) {
+          SearchPageGlobals.mapReady = true;
+          SearchPageGlobals.reloadUserPosition();
+        }
+        SearchPageGlobals.reloadMap();
+      },
+      onCameraMove: (cameraPosition) async {
+        SearchPageGlobals.mapReady = true;
+      },
+      onMapIdle: () async {
+        SearchPageGlobals.mapReady = true;
+      },
+      onMapClick: (_, map_gl.LatLng latLng) {
+        if (SearchPageGlobals.mapMode.value == MainSearchPageMode.choosing) {
+          final tappedLat = latLng.latitude;
+          final tappedLng = latLng.longitude;
 
-              UserService.userLocation = [tappedLat, tappedLng];
-              UserService.userLocation = UserService.userLocation;
+          UserService.userLocation = [tappedLat, tappedLng];
+          UserService.userLocation = UserService.userLocation;
 
-              SearchPageGlobals.changeMapLocation(UserService.userLocation);
-              SearchPageGlobals.reloadUserPosition();
+          SearchPageGlobals.changeMapLocation(UserService.userLocation);
+          SearchPageGlobals.reloadUserPosition();
 
-              SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
-            } else {
-              _lockCamera = false;
+          SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
+        } else {
+          _lockCamera = false;
 
-              SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
-            }
-          },
-          compassEnabled: false,
-        ),
-
-        // THUMBNAIL OVERLAY
-        ValueListenableBuilder<MainSearchPageMode>(
-          valueListenable: SearchPageGlobals.mapMode,
-          builder: (_, choosing, __) {
-            if (choosing != MainSearchPageMode.thumbnail) {
-              return const SizedBox();
-            }
-            if (SearchPageGlobals.chosenBusinessLocation == null) {
-              return const SizedBox();
-            }
-
-            return Positioned(
-              bottom: 40,
-              left: 20,
-              child: BusinessLocationThumbnail(
-                  locationId:
-                      SearchPageGlobals.chosenBusinessLocation!.locationId),
-            );
-          },
-        ),
-      ],
+          SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
+        }
+      },
+      compassEnabled: false,
     );
   }
 }

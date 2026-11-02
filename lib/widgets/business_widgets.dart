@@ -221,11 +221,9 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
                         const SizedBox(
                           width: 10,
                         ),
-                        MyText(
+                        SubSubHeading(
                           miniBusinessLocation.name,
                           color: AppColors.highlightText,
-                          size: 17,
-                          fontWeight: FontWeight.w200,
                           maxlines: 1,
                           overflow: TextOverflow.ellipsis,
                         )
@@ -240,24 +238,22 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
                           const SizedBox(
                             width: 10,
                           ),
+                          Image.asset(iconPath, width: 25, height: 25),
+                          LabelText(
+                            color: AppColors.text,
+                            businessTypeLookup[miniBusinessLocation.type]!,
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
                           Image.asset(
                               "assets/icons/business_icons/rating_star.png"),
                           const SizedBox(
                             width: 5,
                           ),
-                          MyText(
+                          LabelText(
                             ratings,
                             color: AppColors.text,
-                            size: 15,
-                          ),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                          Image.asset(iconPath, width: 25, height: 25),
-                          MyText(
-                            color: AppColors.text,
-                            businessTypeLookup[miniBusinessLocation.type]!,
-                            size: 15,
                           ),
                           const SizedBox(
                             width: 20,
@@ -266,10 +262,11 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
                               child: ValueListenableBuilder(
                                   valueListenable: SearchServices.isMetric,
                                   builder: (_, __, ___) {
-                                    return MyText(
+                                    return BodyText(
                                       "${miniBusinessLocation.distance.toStringAsFixed(2)} ${SearchServices.isMetric.value ? "km" : "mi"}",
-                                      size: 15,
                                       color: AppColors.text,
+                                      maxlines: 1,
+                                      overflow: TextOverflow.fade,
                                     );
                                   })),
                           // unVerifiedBadge

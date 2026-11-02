@@ -85,3 +85,10 @@ flutter:
       fonts:
         - asset: assets/fonts/LilitaOne-Regular.ttf
           weight: 400
+
+    - family: Montserrat
+      fonts:
+        - asset: assets/fonts/Montserrat-Italic-VariableFont_wght.ttf
+
+        - asset: assets/fonts/Montserrat-VariableFont_wght.ttf
+          style: italic

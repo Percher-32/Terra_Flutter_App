@@ -14,7 +14,7 @@ import 'package:nextfind/services/lifecycle_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:nextfind/helpers/networking.dart';
-
+import 'package:nextfind/widgets/business_widgets.dart';
 import 'package:nextfind/widgets/search_page/list_view_widget.dart';
 import 'package:nextfind/widgets/search_page/map_view_widget.dart';
 
@@ -48,7 +48,6 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _runSearchFunction() async {
     // Prevent overlapping searches
-    log.d("${SearchPageGlobals.isLoading.value}");
     if (SearchPageGlobals.isLoading.value) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -75,167 +74,118 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {});
   }
 
-  void locationButtonPressed() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // allows full height
-      backgroundColor: AppColors.leveled, // optional
-      barrierColor: AppColors.leveled, // optional
-      builder: (sheetContext) {
-        return Container(
-            decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(40),
-                    topRight: Radius.circular(40)),
-                color: AppColors.leveled),
-            height: 250,
-            child: Center(
-                child: SizedBox(
-              // height: 200,
-              child: Column(
-                spacing: 30,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  MyButton(
-                    width: 300,
-                    height: 60,
-                    onPressed: () async {
-                      SearchPageGlobals.isLoading.value = true;
-
-                      await DeviceServices.getDeviceLocation();
-
-                      SearchPageGlobals.changeMapLocation(
-                          UserService.userLocation);
-                      SearchPageGlobals.isLoading.value = false;
-
-                      if (!sheetContext.mounted) return;
-                      Navigator.pop(sheetContext);
-                    },
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 18, horizontal: 10),
-                    child: const MyText(
-                      "Use My Location",
-                      color: AppColors.text,
-                    ),
-                  ),
-                  MyButton(
-                    width: 300,
-                    height: 60,
-                    onPressed: () {
-                      SearchPageGlobals.mapMode.value =
-                          MainSearchPageMode.choosing;
-                      Navigator.pop(sheetContext);
-                    },
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 18, horizontal: 10),
-                    child: const MyText(
-                      "Choose Location",
-                      color: AppColors.text,
-                    ),
-                  ),
-                ],
-              ),
-            )));
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-        canPop: SearchPageGlobals.mapMode.value !=
-            MainSearchPageMode
-                .thumbnail, // BLOCK back button when thumbnail is showing
-        onPopInvokedWithResult: (didPop, result) {
-          if (SearchPageGlobals.mapMode.value == MainSearchPageMode.thumbnail) {
-            // Custom back behaviour
-            SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
+    return ValueListenableBuilder(
+        valueListenable: SearchPageGlobals.mapMode,
+        builder: (_, mapMode, ___) {
+          return PopScope(
+              canPop: SearchPageGlobals.mapMode.value !=
+                  MainSearchPageMode
+                      .thumbnail, // BLOCK back button when thumbnail is showing
+              onPopInvokedWithResult: (didPop, result) {
+                if (SearchPageGlobals.mapMode.value ==
+                    MainSearchPageMode.thumbnail) {
+                  // Custom back behaviour
+                  SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
 
-            // DO NOT allow pop
-            return;
-          }
-        },
-        child: Scaffold(
-            appBar: PreferredSize(
-              preferredSize: const ui.Size.fromHeight(150),
-              child: ValueListenableBuilder<MainSearchPageMode>(
-                valueListenable: SearchPageGlobals.mapMode,
-                builder: (_, choosing, __) {
-                  if (choosing != MainSearchPageMode.list) {
-                    return const SizedBox();
-                  }
-                  return Column(
-                    children: [
-                      SearchServices.createSearchBar(context),
-                      Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: TagServices.showChosenTagWidget(context))
-                    ],
-                  );
-                },
-              ),
-            ),
-            bottomNavigationBar: ValueListenableBuilder<MainSearchPageMode>(
-              valueListenable: SearchPageGlobals.mapMode,
-              builder: (_, choosing, __) {
-                if (choosing != MainSearchPageMode.list) {
-                  return const SizedBox(); // hide search bar
+                  // DO NOT allow pop
+                  return;
                 }
-                return const NavBar(
-                  currentPage: AppPages.searchpage,
-                );
               },
-            ),
-            body: Stack(children: [
-              const Positioned(child: SearchPageBody()),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: ValueListenableBuilder<MainSearchPageMode>(
-                  valueListenable: SearchPageGlobals.mapMode,
-                  builder: (_, choosing, __) {
-                    if ([MainSearchPageMode.choosing, MainSearchPageMode.list]
-                        .contains(choosing)) {
-                      return const SizedBox(); // hide search bar
-                    }
-                    return const NavBar(
-                      currentPage: AppPages.searchpage,
-                    );
-                  },
-                ),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 120,
-                child: ValueListenableBuilder<MainSearchPageMode>(
-                  valueListenable: SearchPageGlobals.mapMode,
-                  builder: (_, choosing, __) {
-                    if ([MainSearchPageMode.choosing, MainSearchPageMode.list]
-                        .contains(choosing)) {
-                      return const SizedBox(); // hide search bar
-                    }
-                    return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: TagServices.showChosenTagWidget(context,
-                            leveled: false));
-                  },
-                ),
-              ),
-              Positioned(
-                child: ValueListenableBuilder<MainSearchPageMode>(
-                  valueListenable: SearchPageGlobals.mapMode,
-                  builder: (_, choosing, __) {
-                    if ([MainSearchPageMode.choosing, MainSearchPageMode.list]
-                        .contains(choosing)) {
-                      return const SizedBox(); // hide search bar
-                    }
-                    return SearchServices.createSearchBar(context);
-                  },
-                ),
-              ),
-            ])));
+              child: Scaffold(
+                  appBar: PreferredSize(
+                    preferredSize: const ui.Size.fromHeight(150),
+                    child: ValueListenableBuilder<MainSearchPageMode>(
+                      valueListenable: SearchPageGlobals.mapMode,
+                      builder: (_, choosing, __) {
+                        if (choosing != MainSearchPageMode.list) {
+                          return const SizedBox();
+                        }
+                        return Column(
+                          children: [
+                            SearchServices.createSearchBar(context),
+                            Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: TagServices.showChosenTagWidget(context,
+                                    leveled: true))
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  bottomNavigationBar:
+                      ValueListenableBuilder<MainSearchPageMode>(
+                    valueListenable: SearchPageGlobals.mapMode,
+                    builder: (_, choosing, __) {
+                      if (choosing != MainSearchPageMode.list) {
+                        return const SizedBox(); // hide search bar
+                      }
+                      return const NavBar(
+                        currentPage: AppPages.searchpage,
+                      );
+                    },
+                  ),
+                  body: Stack(children: [
+                    const Positioned(child: SearchPageBody()),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: ValueListenableBuilder<MainSearchPageMode>(
+                        valueListenable: SearchPageGlobals.mapMode,
+                        builder: (_, choosing, __) {
+                          if ([
+                            MainSearchPageMode.choosing,
+                            MainSearchPageMode.list
+                          ].contains(choosing)) {
+                            return const SizedBox(); // hide search bar
+                          }
+                          return const NavBar(
+                            currentPage: AppPages.searchpage,
+                          );
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 120,
+                      child: ValueListenableBuilder<MainSearchPageMode>(
+                        valueListenable: SearchPageGlobals.mapMode,
+                        builder: (_, choosing, __) {
+                          if ([
+                            MainSearchPageMode.choosing,
+                            MainSearchPageMode.list,
+                            // MainSearchPageMode.thumbnail,
+                          ].contains(choosing)) {
+                            return const SizedBox(); // hide search bar
+                          }
+                          return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              child: TagServices.showChosenTagWidget(context,
+                                  leveled: true));
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      child: ValueListenableBuilder<MainSearchPageMode>(
+                        valueListenable: SearchPageGlobals.mapMode,
+                        builder: (_, choosing, __) {
+                          if ([
+                            MainSearchPageMode.choosing,
+                            MainSearchPageMode.list
+                          ].contains(choosing)) {
+                            return const SizedBox(); // hide search bar
+                          }
+                          return SearchServices.createSearchBar(context);
+                        },
+                      ),
+                    ),
+                  ])));
+        });
   }
 }
 
@@ -249,8 +199,6 @@ class SearchPageBody extends StatelessWidget {
       backgroundColor: Colors.transparent, // optional
       builder: (sheetContext) {
         return Container(
-            // color: AppColors.text,
-            // padding: EdgeInsets.only(left: 10, right: 10),
             decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(40),
@@ -259,7 +207,6 @@ class SearchPageBody extends StatelessWidget {
             height: 250,
             child: Center(
                 child: SizedBox(
-              // height: 200,
               child: Column(
                 spacing: 30,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -270,6 +217,8 @@ class SearchPageBody extends StatelessWidget {
                     onPressed: () async {
                       SearchPageGlobals.isLoading.value = true;
                       await DeviceServices.getDeviceLocation();
+
+                      SearchPageGlobals.reloadUserPosition();
 
                       SearchPageGlobals.changeMapLocation(
                           UserService.userLocation);
@@ -319,13 +268,13 @@ class SearchPageBody extends StatelessWidget {
           mainSearchPageWidget = const Center(child: Heading("No Internet"));
         }
 
-        if (!SearchPageGlobals.isLoading.value) {
-          if (mapMode != MainSearchPageMode.list) {
-            mainSearchPageWidget = const MapSearchView();
-          } else if (mapMode == MainSearchPageMode.list) {
-            mainSearchPageWidget = const ListSearchView();
-          }
+        // if (!SearchPageGlobals.isLoading.value) {
+        if (mapMode != MainSearchPageMode.list) {
+          mainSearchPageWidget = const MapSearchView();
+        } else if (mapMode == MainSearchPageMode.list) {
+          mainSearchPageWidget = const ListSearchView();
         }
+        // }
 
         final changeLocationButton = Material(
           color: Colors.transparent,
@@ -535,7 +484,7 @@ class SearchPageBody extends StatelessWidget {
                   height: 200,
                   child: CircularProgressIndicator(
                     strokeWidth: 14,
-                    color: AppColors.primary,
+                    color: AppColors.text,
                   ),
                 ));
               },
@@ -608,13 +557,33 @@ class SearchPageBody extends StatelessWidget {
                   : const SizedBox(),
             ),
 
-            // Back Button [Choosing VIEW]
+            //* Back Button [Choosing VIEW]
             Positioned(
               bottom: 10,
               left: MediaQuery.of(context).size.width / 8,
               child: mapMode == MainSearchPageMode.choosing
                   ? choosingLocationBackButton
                   : const SizedBox(),
+            ),
+
+            ValueListenableBuilder<MainSearchPageMode>(
+              valueListenable: SearchPageGlobals.mapMode,
+              builder: (_, choosing, __) {
+                if (choosing != MainSearchPageMode.thumbnail) {
+                  return const SizedBox();
+                }
+                if (SearchPageGlobals.chosenBusinessLocation == null) {
+                  return const SizedBox();
+                }
+
+                return Positioned(
+                  bottom: 40,
+                  left: 20,
+                  child: BusinessLocationThumbnail(
+                      locationId:
+                          SearchPageGlobals.chosenBusinessLocation!.locationId),
+                );
+              },
             ),
           ],
         );

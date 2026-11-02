@@ -4,6 +4,9 @@ import 'package:nextfind/helpers/debug_options.dart';
 import 'package:nextfind/helpers/networking.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:nextfind/services/search_services.dart';
+import 'package:nextfind/widgets/text_widgets.dart';
+
+export 'package:nextfind/widgets/text_widgets.dart';
 
 class AppColors {
   static const background = Color.fromARGB(255, 1, 29, 0);
@@ -147,130 +150,19 @@ class HeaderInputState extends State<HeaderInput> {
         hintText: widget.hint,
         hintStyle: TextStyle(
           fontSize: widget.size,
-          fontWeight: FontWeight.w400,
-          fontFamily: "LilitaOne",
-          color: const Color.fromARGB(106, 255, 255, 255),
+          fontWeight: FontWeight.w800,
+          fontFamily: "Montserrat",
+          color: const Color.fromARGB(103, 187, 255, 0),
         ),
         enabledBorder: InputBorder.none,
         focusedBorder: InputBorder.none,
       ),
       style: TextStyle(
         fontSize: widget.size,
-        fontWeight: FontWeight.w400,
-        fontFamily: "LilitaOne",
+        fontWeight: FontWeight.w800,
+        fontFamily: "Montserrat",
         color: widget.color,
       ),
-    );
-  }
-}
-
-class Heading extends StatelessWidget {
-  const Heading(this.text, {super.key, this.color = AppColors.text});
-
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-          color: color,
-          fontSize: 50,
-          fontFamily: "LilitaOne",
-          fontWeight: FontWeight.w400),
-    );
-  }
-}
-
-class SubHeading extends StatelessWidget {
-  const SubHeading(this.text, {super.key, this.color = AppColors.text});
-
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-          color: color,
-          fontSize: 40,
-          fontFamily: "LilitaOne",
-          fontWeight: FontWeight.w400),
-    );
-  }
-}
-
-class Body extends StatelessWidget {
-  const Body(this.text, {super.key, this.color = AppColors.text});
-
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-          color: color,
-          fontSize: 20,
-          fontFamily: "LilitaOne",
-          fontWeight: FontWeight.w400),
-    );
-  }
-}
-
-class Small extends StatelessWidget {
-  const Small(this.text, {super.key, this.color = AppColors.text});
-
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-          color: color,
-          fontSize: 15,
-          fontFamily: "LilitaOne",
-          fontWeight: FontWeight.w400),
-    );
-  }
-}
-
-class MyText extends StatelessWidget {
-  const MyText(this.text,
-      {super.key,
-      this.color = AppColors.text,
-      this.size = 20,
-      this.fontWeight = FontWeight.w400,
-      this.overflow = TextOverflow.visible,
-      this.maxlines = 2,
-      this.textAlign = TextAlign.left});
-
-  final String text;
-  final Color color;
-  final double size;
-  final int maxlines;
-  final FontWeight fontWeight;
-  final TextOverflow overflow;
-  final TextAlign textAlign;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      maxLines: maxlines,
-      softWrap: true,
-      textAlign: textAlign,
-      style: TextStyle(
-          color: color,
-          fontSize: size,
-          fontFamily: "LilitaOne",
-          overflow: overflow,
-          fontWeight: fontWeight),
     );
   }
 }
@@ -441,7 +333,7 @@ class MyMainSliderState extends State<MyMainSlider> {
       crossAxisAlignment: CrossAxisAlignment.center,
       spacing: 5,
       children: [
-        Body(
+        BodyText(
           SearchServices.isMetric.value
               ? "Search within ${milesToKm(distances[sliderValue.toInt()].toDouble()).round()} Kilometers"
               : (distances[sliderValue.toInt()] == 1)
