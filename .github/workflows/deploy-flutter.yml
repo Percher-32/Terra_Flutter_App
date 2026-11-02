@@ -1,4 +1,4 @@
-name: Build and Deploy Flutter Web
+name: Deploy App On GitHub Paged
 
 # 1. Trigger the workflow on pushes to the main branch
 on:
