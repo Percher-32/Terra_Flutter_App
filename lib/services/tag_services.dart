@@ -277,8 +277,8 @@ class TagServices {
             borderRadius: BorderRadius.circular(20),
           ),
           width: 500,
-          height: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Center(
             child: ListView.builder(
               clipBehavior: Clip.none,
@@ -288,7 +288,7 @@ class TagServices {
                 if (List.from(chosenTags).length == tagId) {
                   return Padding(
                       padding:
-                          const EdgeInsets.only(top: 10, bottom: 10, right: 30),
+                          const EdgeInsets.only(top: 5, bottom: 5, right: 30),
                       child: MyButton(
                         width: 60,
                         height: 30,
@@ -320,15 +320,16 @@ class TagServices {
                             const SizedBox(width: 10),
                             MyText(tag.name, size: 13, color: AppColors.text),
                             const SizedBox(width: 20),
-                            IconButton(
+                            Center(
+                                child: IconButton(
                               onPressed: () {
                                 chosenTags.remove(tag.id);
-
                                 updateTagWidget.value = !updateTagWidget.value;
                               },
-                              icon: const Icon(Icons.cancel_outlined),
+                              icon: const Icon(Icons.remove),
+                              ba
                               color: Colors.white,
-                            ),
+                            )),
                           ],
                         ),
                       ));

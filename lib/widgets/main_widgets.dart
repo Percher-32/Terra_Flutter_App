@@ -121,8 +121,8 @@ class HeaderInput extends StatefulWidget {
   const HeaderInput(
       {super.key,
       this.hint = "",
-      this.color = AppColors.background,
-      this.size = 30.0,
+      this.color = AppColors.text,
+      this.size = 18.0,
       this.controller,
       this.onSubmitted});
 
@@ -140,6 +140,7 @@ class HeaderInputState extends State<HeaderInput> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      cursorColor: AppColors.halfLeveled,
       controller: widget.controller,
       onSubmitted: (value) {
         if (widget.onSubmitted != null) {
@@ -147,6 +148,7 @@ class HeaderInputState extends State<HeaderInput> {
         }
       },
       decoration: InputDecoration(
+        alignLabelWithHint: true,
         hintText: widget.hint,
         hintStyle: TextStyle(
           fontSize: widget.size,
@@ -333,15 +335,20 @@ class MyMainSliderState extends State<MyMainSlider> {
       crossAxisAlignment: CrossAxisAlignment.center,
       spacing: 5,
       children: [
-        BodyText(
-          SearchServices.isMetric.value
-              ? "Search within ${milesToKm(distances[sliderValue.toInt()].toDouble()).round()} Kilometers"
-              : (distances[sliderValue.toInt()] == 1)
-                  ? "Search within ${distances[sliderValue.toInt()]} mile"
-                  : "Search within ${distances[sliderValue.toInt()]} miles",
-          color: AppColors.text,
-        ),
+        ValueListenableBuilder(
+            valueListenable: SearchServices.isMetric,
+            builder: (_, isMetric, ___) {
+              return LabelText(
+                isMetric
+                    ? "Search within ${milesToKm(distances[sliderValue.toInt()].toDouble()).round()} Kilometers"
+                    : (distances[sliderValue.toInt()] == 1)
+                        ? "Search within ${distances[sliderValue.toInt()]} mile"
+                        : "Search within ${distances[sliderValue.toInt()]} miles",
+                color: AppColors.text,
+              );
+            }),
         Slider(
+          activeColor: AppColors.highlightText,
           value: sliderValue.toDouble(),
           min: 0,
           max: (distances.length - 1).toDouble(),
@@ -450,19 +457,17 @@ class MyMultiToggleState extends State<MyMultiToggle> {
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 7),
           decoration: BoxDecoration(
             color: active ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(6),
           ),
           child: Center(
-            child: Text(
+            child: MyText(
               label,
-              style: TextStyle(
-                  color: active ? AppColors.text : AppColors.secondaryText,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 17,
-                  fontFamily: "LilitaOne"),
+              size: 15,
+              fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+              color: active ? AppColors.text : AppColors.secondaryText,
             ),
           ),
         ),
@@ -476,7 +481,7 @@ class MyMultiToggleState extends State<MyMultiToggle> {
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: AppColors.secondaryLeveled,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [

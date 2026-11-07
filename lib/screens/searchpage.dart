@@ -464,6 +464,7 @@ class SearchPageBody extends StatelessWidget {
         ));
 
         return Stack(
+          alignment: AlignmentGeometry.center,
           children: [
             //Map OR List
             mainSearchPageWidget,
@@ -577,8 +578,8 @@ class SearchPageBody extends StatelessWidget {
                 }
 
                 return Positioned(
-                  bottom: 40,
-                  left: 20,
+                  bottom: 60,
+                  // left: 20,
                   child: BusinessLocationThumbnail(
                       locationId:
                           SearchPageGlobals.chosenBusinessLocation!.locationId),

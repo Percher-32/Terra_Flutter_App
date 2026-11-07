@@ -128,22 +128,35 @@ class SearchServices {
             spacing: 0,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const MyText(
+              const SubHeading(
                 "Search Settings",
                 color: AppColors.text,
-                size: 30,
+                // size: 30,
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 10),
               Container(
                   decoration: BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(20)),
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: HeaderInput(
-                    hint: "find a business",
+                    hint: "restraunts, shops and more",
                     controller: SearchServices.controller,
                     onSubmitted: (value) => goToSearchPage(parentContext),
                   )),
+              const SizedBox(height: 20),
+              const LabelText(
+                "Sort By",
+                color: AppColors.text,
+              ),
+              const SizedBox(height: 10),
+              MyMultiToggle(
+                initial: SearchServices.sortingByIndex,
+                options: SearchServices.sortingByValues,
+                onChanged: (val) {
+                  SearchServices.sortingByIndex = val;
+                },
+              ),
               const SizedBox(height: 20),
               ValueListenableBuilder(
                 valueListenable: SearchServices.searchRadiusIndex,
@@ -176,19 +189,6 @@ class SearchServices {
               ),
               const SizedBox(height: 10),
               const CategoryDropDown(),
-              const SizedBox(height: 20),
-              const LabelText(
-                "Sort By",
-                color: AppColors.text,
-              ),
-              const SizedBox(height: 10),
-              MyMultiToggle(
-                initial: SearchServices.sortingByIndex,
-                options: SearchServices.sortingByValues,
-                onChanged: (val) {
-                  SearchServices.sortingByIndex = val;
-                },
-              ),
               const SizedBox(height: 20),
               const LabelText(
                 "Tags",
@@ -228,19 +228,19 @@ class SearchServices {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(width: 10),
-                    const Icon(Icons.search, color: Colors.white, size: 40),
+                    const Icon(Icons.search, color: Colors.white, size: 30),
                     Expanded(
                       child: HeaderInput(
-                        hint: "find a business",
+                        hint: "restraunts, shops and more",
                         controller: controller,
                         color: AppColors.text,
-                        size: 25,
+                        // size: 16,
                         onSubmitted: (value) => goToSearchPage(context),
                       ),
                     ),
                     IconButton(
                       icon:
-                          const Icon(Icons.tune, color: Colors.white, size: 40),
+                          const Icon(Icons.tune, color: Colors.white, size: 30),
                       iconSize: 35,
                       onPressed: () => filterDropDown(context),
                     ),
@@ -379,8 +379,9 @@ class CategoryDropDownState extends State<CategoryDropDown> {
               MyText(
                 itemValue.toString(),
                 color: isChosen ? AppColors.text : AppColors.secondaryText,
+                fontWeight: isChosen ? FontWeight.w700 : FontWeight.w600,
                 textAlign: TextAlign.center,
-                size: 13,
+                size: 12,
               ),
             ],
           ),
@@ -397,7 +398,7 @@ class CategoryDropDownState extends State<CategoryDropDown> {
             insetPadding: const EdgeInsets.all(10),
             backgroundColor: AppColors.leveled,
             child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(2),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   const SizedBox(height: 16),
                   const MyText(
@@ -434,29 +435,27 @@ class CategoryDropDownState extends State<CategoryDropDown> {
         builder: (_, index, __) {
           return MyButton(
             width: 300,
-            height: 60,
+            height: 45,
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Stack(clipBehavior: Clip.none, children: [
-              Positioned(
-                left: 0,
-                top: 15,
-                child: MyText(
-                  businessTypeLookup[SearchServices.categoryIndex.value]
-                      .toString(),
-                  textAlign: TextAlign.center,
-                  color: AppColors.text,
-                ),
-              ),
-              const Positioned(
-                right: 0,
-                top: 10,
-                child: Icon(
-                  Icons.arrow_drop_down,
-                  size: 40,
-                  color: Colors.white,
-                ),
-              )
-            ]),
+            child: Row(
+                // crossAxisAlignment: CrossAxisAlignment.center,
+                // mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                      width: 200,
+                      child: LabelText(
+                        businessTypeLookup[SearchServices.categoryIndex.value]
+                            .toString(),
+                        textAlign: TextAlign.left,
+                        color: AppColors.text,
+                      )),
+                  const SizedBox(width: 25),
+                  const Icon(
+                    Icons.arrow_drop_down_rounded,
+                    size: 50,
+                    color: Colors.white,
+                  ),
+                ]),
             onPressed: () {
               showOptionPicker();
             },

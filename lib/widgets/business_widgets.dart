@@ -169,19 +169,19 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
 
     double screenWidth = MediaQuery.of(context).size.width;
 
-    double cardWidth = screenWidth > 450 ? 400 : screenWidth * 0.9;
+    double cardWidth = screenWidth > 450 ? 450 * 0.85 : screenWidth * 0.85;
 
     return SizedBox(
       width: cardWidth,
-      height: 280,
+      height: 270,
       child: Padding(
         padding: const EdgeInsetsGeometry.only(bottom: 10),
         child: Material(
-          color: AppColors.leveled,
-          borderRadius: BorderRadius.circular(10),
+          color: AppColors.secondaryLeveled,
+          borderRadius: BorderRadius.circular(20),
           clipBehavior: Clip.hardEdge,
           child: InkWell(
-            splashColor: const Color.fromARGB(255, 229, 233, 234),
+            splashColor: const Color.fromARGB(255, 69, 122, 0),
             onTap: () {
               goToBusinessPage(context, miniBusinessLocation.locationId);
             },
@@ -198,12 +198,14 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
                   const SizedBox(
                     width: 10,
                   ),
-                  SubSubHeading(
-                    miniBusinessLocation.name,
-                    color: AppColors.highlightText,
-                    maxlines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  )
+                  SizedBox(
+                      width: 300,
+                      child: SubSubHeading(
+                        miniBusinessLocation.name,
+                        color: AppColors.highlightText,
+                        maxlines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ))
                 ]),
                 const SizedBox(
                   height: 0,
@@ -263,55 +265,59 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
                 const SizedBox(
                   height: 5,
                 ),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                      maxWidth: 250), // Adjust your max width here
-                  child: ShaderMask(
-                    shaderCallback: (Rect bounds) {
-                      return const LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          Colors.black,
-                          Colors.black,
-                          Colors.transparent
-                        ],
-                        stops: [
-                          0.80,
-                          0.95,
-                          1.0
-                        ], // Starts fading out near the right edge
-                      ).createShader(bounds);
-                    },
-                    blendMode: BlendMode.dstIn,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics:
-                          const NeverScrollableScrollPhysics(), // Keeps it locked statically in place
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (int tagId in miniBusinessLocation.tags) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.leveled,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: MyText(
-                                TagServices.tagLookup[tagId]!.name,
-                                size: 12,
-                                color: AppColors.text,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
+                Row(children: [
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxWidth: miniBusinessLocation.verified
+                            ? cardWidth - 0
+                            : cardWidth - 120),
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return const LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Colors.black,
+                            Colors.black,
+                            Colors.transparent
                           ],
-                        ],
+                          stops: [
+                            0.80,
+                            0.95,
+                            1.0
+                          ], // Starts fading out near the right edge
+                        ).createShader(bounds);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (int tagId in miniBusinessLocation.tags) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  // color: AppColors.leveled,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: MyText(
+                                  TagServices.tagLookup[tagId]!.name,
+                                  size: 12,
+                                  color: AppColors.text,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                )
+                  SizedBox(width: miniBusinessLocation.verified ? 0 : 10),
+                  unVerifiedBadge
+                ])
               ],
             ),
           ),
