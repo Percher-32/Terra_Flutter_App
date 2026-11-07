@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nextfind/helpers/networking.dart';
 import 'package:nextfind/helpers/debug_options.dart';
@@ -20,10 +21,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _hasWifi = true;
+  // num scrollValue = 0;
+  ScrollController scrollController = ScrollController(initialScrollOffset: 0);
+  final ValueNotifier<double> _scrollOffset = ValueNotifier(0);
 
   @override
   void initState() {
     super.initState();
+    scrollController.addListener(() {
+      _scrollOffset.value = scrollController.offset;
+    });
   }
 
   Future<
@@ -51,6 +58,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+
+   
     return Scaffold(
         appBar: SearchServices.createSearchBar(context),
         bottomNavigationBar: const NavBar(currentPage: AppPages.homepage),
@@ -87,16 +96,13 @@ class _HomePageState extends State<HomePage> {
                     } else {
                       return SizedBox(
                         height: MediaQuery.of(context).size.height,
-                        child: 
-                        
-                        ListView.separated(
-                          controller: ScrollController(initialScrollOffset: 0),
+                        child: ListView.separated(
+                          controller: scrollController,
                           physics: const BouncingScrollPhysics(
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
                           itemCount:
                               snapshot.data!.nearbyBusinesses!.length + 2,
-                          
                           itemBuilder: (context, index) {
                             if (index == 0) {
                               return const SizedBox(
@@ -123,6 +129,33 @@ class _HomePageState extends State<HomePage> {
                     }
                   },
                 )),
+            ValueListenableBuilder(
+                valueListenable: _scrollOffset,
+                builder: (_, scrollOffset, __) {
+                  return Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 40, // Height of the fade area
+                    child: IgnorePointer(
+                      child: Opacity(
+                        opacity: (_scrollOffset.value / 50.0).clamp(0.0, 1.0),
+                        child: const DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                AppColors.background,
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
           ],
         ));
   }

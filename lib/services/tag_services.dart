@@ -178,8 +178,11 @@ class TagServices {
                                       ),
                                       child: MyText(
                                         tag.name,
-                                        size: 13,
+                                        size: 12,
                                         textAlign: TextAlign.center,
+                                        fontWeight: selected
+                                            ? FontWeight.w700
+                                            : FontWeight.w600,
                                         color: selected
                                             ? AppColors.text
                                             : AppColors.secondaryText,
@@ -270,74 +273,90 @@ class TagServices {
       builder: (_, __, ___) {
         // setState((){});
 
-        return Container(
-          clipBehavior: Clip.hardEdge,
-          decoration: BoxDecoration(
-            color: leveled ? AppColors.secondaryLeveled : AppColors.leveled,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          width: 500,
-          height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Center(
-            child: ListView.builder(
-              clipBehavior: Clip.none,
-              scrollDirection: Axis.horizontal,
-              itemCount: List.from(chosenTags).length + 1,
-              itemBuilder: (_, tagId) {
-                if (List.from(chosenTags).length == tagId) {
-                  return Padding(
-                      padding:
-                          const EdgeInsets.only(top: 5, bottom: 5, right: 30),
-                      child: MyButton(
-                        width: 60,
-                        height: 30,
-                        padding: const EdgeInsets.all(0),
-                        onPressed: () {
-                          showChooseTagDropDown(context);
-                        },
-                        backgroundColor: AppColors.primary,
-                        child: const Center(
-                            child: Icon(Icons.add_rounded,
-                                // fontWeight: FontWeight(10),
-                                color: AppColors.text,
-                                size: 40)),
-                      ));
-                } else {
-                  final Tag tag = tagLookup[chosenTags[tagId]]!;
-                  return Padding(
-                      padding:
-                          const EdgeInsets.only(top: 10, bottom: 10, right: 10),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const SizedBox(width: 10),
-                            MyText(tag.name, size: 13, color: AppColors.text),
-                            const SizedBox(width: 20),
-                            Center(
-                                child: IconButton(
-                              onPressed: () {
-                                chosenTags.remove(tag.id);
-                                updateTagWidget.value = !updateTagWidget.value;
-                              },
-                              icon: const Icon(Icons.remove),
-                              ba
-                              color: Colors.white,
-                            )),
-                          ],
-                        ),
-                      ));
-                }
-              },
-            ),
-          ),
-        );
+        return ShaderMask(
+            shaderCallback: (Rect bounds) {
+              return const LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [Colors.black, Colors.black, Colors.transparent],
+                stops: [
+                  0.80,
+                  0.95,
+                  1.0
+                ], // Starts fading out near the right edge
+              ).createShader(bounds);
+            },
+            blendMode: BlendMode.dstIn,
+            child: Container(
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                color: leveled ? AppColors.secondaryLeveled : AppColors.leveled,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              width: 500,
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Center(
+                child: ListView.builder(
+                  clipBehavior: Clip.none,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: List.from(chosenTags).length + 1,
+                  itemBuilder: (_, tagId) {
+                    if (List.from(chosenTags).length == tagId) {
+                      return Padding(
+                          padding: const EdgeInsets.only(
+                              top: 5, bottom: 5, right: 30),
+                          child: MyButton(
+                            width: 60,
+                            height: 30,
+                            padding: const EdgeInsets.all(0),
+                            onPressed: () {
+                              showChooseTagDropDown(context);
+                            },
+                            backgroundColor: AppColors.primary,
+                            child: const Center(
+                                child: Icon(Icons.add_rounded,
+                                    // fontWeight: FontWeight(10),
+                                    color: AppColors.text,
+                                    size: 40)),
+                          ));
+                    } else {
+                      final Tag tag = tagLookup[chosenTags[tagId]]!;
+                      return Padding(
+                          padding: const EdgeInsets.only(
+                              top: 10, bottom: 10, right: 10),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const SizedBox(width: 10),
+                                MyText(tag.name,
+                                    size: 13, color: AppColors.text),
+                                const SizedBox(width: 20),
+                                // Center(
+                                IconButton(
+                                  onPressed: () {
+                                    chosenTags.remove(tag.id);
+                                    updateTagWidget.value =
+                                        !updateTagWidget.value;
+                                  },
+                                  icon: const Icon(Icons.remove),
+                                  padding: EdgeInsets.zero,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            ),
+                          ));
+                    }
+                  },
+                ),
+              ),
+            ));
       },
     );
   }

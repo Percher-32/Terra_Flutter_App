@@ -214,7 +214,7 @@ class SearchServices {
 
   static PreferredSize createSearchBar(BuildContext context) {
     return PreferredSize(
-      preferredSize: const Size.fromHeight(84),
+      preferredSize: const Size.fromHeight(70),
       child: Column(
         children: [
           const SizedBox(height: 30),

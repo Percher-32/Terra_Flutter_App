@@ -24,60 +24,6 @@ class BusinessLocationFullPageState extends State<BusinessLocationFullPage> {
     _future = BusinessService.getBusinessLocation(widget.locationId);
   }
 
-  Widget fullCard(BuildContext context, BusinessLocation businessLocation,
-      String imageUrl) {
-    String ratings = "No Ratings";
-    if (businessLocation.numRatings != null) {
-      ratings =
-          "${businessLocation.averageRating!.toStringAsFixed(2)}/10 (${businessLocation.numRatings!})";
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 5,
-      children: [
-        BaseImage(
-          url: imageUrl,
-          height: 380,
-          width: MediaQuery.of(context).size.width,
-        ),
-        Row(children: [
-          const SizedBox(width: 9),
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width / 1.7,
-            ),
-            child: MyText(
-              businessLocation.name,
-              color: Colors.grey.shade800,
-              size: 35,
-            ),
-          ),
-        ]),
-        Row(children: [
-          const SizedBox(width: 10),
-          MyText(
-            businessTypeLookup[businessLocation.type]!,
-            color: Colors.grey.shade800,
-            size: 22,
-          ),
-        ]),
-        Row(children: [
-          const SizedBox(width: 10),
-          MyText(
-            ratings,
-            color: Colors.grey.shade800,
-            size: 22,
-          ),
-          const Icon(
-            Icons.star_rounded,
-            size: 40,
-          ),
-        ]),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     // super.build(context);
@@ -116,54 +62,145 @@ class BusinessLocationPageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String ratings = "No Ratings";
+    String ratingsText = "No Ratings";
     if (businessLocation.numRatings != null) {
-      ratings =
+      ratingsText =
           "${businessLocation.averageRating!.toStringAsFixed(2)}/10 (${businessLocation.numRatings!})";
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 5,
+    String iconPath = businessIconLookupAlt[businessLocation.type]!;
+
+    final Widget ratingWidget = businessLocation.numRatings != null
+        ? Row(children: [
+            MyText(
+              (businessLocation.averageRating! / 2).toStringAsFixed(2),
+              fontWeight: FontWeight.w600,
+              color: AppColors.text,
+              size: 17,
+            ),
+            const SizedBox(
+              width: 5,
+            ),
+            Row(
+              children: [
+                ...List.generate(5, (starIndex) {
+                  final scaledStarIndex = ((starIndex + 1) * 2).toDouble();
+
+                  if (scaledStarIndex <=
+                      businessLocation.averageRating! + 0.00001) {
+                    return const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.highlightText,
+                      size: 30,
+                    );
+                  } else if (scaledStarIndex - businessLocation.averageRating! <
+                      0.5) {
+                    return const Icon(
+                      Icons.star_half_rounded,
+                      color: AppColors.highlightText,
+                      size: 30,
+                    );
+                  } else {
+                    return const Icon(
+                      Icons.star_border_rounded,
+                      color: AppColors.highlightText,
+                      size: 30,
+                    );
+                  }
+                })
+              ],
+            ),
+            const SizedBox(
+              width: 5,
+            ),
+            MyText(
+              "(${businessLocation.numRatings!})",
+              fontWeight: FontWeight.w600,
+              color: AppColors.text,
+              size: 17,
+            ),
+          ])
+        : MyText(
+            ratingsText,
+            fontWeight: FontWeight.w600,
+            color: AppColors.text,
+            size: 17,
+          );
+
+    Widget unVerifiedBadge = const SizedBox();
+
+    if (!businessLocation.verified) {
+      unVerifiedBadge = Image.asset(
+          "assets/icons/business_icons/unverified_badge.png",
+          scale: 2.5);
+    }
+
+    return Stack(
       children: [
-        BaseImage(
-          url: imageUrl,
-          height: 380,
-          width: MediaQuery.of(context).size.width,
-        ),
-        Row(children: [
-          const SizedBox(width: 9),
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width / 1.7,
-            ),
-            child: MyText(
-              businessLocation.name,
-              color: Colors.grey.shade800,
-              size: 35,
-            ),
-          ),
-        ]),
-        Row(children: [
-          const SizedBox(width: 10),
-          MyText(
-            businessTypeLookup[businessLocation.type]!,
-            color: Colors.grey.shade800,
-            size: 22,
-          ),
-        ]),
-        Row(children: [
-          const SizedBox(width: 10),
-          MyText(
-            ratings,
-            color: Colors.grey.shade800,
-            size: 22,
-          ),
-          const Icon(
-            Icons.star_rounded,
-            size: 40,
-          ),
-        ]),
+        Positioned(
+            top: 0,
+            child: BaseImage(
+              radius: 0,
+              url: imageUrl,
+              height: 380,
+              width: MediaQuery.of(context).size.width,
+            )),
+        Positioned(
+            top: 350,
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              decoration: BoxDecoration(
+                  color: AppColors.leveled,
+                  borderRadius: BorderRadius.circular(30)),
+              child: Column(
+                children: [
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  //* TiTLE and Type
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      SizedBox(
+                          width: 250,
+                          child: MyText(
+                            businessLocation.name,
+                            size: 20,
+                            fontWeight: FontWeight.w800,
+                          )),
+                      const SizedBox(
+                        width: 1,
+                      ),
+                      unVerifiedBadge
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Image.asset(iconPath, width: 25, height: 25),
+                      MyText(
+                        businessTypeLookup[businessLocation.type]!,
+                        color: AppColors.text,
+                        size: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      ratingWidget
+                    ],
+                  )
+                ],
+              ),
+            ))
       ],
     );
   }

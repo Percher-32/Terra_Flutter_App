@@ -137,35 +137,7 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
           scale: 3);
     }
 
-    String iconPath = "assets/icons/svg_logo.png";
-    if (miniBusinessLocation.type == 0) {
-      iconPath =
-          "assets/icons/business_type_icons/food_and_dining_icon_alt.png";
-    } else if (miniBusinessLocation.type == 1) {
-      iconPath = "assets/icons/business_type_icons/home_services_icon_alt.png";
-    } else if (miniBusinessLocation.type == 2) {
-      iconPath =
-          "assets/icons/business_type_icons/health_and_wellness_icon_alt.png";
-    } else if (miniBusinessLocation.type == 3) {
-      iconPath =
-          "assets/icons/business_type_icons/shopping_and_retail_icon_alt.png";
-    } else if (miniBusinessLocation.type == 4) {
-      iconPath =
-          "assets/icons/business_type_icons/proffesional_services_icon_alt.png";
-    } else if (miniBusinessLocation.type == 5) {
-      iconPath = "assets/icons/business_type_icons/automotive_icon_alt.png";
-    } else if (miniBusinessLocation.type == 6) {
-      iconPath =
-          "assets/icons/business_type_icons/beauty_and_personal_care_icon_alt.png";
-    } else if (miniBusinessLocation.type == 7) {
-      iconPath =
-          "assets/icons/business_type_icons/entertainment_and_leisure_icon_alt.png";
-    } else if (miniBusinessLocation.type == 8) {
-      iconPath = "assets/icons/business_type_icons/education_icon_alt.png";
-    } else if (miniBusinessLocation.type == 9) {
-      iconPath =
-          "assets/icons/business_type_icons/lodging_and_travel_icon_alt.png";
-    }
+    String iconPath = businessIconLookupAlt[miniBusinessLocation.type]!;
 
     double screenWidth = MediaQuery.of(context).size.width;
 

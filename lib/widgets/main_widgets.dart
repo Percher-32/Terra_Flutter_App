@@ -14,8 +14,6 @@ class AppColors {
   static const secondaryLeveled = Color.fromARGB(255, 37, 65, 0);
   // fromARGB(255, 255, 255, 255);
 
-  static const halfLeveled = Color.fromRGBO(251, 248, 255, 1);
-
   static const text = Color.fromARGB(255, 255, 255, 255);
   static const secondaryText = Color.fromARGB(255, 163, 222, 0);
   static const highlightText = Color.fromARGB(255, 187, 255, 0);
@@ -140,7 +138,7 @@ class HeaderInputState extends State<HeaderInput> {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      cursorColor: AppColors.halfLeveled,
+      cursorColor: AppColors.secondaryLeveled,
       controller: widget.controller,
       onSubmitted: (value) {
         if (widget.onSubmitted != null) {
