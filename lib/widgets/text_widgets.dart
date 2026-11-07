@@ -86,7 +86,7 @@ class SubSubHeading extends StatelessWidget {
       textAlign: textAlign,
       style: TextStyle(
           color: color,
-          fontSize: 17,
+          fontSize: 18,
           fontFamily: "Montserrat",
           overflow: overflow,
           fontWeight: FontWeight.w700),

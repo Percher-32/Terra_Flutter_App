@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:nextfind/services/business_services.dart';
 import 'package:nextfind/models/business_models.dart';
@@ -165,148 +167,155 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
           "assets/icons/business_type_icons/lodging_and_travel_icon_alt.png";
     }
 
-    return SizedBox(
-      width: 380,
-      height: 260 + 20,
-      child: Stack(
-        children: [
-          // SHADOW ONLY
-          // Positioned(
-          //   left: 0,
-          //   top: 0,
-          //   child: IgnorePointer(
-          //     child: Container(
-          //       width: 380,
-          //       height: 260,
-          //       decoration: BoxDecoration(
-          //         borderRadius: BorderRadius.circular(30),
-          //         boxShadow: const [
-          //           BoxShadow(
-          //             color: Color.fromARGB(62, 101, 101, 101),
-          //             blurRadius: 10,
-          //             offset: Offset(-7, 10),
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // ),
+    double screenWidth = MediaQuery.of(context).size.width;
 
-          // ACTUAL CARD (Material + InkWell)
-          Positioned(
-            left: 0,
-            top: 0,
-            child: Material(
-              color: AppColors.leveled,
-              // surfaceTintColor: app,
-              borderRadius: BorderRadius.circular(20),
-              clipBehavior: Clip.hardEdge,
-              child: InkWell(
-                splashColor: const Color.fromARGB(255, 229, 233, 234),
-                onTap: () {
-                  goToBusinessPage(context, miniBusinessLocation.locationId);
-                },
-                child: SizedBox(
-                  width: 380,
-                  height: 260,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      BaseImage(
-                          radius: 10,
-                          width: 380,
-                          height: 165,
-                          url: miniBusinessLocation.thumbnailPath ?? "No Url"),
-                      Row(children: [
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        SubSubHeading(
-                          miniBusinessLocation.name,
-                          color: AppColors.highlightText,
-                          maxlines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      ]),
-                      const SizedBox(
-                        height: 0,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Image.asset(iconPath, width: 25, height: 25),
-                          LabelText(
-                            color: AppColors.text,
-                            businessTypeLookup[miniBusinessLocation.type]!,
-                          ),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                          Image.asset(
-                              "assets/icons/business_icons/rating_star.png"),
-                          const SizedBox(
-                            width: 5,
-                          ),
-                          LabelText(
-                            ratings,
-                            color: AppColors.text,
-                          ),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                          RepaintBoundary(
-                              child: ValueListenableBuilder(
-                                  valueListenable: SearchServices.isMetric,
-                                  builder: (_, __, ___) {
-                                    return BodyText(
-                                      "${miniBusinessLocation.distance.toStringAsFixed(2)} ${SearchServices.isMetric.value ? "km" : "mi"}",
-                                      color: AppColors.text,
-                                      maxlines: 1,
-                                      overflow: TextOverflow.fade,
-                                    );
-                                  })),
-                          // unVerifiedBadge
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      Row(children: [
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        ...[
-                          for (int tagId in miniBusinessLocation.tags)
-                            Row(children: [
-                              MyText(
-                                  "${TagServices.tagLookup[tagId]!.name}  ${(tagId == miniBusinessLocation.tags.last) ? "" : "•"}",
-                                  size: 12,
-                                  maxlines: 1,
-                                  overflow: TextOverflow.clip,
-                                  color: AppColors.text),
-                              const SizedBox(
-                                width: 4,
-                              )
-                            ])
-                        ],
-                      ])
-                    ],
+    double cardWidth = screenWidth > 450 ? 400 : screenWidth * 0.9;
+
+    return SizedBox(
+      width: cardWidth,
+      height: 280,
+      child: Padding(
+        padding: const EdgeInsetsGeometry.only(bottom: 10),
+        child: Material(
+          color: AppColors.leveled,
+          borderRadius: BorderRadius.circular(10),
+          clipBehavior: Clip.hardEdge,
+          child: InkWell(
+            splashColor: const Color.fromARGB(255, 229, 233, 234),
+            onTap: () {
+              goToBusinessPage(context, miniBusinessLocation.locationId);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BaseImage(
+                    radius: 10,
+                    width: 380,
+                    height: 165,
+                    url: miniBusinessLocation.thumbnailPath ?? "No Url"),
+                Row(children: [
+                  const SizedBox(
+                    width: 10,
                   ),
+                  SubSubHeading(
+                    miniBusinessLocation.name,
+                    color: AppColors.highlightText,
+                    maxlines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                ]),
+                const SizedBox(
+                  height: 0,
                 ),
-              ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    Image.asset(iconPath, width: 25, height: 25),
+                    LabelText(
+                      color: AppColors.text,
+                      businessTypeLookup[miniBusinessLocation.type]!,
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    // Image.asset(
+                    //     "assets/icons/business_icons/rating_star.png"),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.text,
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    LabelText(
+                      ratings,
+                      color: AppColors.text,
+                    ),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    const Icon(
+                      Icons.linear_scale_sharp,
+                      color: AppColors.text,
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    RepaintBoundary(
+                        child: ValueListenableBuilder(
+                            valueListenable: SearchServices.isMetric,
+                            builder: (_, __, ___) {
+                              return BodyText(
+                                "${miniBusinessLocation.distance.toStringAsFixed(2)} ${SearchServices.isMetric.value ? "km" : "mi"}",
+                                color: AppColors.text,
+                                maxlines: 1,
+                                overflow: TextOverflow.fade,
+                              );
+                            })),
+                    // unVerifiedBadge
+                  ],
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                      maxWidth: 250), // Adjust your max width here
+                  child: ShaderMask(
+                    shaderCallback: (Rect bounds) {
+                      return const LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          Colors.black,
+                          Colors.black,
+                          Colors.transparent
+                        ],
+                        stops: [
+                          0.80,
+                          0.95,
+                          1.0
+                        ], // Starts fading out near the right edge
+                      ).createShader(bounds);
+                    },
+                    blendMode: BlendMode.dstIn,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics:
+                          const NeverScrollableScrollPhysics(), // Keeps it locked statically in place
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (int tagId in miniBusinessLocation.tags) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.leveled,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: MyText(
+                                TagServices.tagLookup[tagId]!.name,
+                                size: 12,
+                                color: AppColors.text,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              ],
             ),
           ),
-
-          Positioned(
-            right: 10,
-            top: 10,
-            child: unVerifiedBadge,
-          ),
-        ],
+        ),
       ),
     );
   }
