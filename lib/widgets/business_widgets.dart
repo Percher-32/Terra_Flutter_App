@@ -45,27 +45,14 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
   @override
   bool get wantKeepAlive => true;
 
+
+  final ScrollController scrollController = ScrollController(initialScrollOffset: 0);
+
+
   @override
   void initState() {
     super.initState();
     _future = BusinessService.getBusinessLocationMini([widget.locationId]);
-  }
-
-  Widget buildWidget(BuildContext context,
-      AsyncSnapshot<Map<String, MiniBusinessLocation>> snapshot) {
-    if (snapshot.hasData) {
-      if (snapshot.data is! Map) {
-        return const SizedBox();
-      }
-
-      final miniBusinessLocation = snapshot.data![widget.locationId]!;
-      return BusinessLocationThumbnailBodyWidget(
-          miniBusinessLocation: miniBusinessLocation);
-    } else if (snapshot.hasError) {
-      return Text('Error: ${snapshot.error}');
-    } else {
-      return const CircularProgressIndicator();
-    }
   }
 
   @override
@@ -75,7 +62,19 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
         future: _future,
         builder: (BuildContext context,
             AsyncSnapshot<Map<String, MiniBusinessLocation>> snapshot) {
-          return buildWidget(context, snapshot);
+          if (snapshot.hasData) {
+            if (snapshot.data is! Map) {
+              return const SizedBox();
+            }
+
+            final miniBusinessLocation = snapshot.data![widget.locationId]!;
+            return BusinessLocationThumbnailBodyWidget(
+                miniBusinessLocation: miniBusinessLocation);
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            return const CircularProgressIndicator();
+          }
         });
   }
 }
@@ -85,8 +84,12 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
       {super.key, required this.miniBusinessLocation});
   final MiniBusinessLocation miniBusinessLocation;
 
+
   @override
   Widget build(BuildContext context) {
+
+
+
     String ratings = "No Ratings";
     if (miniBusinessLocation.numRatings != null) {
       ratings =

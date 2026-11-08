@@ -185,23 +185,124 @@ class BusinessLocationPageWidget extends StatelessWidget {
                       const SizedBox(
                         width: 20,
                       ),
-                      Image.asset(iconPath, width: 25, height: 25),
-                      MyText(
-                        businessTypeLookup[businessLocation.type]!,
-                        color: AppColors.text,
-                        size: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      SizedBox(
+                          width: 100,
+                          child: Row(children: [
+                            MyText(
+                              businessTypeLookup[businessLocation.type]!,
+                              color: AppColors.text,
+                              size: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            Image.asset(iconPath, width: 25, height: 25),
+                          ])),
                       const SizedBox(
                         width: 20,
                       ),
                       ratingWidget
                     ],
-                  )
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  const OptionsNotch(
+                      options: ["General", "Menu", "Reviews", "Photos"])
                 ],
               ),
             ))
       ],
+    );
+  }
+}
+
+class OptionsNotch extends StatefulWidget {
+  const OptionsNotch({super.key, required this.options, this.startIndex = 0});
+
+  final List<String> options;
+  final int startIndex;
+
+  @override
+  State<StatefulWidget> createState() => OptionsNotchState();
+}
+
+class OptionsNotchState extends State<OptionsNotch> {
+  late ValueNotifier<int> currentIndex;
+
+  @override
+  void initState() {
+    currentIndex = ValueNotifier(widget.startIndex);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      // height: 60,
+      decoration: BoxDecoration(
+        color: AppColors.leveled,
+        borderRadius: BorderRadius.circular(12), // Optional: rounds the corners
+        boxShadow: [
+          BoxShadow(
+            color:
+                Colors.black.withValues(alpha: 0.2), // Shadow color and opacity
+            spreadRadius: 4, // How much the shadow spreads
+            blurRadius: 8, // Softness of the shadow
+            offset: Offset(0, 20), // Changes position of shadow (x, y)
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 20,
+            children: [
+              SizedBox(width: 0),
+              ...List.generate(widget.options.length, (index) {
+                return ValueListenableBuilder(
+                    valueListenable: currentIndex,
+                    builder: (_, __, ___) {
+                      final bool isSelected = currentIndex.value == index;
+
+                      return Material(
+                        color: isSelected
+                            ? AppColors.secondaryLeveled
+                            : AppColors.leveled,
+                        borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(20),
+                            bottomRight: Radius.circular(20)),
+                        child: InkWell(
+                          borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(20),
+                              bottomRight: Radius.circular(20)),
+                          onTap: () {
+                            currentIndex.value = index;
+                          },
+                          splashColor: const Color.fromARGB(67, 93, 115, 63),
+                          child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                              child: MyText(
+                                widget.options[index],
+                                color: isSelected
+                                    ? AppColors.text
+                                    : AppColors.secondaryText,
+                                size: 17,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                              )),
+                        ),
+                      );
+                    });
+
+                //
+              })
+            ],
+          )),
     );
   }
 }

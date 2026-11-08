@@ -33,6 +33,12 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  @override
+  void dispose() {
+    scrollController.dispose();
+    _scrollOffset.dispose();
+  }
+
   Future<
       ({
         List<MiniBusinessLocation>? trendingBusinesses,
@@ -58,8 +64,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
-   
     return Scaffold(
         appBar: SearchServices.createSearchBar(context),
         bottomNavigationBar: const NavBar(currentPage: AppPages.homepage),
