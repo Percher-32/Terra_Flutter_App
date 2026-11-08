@@ -95,7 +95,7 @@ class _SearchPageState extends State<SearchPage> {
               },
               child: Scaffold(
                   appBar: PreferredSize(
-                    preferredSize: const ui.Size.fromHeight(150),
+                    preferredSize: const ui.Size.fromHeight(120),
                     child: ValueListenableBuilder<MainSearchPageMode>(
                       valueListenable: SearchPageGlobals.mapMode,
                       builder: (_, choosing, __) {

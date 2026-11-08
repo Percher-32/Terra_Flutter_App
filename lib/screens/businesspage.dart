@@ -2,9 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:nextfind/services/business_services.dart';
+import 'package:nextfind/services/navbar_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:nextfind/models/business_models.dart';
+
+class BusinessPageGlobals {
+  static ValueNotifier<int> currentIndex = ValueNotifier(0);
+}
 
 class BusinessLocationFullPage extends StatefulWidget {
   const BusinessLocationFullPage({super.key, required this.locationId});
@@ -18,9 +23,12 @@ class BusinessLocationFullPage extends StatefulWidget {
 class BusinessLocationFullPageState extends State<BusinessLocationFullPage> {
   late Future<BusinessLocation> _future;
 
+  late ValueNotifier<int> currentIndex;
+
   @override
   void initState() {
     super.initState();
+    currentIndex = ValueNotifier(0);
     _future = BusinessService.getBusinessLocation(widget.locationId);
   }
 
@@ -28,6 +36,7 @@ class BusinessLocationFullPageState extends State<BusinessLocationFullPage> {
   Widget build(BuildContext context) {
     // super.build(context);
     return Scaffold(
+        bottomNavigationBar: NavBar(currentPage: NavbarServices.currentPage),
         body: FutureBuilder(
             future: _future,
             builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -135,84 +144,105 @@ class BusinessLocationPageWidget extends StatelessWidget {
           scale: 2.5);
     }
 
-    return Stack(
-      children: [
-        Positioned(
-            top: 0,
-            child: BaseImage(
-              radius: 0,
-              url: imageUrl,
-              height: 380,
-              width: MediaQuery.of(context).size.width,
-            )),
-        Positioned(
-            top: 350,
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight:
+              490.0, // Total height of your image + text details when at the top
+          pinned: true, // Keeps the app bar pinned at the top when scrolling
+          backgroundColor: AppColors.leveled,
+          elevation: 0,
+
+          title: MyText(
+            businessLocation.name,
+          ),
+          actions: [
+            unVerifiedBadge,
+            const SizedBox(width: 16),
+          ],
+
+          flexibleSpace: FlexibleSpaceBar(
+            background: Stack(
+              children: [
+                Column(
+                  children: [
+                    const SizedBox(height: 390),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                MyText(
+                                  businessLocation.name,
+                                  size: 20,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    MyText(
+                                      businessTypeLookup[
+                                          businessLocation.type]!,
+                                      color: AppColors.text,
+                                      size: 17,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Image.asset(iconPath,
+                                        width: 25, height: 25),
+                                    const SizedBox(width: 10),
+                                    ratingWidget,
+                                  ],
+                                ),
+                              ],
+                            )),
+                      ),
+                    ),
+                  ],
+                ),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: BaseImage(
+                    radius: 0,
+                    url: imageUrl,
+                    height: 380,
+                    width: MediaQuery.of(context).size.width,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 3. The OptionsNotch stays pinned right below the app bar title when scrolling
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(60.0),
             child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              decoration: BoxDecoration(
-                  color: AppColors.leveled,
-                  borderRadius: BorderRadius.circular(30)),
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  //* TiTLE and Type
-                  Row(
-                    children: [
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      SizedBox(
-                          width: 250,
-                          child: MyText(
-                            businessLocation.name,
-                            size: 20,
-                            fontWeight: FontWeight.w800,
-                          )),
-                      const SizedBox(
-                        width: 1,
-                      ),
-                      unVerifiedBadge
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  Row(
-                    children: [
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      SizedBox(
-                          width: 100,
-                          child: Row(children: [
-                            MyText(
-                              businessTypeLookup[businessLocation.type]!,
-                              color: AppColors.text,
-                              size: 17,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            Image.asset(iconPath, width: 25, height: 25),
-                          ])),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      ratingWidget
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  const OptionsNotch(
-                      options: ["General", "Menu", "Reviews", "Photos"])
-                ],
+              color: AppColors.leveled,
+              child: const OptionsNotch(
+                options: ["General", "Menu", "Reviews", "Photos"],
               ),
-            ))
+            ),
+          ),
+        ),
+
+        // 4. Your Tab Content below
+        SliverToBoxAdapter(
+          child: ValueListenableBuilder(
+            valueListenable: BusinessPageGlobals.currentIndex,
+            builder: (_, currentIndex, __) {
+              if (currentIndex == 0) {
+                return GeneralPageWidget(businessLocation: businessLocation);
+              }
+              return const SizedBox();
+            },
+          ),
+        ),
       ],
     );
   }
@@ -229,12 +259,10 @@ class OptionsNotch extends StatefulWidget {
 }
 
 class OptionsNotchState extends State<OptionsNotch> {
-  late ValueNotifier<int> currentIndex;
-
   @override
   void initState() {
-    currentIndex = ValueNotifier(widget.startIndex);
     super.initState();
+    BusinessPageGlobals.currentIndex.value = widget.startIndex;
   }
 
   @override
@@ -244,7 +272,8 @@ class OptionsNotchState extends State<OptionsNotch> {
       // height: 60,
       decoration: BoxDecoration(
         color: AppColors.leveled,
-        borderRadius: BorderRadius.circular(12), // Optional: rounds the corners
+        borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
             color:
@@ -263,9 +292,10 @@ class OptionsNotchState extends State<OptionsNotch> {
               SizedBox(width: 0),
               ...List.generate(widget.options.length, (index) {
                 return ValueListenableBuilder(
-                    valueListenable: currentIndex,
+                    valueListenable: BusinessPageGlobals.currentIndex,
                     builder: (_, __, ___) {
-                      final bool isSelected = currentIndex.value == index;
+                      final bool isSelected =
+                          BusinessPageGlobals.currentIndex.value == index;
 
                       return Material(
                         color: isSelected
@@ -279,7 +309,7 @@ class OptionsNotchState extends State<OptionsNotch> {
                               bottomLeft: Radius.circular(20),
                               bottomRight: Radius.circular(20)),
                           onTap: () {
-                            currentIndex.value = index;
+                            BusinessPageGlobals.currentIndex.value = index;
                           },
                           splashColor: const Color.fromARGB(67, 93, 115, 63),
                           child: Container(
@@ -303,6 +333,19 @@ class OptionsNotchState extends State<OptionsNotch> {
               })
             ],
           )),
+    );
+  }
+}
+
+class GeneralPageWidget extends StatelessWidget {
+  const GeneralPageWidget({super.key, required this.businessLocation});
+
+  final BusinessLocation businessLocation;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 800,
     );
   }
 }

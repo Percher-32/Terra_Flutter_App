@@ -128,6 +128,12 @@ class _MapSearchViewState extends State<MapSearchView>
     return null;
   }
 
+  @override
+  void dispose() {
+    SearchPageGlobals.mapReady = false;
+    super.dispose();
+  }
+
   Future<Uint8List> registerImageToMap(
       String assetPath, String customID) async {
     final ByteData byteData = await rootBundle.load(assetPath);
