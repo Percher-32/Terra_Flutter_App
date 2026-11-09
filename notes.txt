@@ -1,0 +1,16 @@
+The search bar should automatially open up a new page with
+
+A field for a query input , and a location input
+
+
+In the Search Page the business thumbnail shouldn't just be a business thumbnail,
+it should be like a list of business down there thats usually hidden , but clicking on a location brings it up.
+
+Also remove the search button in the map view , adding new tags should do thats
+
+Also a "search here" button to search in the area that the user is lokking at
+
+
+
+Make the nav bar constant , use something like router i think
+
