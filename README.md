@@ -10,6 +10,11 @@ This repository and its source code are published strictly for review and evalua
 No part of this software—including source code, design, or assets—may be reproduced, distributed, modified, sub-licensed, or used for commercial or non-commercial purposes without explicit written permission from the copyright holder.
 
 
+
+## Why I Made this
+I made this as an easy way for businesses in my area to have a local platform for people to find them
+
+
 ## Demo
 Notice -> This demo only shows how the app function without a server present , I've added mock data to allow anyone to test it
 
@@ -29,11 +34,10 @@ The web demo is found at https://percher-32.github.io/Terra_Flutter_App/
 
 ## WEB BUILD NOTICE FOR ME
 when i run the build action I have to ensure to this to the index.html
+<img width="360" height="800" alt="Screenshot_20261107_124410" src="https://github.com/user-attachments/assets/1cbbaa9d-68da-4b33-9bc8-18f75e2d1722" />
+<img width="360" height="800" alt="Screenshot_20261108_100026" src="https://github.com/user-attachments/assets/396d647c-a68e-4f25-8c8e-a1d3f81f8c47" />
 
-```
-    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
-```
+<img width="360" height="800" alt="Screenshot_20261108_201024" src="https://github.com/user-attachments/assets/e3a4a6a0-ce15-422e-870a-c2fc65eaaa01" />
 
 --
 
