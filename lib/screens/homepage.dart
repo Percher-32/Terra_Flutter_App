@@ -6,7 +6,6 @@ import 'package:nextfind/helpers/logger.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/page_moves.dart';
 import 'package:nextfind/services/business_services.dart';
-import 'package:nextfind/services/navbar_services.dart';
 import 'package:nextfind/services/search_services.dart';
 import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
@@ -67,7 +66,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: SearchServices.createSearchBar(context),
-        bottomNavigationBar: const NavBar(currentPage: AppPages.homepage),
         body: Stack(
           children: [
             Positioned(

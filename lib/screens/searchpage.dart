@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:nextfind/main.dart';
 
 import 'package:nextfind/services/device_services.dart';
 import 'package:nextfind/services/business_services.dart';
@@ -25,7 +26,7 @@ class SearchPage extends StatefulWidget {
   State<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageState extends State<SearchPage> with RouteAware {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -45,6 +46,35 @@ class _SearchPageState extends State<SearchPage> {
 
     SearchPageGlobals.runSearch();
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 2. Subscribe to the route observer
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    // 3. Always unsubscribe when the widget is destroyed
+    routeObserver.unsubscribe(this);
+    
+    super.dispose();
+  }
+
+  // --- These methods trigger automatically when you switch tabs/routes ---
+
+  @override
+  void didPushNext() {
+    // Called when a new route is pushed on top (leaving this page)
+    SearchPageGlobals.mapReady = false; // Set your variable to false!
+  }
+
+  // @override
+  // void didPopNext() {
+  //   // Called when coming back to this page from another route/tab
+  //   SearchPageGlobals.mapReady = true; // Set your variable back to true!
+  // }
 
   Future<void> _runSearchFunction() async {
     // Prevent overlapping searches
@@ -115,39 +145,8 @@ class _SearchPageState extends State<SearchPage> {
                       },
                     ),
                   ),
-                  bottomNavigationBar:
-                      ValueListenableBuilder<MainSearchPageMode>(
-                    valueListenable: SearchPageGlobals.mapMode,
-                    builder: (_, choosing, __) {
-                      if (choosing != MainSearchPageMode.list) {
-                        return const SizedBox(); // hide search bar
-                      }
-                      return const NavBar(
-                        currentPage: AppPages.searchpage,
-                      );
-                    },
-                  ),
                   body: Stack(children: [
                     const Positioned(child: SearchPageBody()),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: ValueListenableBuilder<MainSearchPageMode>(
-                        valueListenable: SearchPageGlobals.mapMode,
-                        builder: (_, choosing, __) {
-                          if ([
-                            MainSearchPageMode.choosing,
-                            MainSearchPageMode.list
-                          ].contains(choosing)) {
-                            return const SizedBox(); // hide search bar
-                          }
-                          return const NavBar(
-                            currentPage: AppPages.searchpage,
-                          );
-                        },
-                      ),
-                    ),
                     Positioned(
                       left: 0,
                       right: 0,

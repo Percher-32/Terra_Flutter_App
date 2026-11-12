@@ -26,7 +26,6 @@ class FavoriteLocationsPageState extends State<FavoriteLocationsPage> {
   Widget build(BuildContext context) {
     // super.build(context);
     return Scaffold(
-        bottomNavigationBar: const NavBar(currentPage: AppPages.favoritepage),
         body: FutureBuilder(
             future: _future,
             builder: (BuildContext context, AsyncSnapshot snapshot) {

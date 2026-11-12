@@ -94,7 +94,6 @@ class _UserSignupPageState extends State<UserSignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const NavBar(currentPage: AppPages.userpage),
       body: Center(
         child: Column(
           spacing: 20,

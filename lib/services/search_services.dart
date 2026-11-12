@@ -7,6 +7,7 @@ import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/page_moves.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
 import 'dart:typed_data';
+import 'package:go_router/go_router.dart';
 
 enum MainSearchPageMode { map, list, choosing, thumbnail }
 
@@ -35,6 +36,8 @@ class SearchPageGlobals {
   static MiniBusinessLocation? chosenBusinessLocation;
 
   static map_gl.MapLibreMapController? mapController;
+
+
 
   static void setChosenBusinessLocation(
       MiniBusinessLocation miniBusinessLocation) {

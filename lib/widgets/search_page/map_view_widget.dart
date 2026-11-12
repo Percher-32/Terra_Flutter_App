@@ -18,6 +18,8 @@ import 'package:flutter/rendering.dart';
 
 import 'package:flutter/services.dart';
 
+import 'package:flutter/scheduler.dart';
+
 String getRandomString(int length) {
   const chars =
       'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
@@ -95,17 +97,41 @@ class _MapSearchViewState extends State<MapSearchView>
     Overlay.of(context).insert(overlayEntry);
 
     // Wait for the next frame so the widget is fully rendered
-    await WidgetsBinding.instance.endOfFrame;
+    await SchedulerBinding.instance.endOfFrame;
     // await Future.delayed(const Duration(milliseconds: 20));
 
     try {
-      // 2. Capture the rendered boundary into raw PNG bytes
-      final RenderRepaintBoundary? boundary = repaintKey.currentContext
-          ?.findRenderObject() as RenderRepaintBoundary?;
+      // 1. Ensure context is valid before starting
+      final BuildContext? initialContext = repaintKey.currentContext;
+      if (initialContext == null || !initialContext.mounted) {
+        return null;
+      }
 
-      if (boundary != null) {
-        final ui.Image image =
-            await boundary.toImage(pixelRatio: 2.0); // 2.0 for sharp text
+      // 2. Wait for the current frame to completely finish painting
+      // This guarantees `debugNeedsPaint` is false before we call toImage()
+      await WidgetsBinding.instance.endOfFrame;
+
+      // 3. Re-verify the context and mounted state after the await gap
+      final BuildContext? context = repaintKey.currentContext;
+      if (context == null || !context.mounted) {
+        return null;
+      }
+
+      // Double-check map state before doing expensive image processing
+      if (!SearchPageGlobals.mapReady ||
+          SearchPageGlobals.mapMode.value == MainSearchPageMode.list) {
+        return null;
+      }
+
+      final RenderRepaintBoundary? boundary =
+          context.findRenderObject() as RenderRepaintBoundary?;
+
+      if (boundary != null && boundary.debugNeedsPaint == false) {
+        final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
+
+        // Final mounted check after the image encoding gap
+        if (!context.mounted) return null;
+
         final ByteData? byteData =
             await image.toByteData(format: ui.ImageByteFormat.png);
         final Uint8List? imageList = byteData?.buffer.asUint8List();
@@ -115,15 +141,19 @@ class _MapSearchViewState extends State<MapSearchView>
               SearchPageGlobals.mapMode.value == MainSearchPageMode.list) {
             return null;
           }
-          // 3. Register it into MapLibre's style memory with your custom ID string
 
+          // 4. Register it into MapLibre's style memory
           await SearchPageGlobals.mapController?.addImage(customId, imageList);
           return imageList;
         }
       }
     } finally {
-      // 4. Always remove the temporary overlay entry when finished
-      overlayEntry.remove();
+      // 5. Always remove the temporary overlay entry when finished
+      try {
+        overlayEntry.remove();
+      } catch (_) {
+        // Ignore if it was already cleaned up
+      }
     }
     return null;
   }
@@ -193,8 +223,8 @@ class _MapSearchViewState extends State<MapSearchView>
   /// Register an Icon with a string using location_id
   Future<void> addIconMiniBusinessToMap(
       MiniBusinessLocation miniBusinessLocation, int index) async {
-    // log.i("${SearchPageGlobals}");
-    // Full Icons
+      try{
+
 
     if (!mounted) return;
     if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
@@ -225,7 +255,7 @@ class _MapSearchViewState extends State<MapSearchView>
           !SearchPageGlobals.mapReady) {
         return;
       }
-
+      if (!mounted) return;
       SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
         BusinessMarkerLevel.full
@@ -262,6 +292,7 @@ class _MapSearchViewState extends State<MapSearchView>
           !SearchPageGlobals.mapReady) {
         return;
       }
+      if (!mounted) return;
 
       SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
@@ -300,12 +331,18 @@ class _MapSearchViewState extends State<MapSearchView>
           !SearchPageGlobals.mapReady) {
         return;
       }
+      if (!mounted) return;
 
       SearchPageGlobals.businessMarkerIconCache[(
         miniBusinessLocation,
         BusinessMarkerLevel.mini
       )] = miniIconImage!;
-    }
+      }
+      }
+      finally{
+
+      }
+    
   }
 
   /// This function removes all the previous icons and adds new ones.

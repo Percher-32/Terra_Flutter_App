@@ -36,7 +36,6 @@ class BusinessLocationFullPageState extends State<BusinessLocationFullPage> {
   Widget build(BuildContext context) {
     // super.build(context);
     return Scaffold(
-        bottomNavigationBar: NavBar(currentPage: NavbarServices.currentPage),
         body: FutureBuilder(
             future: _future,
             builder: (BuildContext context, AsyncSnapshot snapshot) {
