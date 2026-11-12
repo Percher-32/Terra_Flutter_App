@@ -15,6 +15,7 @@ class AppColors {
   // fromARGB(255, 255, 255, 255);
 
   static const text = Color.fromARGB(255, 255, 255, 255);
+  static const deselected = Color.fromARGB(255, 108, 145, 0);
   static const secondaryText = Color.fromARGB(255, 163, 222, 0);
   static const highlightText = Color.fromARGB(255, 187, 255, 0);
 
