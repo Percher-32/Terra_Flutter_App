@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nextfind/services/business_services.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/helpers/conversions.dart';
@@ -45,9 +46,8 @@ class _BusinessLocationThumbnailState extends State<BusinessLocationThumbnail>
   @override
   bool get wantKeepAlive => true;
 
-
-  final ScrollController scrollController = ScrollController(initialScrollOffset: 0);
-
+  final ScrollController scrollController =
+      ScrollController(initialScrollOffset: 0);
 
   @override
   void initState() {
@@ -84,12 +84,8 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
       {super.key, required this.miniBusinessLocation});
   final MiniBusinessLocation miniBusinessLocation;
 
-
   @override
   Widget build(BuildContext context) {
-
-
-
     String ratings = "No Ratings";
     if (miniBusinessLocation.numRatings != null) {
       ratings =
@@ -158,7 +154,8 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
           child: InkWell(
             splashColor: const Color.fromARGB(255, 69, 122, 0),
             onTap: () {
-              goToBusinessPage(context, miniBusinessLocation.locationId);
+              context.push("/business-location/${miniBusinessLocation.locationId}");
+              // goToBusinessPage(context, miniBusinessLocation.locationId);
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,

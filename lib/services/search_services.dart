@@ -37,8 +37,6 @@ class SearchPageGlobals {
 
   static map_gl.MapLibreMapController? mapController;
 
-
-
   static void setChosenBusinessLocation(
       MiniBusinessLocation miniBusinessLocation) {
     chosenBusinessLocation = miniBusinessLocation;
@@ -145,7 +143,7 @@ class SearchServices {
                   child: HeaderInput(
                     hint: "restraunts, shops and more",
                     controller: SearchServices.controller,
-                    onSubmitted: (value) => goToSearchPage(parentContext),
+                    onSubmitted: (value) => parentContext.go("/search"),
                   )),
               const SizedBox(height: 20),
               const LabelText(
@@ -205,7 +203,7 @@ class SearchServices {
                 width: 300,
                 child: const MyText("Search", color: AppColors.text),
                 onPressed: () {
-                  goToSearchPage(parentContext);
+                  parentContext.go("/search");
                 },
               ),
             ],
@@ -238,7 +236,7 @@ class SearchServices {
                         controller: controller,
                         color: AppColors.text,
                         // size: 16,
-                        onSubmitted: (value) => goToSearchPage(context),
+                        onSubmitted: (value) => context.go("/search"),
                       ),
                     ),
                     IconButton(

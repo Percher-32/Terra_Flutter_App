@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:nextfind/screens/login_or_signup_page.dart';
 import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
-import 'package:nextfind/services/navbar_services.dart';
 import 'package:nextfind/widgets/business_widgets.dart';
 
 class FavoriteLocationsPage extends StatefulWidget {

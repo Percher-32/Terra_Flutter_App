@@ -1,4 +1,5 @@
 class NextfindDebugOptions {
+  //* Business Data Options
   static bool useBusinessDataTestData = true;
   static bool useTestTrendingData = true;
   static bool useTestTagData = true;
@@ -6,6 +7,7 @@ class NextfindDebugOptions {
   static bool keepAllNetworkImagesAsDefault = true;
   static bool keepIsOnlineAsTrue = true;
 
-  //* Non Mock Data Related
+  //* MapLibre Options
   static bool cacheBusinessMarkerIcons = false;
+  static bool remakeMapLibreLayer = true;
 }

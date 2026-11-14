@@ -7,7 +7,6 @@ import 'package:nextfind/main.dart';
 
 import 'package:nextfind/services/device_services.dart';
 import 'package:nextfind/services/business_services.dart';
-import 'package:nextfind/services/navbar_services.dart';
 import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/services/tag_services.dart';
 import 'package:nextfind/services/search_services.dart';

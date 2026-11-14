@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:nextfind/services/business_services.dart';
-import 'package:nextfind/services/navbar_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:nextfind/models/business_models.dart';

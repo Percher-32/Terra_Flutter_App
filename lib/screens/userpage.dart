@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nextfind/screens/login_or_signup_page.dart';
 import 'package:nextfind/services/auth_services.dart';
-import 'package:nextfind/services/navbar_services.dart';
 import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/helpers/logger.dart';
@@ -17,29 +17,27 @@ class UserPage extends StatefulWidget {
 class _UserPageState extends State<UserPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: UserService.isLoggedIn
-            ? Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.person, color: Colors.black, size: 100),
-                    FutureBuilder<dynamic>(
-                      future: UserService.setUserData(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          return const UserWidget();
-                        } else {
-                          return const CircularProgressIndicator();
-                        }
-                      },
-                    ),
-                  ],
+    return UserService.isLoggedIn
+        ? Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.person, color: Colors.black, size: 100),
+                FutureBuilder<dynamic>(
+                  future: UserService.setUserData(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return const UserWidget();
+                    } else {
+                      return const CircularProgressIndicator();
+                    }
+                  },
                 ),
-              )
-            : const LoginOrSignupPage(),
-        bottomNavigationBar: const NavBar(currentPage: AppPages.userpage));
+              ],
+            ),
+          )
+        : const LoginOrSignupPage();
   }
 }
 
@@ -61,7 +59,7 @@ class UserWidget extends StatelessWidget {
             return;
           }
           if (loggedOut) {
-            goToHomePage(context);
+            context.go("/home");
           } else {
             log.e("LOGOUT || ERROR FROM UI SIDE");
             showErrorMessage(context, "Error In Logout");

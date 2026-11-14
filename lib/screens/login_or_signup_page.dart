@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nextfind/services/navbar_services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nextfind/services/auth_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/page_moves.dart';
@@ -88,7 +88,7 @@ class _UserSignupPageState extends State<UserSignupPage> {
     }
 
     if (!mounted) return;
-    goToUserPage(context);
+    context.go("/home");
   }
 
   @override
@@ -146,13 +146,13 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!mounted) return;
 
-    goToUserPage(context);
+        context.go("/home");
+
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const NavBar(currentPage: AppPages.userpage),
       body: Center(
         child: Column(
           spacing: 20,
