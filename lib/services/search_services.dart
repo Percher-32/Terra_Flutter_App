@@ -9,13 +9,13 @@ import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
 import 'dart:typed_data';
 import 'package:go_router/go_router.dart';
 
-enum MainSearchPageMode { map, list, choosing, thumbnail }
+enum MainSearchPageMode { map, list, choosing, thumbnail ,initial}
 
 enum BusinessMarkerLevel { full, reduced, mini }
 
 class SearchPageGlobals {
   static final ValueNotifier<MainSearchPageMode> mapMode =
-      ValueNotifier(MainSearchPageMode.map);
+      ValueNotifier(MainSearchPageMode.initial);
   static final ValueNotifier<bool> reloadMapTrigger = ValueNotifier(false);
   static final ValueNotifier<bool> runSearchTrigger = ValueNotifier(false);
   static final ValueNotifier<bool> reloadUserPositionTrigger =
@@ -28,8 +28,9 @@ class SearchPageGlobals {
   static final ValueNotifier<List<MiniBusinessLocation>> miniBusinessLocations =
       ValueNotifier([]);
 
-  static final Map<(MiniBusinessLocation, BusinessMarkerLevel), Uint8List>
+  static final Map<int, Uint8List>
       businessMarkerIconCache = {};
+
 
   static bool hasWifi = false;
 

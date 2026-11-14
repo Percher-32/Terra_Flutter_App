@@ -6,12 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
 import 'package:nextfind/helpers/debug_options.dart';
 import 'package:nextfind/services/business_services.dart';
-import 'package:nextfind/page_moves.dart';
 import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/services/search_services.dart';
 import 'package:nextfind/services/lifecycle_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
-import 'package:nextfind/widgets/business_widgets.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/helpers/logger.dart';
 import 'dart:ui' as ui;
@@ -99,7 +97,7 @@ class _MapSearchViewState extends State<MapSearchView>
 
     // Wait for the next frame so the widget is fully rendered
     await SchedulerBinding.instance.endOfFrame;
-    // await Future.delayed(const Duration(milliseconds: 20));
+    await Future.delayed(const Duration(milliseconds: 20));
 
     try {
       // 1. Ensure context is valid before starting
@@ -189,13 +187,30 @@ class _MapSearchViewState extends State<MapSearchView>
     ];
 
     final geoJsonData = {"type": "FeatureCollection", "features": features};
+    if (!mounted) return;
+    if (!userSourceAdded || NextfindDebugOptions.remakeUserIcon) {
+      await loadAndRegisterWidgetIcon(
+          context,
+          Container(
+            width: 11,
+            height: 11,
+            decoration: BoxDecoration(
+              color:
+                  AppColors.primary, // The background/fill color of the circle
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white, // The color of the outline
+                width: 1.5, // The thickness of the outline
+              ),
+            ),
+          ),
+          "user_marker");
+    }
 
     if (userSourceAdded) {
       await SearchPageGlobals.mapController!
           .setGeoJsonSource("user_marker_source", geoJsonData);
     } else {
-      await registerImageToMap("assets/icons/user_marker.png", "user_marker");
-
       await SearchPageGlobals.mapController?.addSource(
         "user_marker_source",
         map_gl.GeojsonSourceProperties(
@@ -225,117 +240,35 @@ class _MapSearchViewState extends State<MapSearchView>
   Future<void> addIconMiniBusinessToMap(
       MiniBusinessLocation miniBusinessLocation, int index) async {
     try {
-      if (!mounted) return;
-      if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
+      if (!mounted ||
+          SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
           !SearchPageGlobals.mapReady) {
         return;
       }
+
+      final int businessIconCacheKey = miniBusinessLocation.type;
 
       if (SearchPageGlobals.businessMarkerIconCache
-              .containsKey((miniBusinessLocation, BusinessMarkerLevel.full)) &&
+              .containsKey(businessIconCacheKey) &&
           NextfindDebugOptions.cacheBusinessMarkerIcons) {
-        log.i("ICON CACHE HIT");
-        final widgetList = SearchPageGlobals.businessMarkerIconCache[(
-          miniBusinessLocation,
-          BusinessMarkerLevel.full
-        )]!;
+        final widgetList =
+            SearchPageGlobals.businessMarkerIconCache[businessIconCacheKey]!;
         await SearchPageGlobals.mapController
-            ?.addImage("BUSINESSMARKERICON_INDEXFULL:$index", widgetList);
+            ?.addImage("BUSINESSMARKERICON_INDEX:$index", widgetList);
       } else {
-        final Uint8List? fullIconImage = (await loadAndRegisterWidgetIcon(
+        final Uint8List? businessMarker = (await loadAndRegisterWidgetIcon(
             context,
             BusinessMarker(
-                miniBusinessLocation: miniBusinessLocation,
-                businessMarkerLevel: BusinessMarkerLevel.full,
-                index: index),
-            "BUSINESSMARKERICON_INDEXFULL:$index"));
+                miniBusinessLocation: miniBusinessLocation, index: index),
+            "BUSINESSMARKERICON_INDEX:$index"));
 
-        if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
+        if (!mounted ||
+            SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
             !SearchPageGlobals.mapReady) {
           return;
         }
-        if (!mounted) return;
-        SearchPageGlobals.businessMarkerIconCache[(
-          miniBusinessLocation,
-          BusinessMarkerLevel.full
-        )] = fullIconImage!;
-      }
-
-      // Reduced Icons
-      if (!mounted) return;
-      if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
-          !SearchPageGlobals.mapReady) {
-        return;
-      }
-      ;
-      if (SearchPageGlobals.businessMarkerIconCache.containsKey(
-              (miniBusinessLocation, BusinessMarkerLevel.reduced)) &&
-          NextfindDebugOptions.cacheBusinessMarkerIcons) {
-        log.i("ICON CACHE HIT");
-        final widgetList = SearchPageGlobals.businessMarkerIconCache[(
-          miniBusinessLocation,
-          BusinessMarkerLevel.reduced
-        )]!;
-        await SearchPageGlobals.mapController
-            ?.addImage("BUSINESSMARKERICON_INDEXREDUCED:$index", widgetList);
-      } else {
-        final Uint8List? reducedIconImage = (await loadAndRegisterWidgetIcon(
-            context,
-            BusinessMarker(
-                miniBusinessLocation: miniBusinessLocation,
-                businessMarkerLevel: BusinessMarkerLevel.reduced,
-                index: index),
-            "BUSINESSMARKERICON_INDEXREDUCED:$index"));
-
-        if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
-            !SearchPageGlobals.mapReady) {
-          return;
-        }
-        if (!mounted) return;
-
-        SearchPageGlobals.businessMarkerIconCache[(
-          miniBusinessLocation,
-          BusinessMarkerLevel.reduced
-        )] = reducedIconImage!;
-      }
-
-      //Mini Icons
-      if (!mounted) return;
-      if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
-          !SearchPageGlobals.mapReady) {
-        return;
-      }
-      ;
-      if (SearchPageGlobals.businessMarkerIconCache
-              .containsKey((miniBusinessLocation, BusinessMarkerLevel.mini)) &&
-          NextfindDebugOptions.cacheBusinessMarkerIcons) {
-        log.i("ICON CACHE HIT");
-        final widgetList = SearchPageGlobals.businessMarkerIconCache[(
-          miniBusinessLocation,
-          BusinessMarkerLevel.mini
-        )]!;
-
-        await SearchPageGlobals.mapController
-            ?.addImage("BUSINESSMARKERICON_INDEXMINI:$index", widgetList);
-      } else {
-        final Uint8List? miniIconImage = (await loadAndRegisterWidgetIcon(
-            context,
-            BusinessMarker(
-                miniBusinessLocation: miniBusinessLocation,
-                businessMarkerLevel: BusinessMarkerLevel.mini,
-                index: index),
-            "BUSINESSMARKERICON_INDEXMINI:$index"));
-
-        if (SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
-            !SearchPageGlobals.mapReady) {
-          return;
-        }
-        if (!mounted) return;
-
-        SearchPageGlobals.businessMarkerIconCache[(
-          miniBusinessLocation,
-          BusinessMarkerLevel.mini
-        )] = miniIconImage!;
+        SearchPageGlobals.businessMarkerIconCache[businessIconCacheKey] =
+            businessMarker!;
       }
     } finally {}
   }
@@ -364,9 +297,8 @@ class _MapSearchViewState extends State<MapSearchView>
           ]
         },
         "properties": {
-          "iconIdFULL": "BUSINESSMARKERICON_INDEXFULL:$index",
-          "iconIdREDUCED": "BUSINESSMARKERICON_INDEXREDUCED:$index",
-          "iconIdMINI": "BUSINESSMARKERICON_INDEXMINI:$index",
+          "iconId": "BUSINESSMARKERICON_INDEX:$index",
+          "rating": miniBusinessLocation.averageRating!.toStringAsFixed(1),
           "name": miniBusinessLocation.name,
           "index": index
         }
@@ -379,20 +311,28 @@ class _MapSearchViewState extends State<MapSearchView>
     final geoJsonData = {"type": "FeatureCollection", "features": features};
 
     try {
-      // final allSourceIds =
-      //     await SearchPageGlobals.mapController!.getSourceIds();
-
-      if (sourceAddedAlready) {
+      if (sourceAddedAlready && !NextfindDebugOptions.remakeMapLibreLayer) {
         await SearchPageGlobals.mapController!
             .setGeoJsonSource("business_markers_source", geoJsonData);
         SearchPageGlobals.isLoading.value = false;
       } else {
+        await loadAndRegisterWidgetIcon(
+            context,
+            Container(
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.text),
+              width: 10,
+              height: 10,
+            ),
+            "mini_icon");
+
         await SearchPageGlobals.mapController!.addSource(
           "business_markers_source",
           map_gl.GeojsonSourceProperties(
             data: geoJsonData,
             cluster: true,
-            clusterRadius: 70,
+            clusterRadius: 10,
             clusterProperties: {
               "min_index": [
                 [
@@ -424,22 +364,22 @@ class _MapSearchViewState extends State<MapSearchView>
         await SearchPageGlobals.mapController!.removeLayer("mini_icons_layer");
         await SearchPageGlobals.mapController!
             .removeLayer("unique_markers_layer");
-        await SearchPageGlobals.mapController!
-            .removeLayer("clustered_markers_layer");
       }
 
       if (!sourceAddedAlready || (NextfindDebugOptions.remakeMapLibreLayer)) {
+        //* Tiny Dots
         await SearchPageGlobals.mapController!.addSymbolLayer(
           "business_markers_source_mini_icons",
           "mini_icons_layer",
           belowLayerId: "user_marker_layer",
           const map_gl.SymbolLayerProperties(
-            iconImage: ['get', 'iconIdMINI'],
-            iconSize: 1.0,
+            iconImage: "mini_icon",
+            iconSize: 1,
+            iconOffset: [-10, 5],
             iconAllowOverlap: true,
           ),
         );
-
+        //* Main Icons
         await SearchPageGlobals.mapController!.addSymbolLayer(
           "business_markers_source",
           "unique_markers_layer",
@@ -452,6 +392,8 @@ class _MapSearchViewState extends State<MapSearchView>
             textField: [
               'concat',
               ['get', 'name'],
+              "\n ",
+              ["get", "rating"],
               " (",
               ['get', 'index'],
               ")",
@@ -459,36 +401,18 @@ class _MapSearchViewState extends State<MapSearchView>
             textJustify: 'left',
             textSize: 12,
             textAnchor: 'left',
-            textOffset: [1.5, 0.5],
+            textOffset: [1.2, 0.5],
             textFont: ['Open Sans Bold', 'Arial Unicode MS Regular'],
             textColor: AppColors.text.toHexStringRGB(),
             iconImage: [
               'get',
-              'iconIdFULL'
+              'iconId'
             ], // 3. Tells it to read the 'id' property from your GeoJSON
             iconSize: 1.2, // 4. Size scaling
-            iconAllowOverlap:
-                true, // 5. Prevents close icons from hiding each other
-            iconOffset: [180 / 4, 0.0],
-          ),
-        );
-
-        await SearchPageGlobals.mapController!.addSymbolLayer(
-          "business_markers_source",
-          "clustered_markers_layer",
-          belowLayerId: "user_marker_layer",
-          filter: ['has', 'point_count'],
-          const map_gl.SymbolLayerProperties(
-            iconImage: [
-              "concat",
-              "BUSINESSMARKERICON_INDEXREDUCED:",
-              [
-                'to-string',
-                ['get', 'min_index']
-              ]
-            ], // 3. Tells it to read the 'id' property from your GeoJSON
-            iconSize: 1.3,
-            iconAllowOverlap: true,
+            textAllowOverlap: true,
+            symbolSortKey: ['get', 'index'],
+            // iconAllowOverlap:
+            //     true,
           ),
         );
       }
@@ -604,12 +528,10 @@ class BusinessMarker extends StatelessWidget {
   const BusinessMarker({
     super.key,
     required this.miniBusinessLocation,
-    required this.businessMarkerLevel,
     required this.index,
   });
 
   final MiniBusinessLocation miniBusinessLocation;
-  final BusinessMarkerLevel businessMarkerLevel;
   final int index;
 
   @override
@@ -620,8 +542,9 @@ class BusinessMarker extends StatelessWidget {
     String ratingtext = "-";
 
     if (miniBusinessLocation.averageRating != null) {
-      ratingtext = "${miniBusinessLocation.averageRating!.toStringAsFixed(1)}";
+      ratingtext = miniBusinessLocation.averageRating!.toStringAsFixed(1);
     }
+    ratingtext = "";
 
     Widget veriBadge = verified
         ? const SizedBox.shrink()
@@ -645,111 +568,59 @@ class BusinessMarker extends StatelessWidget {
                   cacheWidth: 64,
                   cacheHeight: 64,
                 )),
-            Positioned(
-              left: 15,
-              top: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: AppColors.leveled,
-                ),
-                child: MyText(
-                  ratingtext,
-                  size: 12,
-                  color: AppColors.text,
-                ),
-              ),
-            ),
+            // Positioned(
+            //   left: 15,
+            //   top: 0,
+            //   child: Container(
+            //     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            //     decoration: BoxDecoration(
+            //       borderRadius: BorderRadius.circular(10),
+            //       color: AppColors.leveled,
+            //     ),
+            //     child: MyText(
+            //       ratingtext,
+            //       size: 12,
+            //       color: AppColors.text,
+            //     ),
+            //   ),
+            // ),
             Positioned(left: 32 - 8, bottom: 0, child: veriBadge),
           ],
         ));
 
     // Tier 1: Distance Dot
-    if (businessMarkerLevel == BusinessMarkerLevel.mini) {
-      return Container(
-        width: 10,
-        height: 10,
-        decoration: const BoxDecoration(
-          color: AppColors.primary,
-          shape: BoxShape.circle,
-        ),
-      );
-    } else if (businessMarkerLevel == BusinessMarkerLevel.reduced) {
-      return businessMarkerMain;
-    } else {
-      return Center(
-          child: Container(
-              width: 180,
-              height: 65,
-              decoration: const BoxDecoration(
-                  // color: AppColors.background,
-                  borderRadius: BorderRadius.all(Radius.circular(40))),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Stack(
-                // alignment: AlignmentGeometry.centerLeft,
-                children: [
-                  Positioned(
-                      left: 0, bottom: 65 / 4, child: businessMarkerMain),
-                  // Positioned(
-                  //     left: 40,
-                  //     bottom: 0,
-                  //     child: Column(children: [
-                  //       SizedBox(
-                  //         width: 100,
-                  //         child: MyText(
-                  //           color: AppColors.text,
-                  //           miniBusinessLocation.name,
-                  //           size: 12,
-                  //           overflow: TextOverflow.ellipsis,
-                  //           maxlines: 1,
-                  //         ),
-                  //       ),
-                  //       SizedBox(
-                  //         width: 100,
-                  //         child: MyText(
-                  //           color: AppColors.text,
-                  //           businessTypeLookup[miniBusinessLocation.type] ?? '',
-                  //           size: 10,
-                  //           overflow: TextOverflow.ellipsis,
-                  //           maxlines: 1,
-                  //         ),
-                  //       ),
-                  //     ])),
-                ],
-              )));
-    }
-
-    //       if (businessMarkerLevel == BusinessMarkerLevel.full) ...[
-    //         const SizedBox(width: 8),
-    //         // Text Details
-    //         Column(
-    //           crossAxisAlignment: CrossAxisAlignment.start,
-    //           mainAxisSize: MainAxisSize.min,
-    //           children: [
-    //             SizedBox(
-    //               width: 100,
-    //               child: MyText(
-    //                 miniBusinessLocation.name,
-    //                 size: 12,
-    //                 overflow: TextOverflow.ellipsis,
-    //                 maxlines: 1,
-    //               ),
-    //             ),
-    //             SizedBox(
-    //               width: 100,
-    //               child: MyText(
-    //                 businessTypeLookup[miniBusinessLocation.type] ?? '',
-    //                 size: 10,
-    //                 overflow: TextOverflow.ellipsis,
-    //                 maxlines: 1,
-    //               ),
-    //             ),
-    //           ],
-    //         ),
-    //       ],
-    //     ],
-    //   ),
-    // );
+    return businessMarkerMain;
   }
+
+  //       if (businessMrkerLevel == BusinessMarkerLevel.full) ...[
+  //         const SizedBox(width: 8),
+  //         // Text Details
+  //         Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             SizedBox(
+  //               width: 100,
+  //               child: MyText(
+  //                 miniBusinessLocation.name,
+  //                 size: 12,
+  //                 overflow: TextOverflow.ellipsis,
+  //                 maxlines: 1,
+  //               ),
+  //             ),
+  //             SizedBox(
+  //               width: 100,
+  //               child: MyText(
+  //                 businessTypeLookup[miniBusinessLocation.type] ?? '',
+  //                 size: 10,
+  //                 overflow: TextOverflow.ellipsis,
+  //                 maxlines: 1,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ],
+  //   ),
+  // );
 }

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:nextfind/main.dart';
+import 'package:nextfind/screens/search_page/initial_searching_widget.dart';
 
 import 'package:nextfind/services/device_services.dart';
 import 'package:nextfind/services/business_services.dart';
@@ -15,8 +16,8 @@ import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:nextfind/helpers/networking.dart';
 import 'package:nextfind/widgets/business_widgets.dart';
-import 'package:nextfind/widgets/search_page/list_view_widget.dart';
-import 'package:nextfind/widgets/search_page/map_view_widget.dart';
+import 'package:nextfind/screens/search_page/list_view_widget.dart';
+import 'package:nextfind/screens/search_page/map_view_widget.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -57,7 +58,7 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
   void dispose() {
     // 3. Always unsubscribe when the widget is destroyed
     routeObserver.unsubscribe(this);
-    
+
     super.dispose();
   }
 
@@ -260,6 +261,10 @@ class SearchPageBody extends StatelessWidget {
     return ValueListenableBuilder<MainSearchPageMode>(
       valueListenable: SearchPageGlobals.mapMode,
       builder: (_, mapMode, ___) {
+        if (mapMode == MainSearchPageMode.initial) {
+          return const InitialSearchingWidget();
+        }
+
         Widget mainSearchPageWidget = const SizedBox();
 
         if (!SearchPageGlobals.hasWifi) {

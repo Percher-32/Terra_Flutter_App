@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/screens/homepage.dart';
+import 'package:nextfind/screens/search_page/initial_searching_widget.dart';
 import 'package:nextfind/screens/searchpage.dart';
 import 'package:nextfind/screens/userpage.dart';
 import 'package:nextfind/screens/businesspage.dart';

@@ -8,6 +8,7 @@ class NextfindDebugOptions {
   static bool keepIsOnlineAsTrue = true;
 
   //* MapLibre Options
-  static bool cacheBusinessMarkerIcons = false;
+  static bool cacheBusinessMarkerIcons = true;
   static bool remakeMapLibreLayer = true;
+  static bool remakeUserIcon = true;
 }
