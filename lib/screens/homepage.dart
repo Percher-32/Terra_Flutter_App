@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: PreferredSize(
-            preferredSize: Size.fromHeight(100),
+            preferredSize: Size.fromHeight(80),
             child: Column(children: [
               SizedBox(height: 50),
               MySearchBar(),
@@ -152,6 +152,9 @@ class TrendScrollWidget extends StatelessWidget {
     return Column(
       spacing: 20,
       children: [
+        SizedBox(
+          width: 10,
+        ),
         const SubHeading(
           "Trending Now🔥",
           color: AppColors.text,

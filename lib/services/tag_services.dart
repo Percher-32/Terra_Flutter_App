@@ -45,6 +45,32 @@ class TagServices {
     }
   }
 
+  static List<Tag> searchSimilarTags(String query, List<Tag> tags) {
+    final lowerQuery = query.toLowerCase().trim();
+
+    final scored = tags.map((tag) {
+      final name = tag.name.toLowerCase();
+
+      final r1 = fuzz.ratio(lowerQuery, name); // strict
+      final r2 = fuzz.partialRatio(lowerQuery, name); // forgiving
+
+      final score = ((r1 * 0.7) + (r2 * 0.3)).round();
+
+      return {"tag": tag, "score": score};
+    }).toList();
+
+    scored.sort((a, b) {
+      final sb = b["score"] as int;
+      final sa = a["score"] as int;
+      return sb.compareTo(sa);
+    });
+
+    return scored
+        .where((e) => (e["score"] as int) >= 40) // ← threshold here
+        .map((e) => e["tag"] as Tag)
+        .toList();
+  }
+
   static void showChooseTagDropDown(BuildContext context) {
     final TextEditingController tagSearchBarController =
         TextEditingController();
@@ -56,32 +82,6 @@ class TagServices {
     //   final r4 = fuzz.tokenSetRatio(a, b);
     //   return [r1, r2, r3, r4].reduce((a, b) => a > b ? a : b);
     // }
-
-    List<Tag> searchSimilarTags(String query, List<Tag> tags) {
-      final lowerQuery = query.toLowerCase().trim();
-
-      final scored = tags.map((tag) {
-        final name = tag.name.toLowerCase();
-
-        final r1 = fuzz.ratio(lowerQuery, name); // strict
-        final r2 = fuzz.partialRatio(lowerQuery, name); // forgiving
-
-        final score = ((r1 * 0.7) + (r2 * 0.3)).round();
-
-        return {"tag": tag, "score": score};
-      }).toList();
-
-      scored.sort((a, b) {
-        final sb = b["score"] as int;
-        final sa = a["score"] as int;
-        return sb.compareTo(sa);
-      });
-
-      return scored
-          .where((e) => (e["score"] as int) >= 40) // ← threshold here
-          .map((e) => e["tag"] as Tag)
-          .toList();
-    }
 
     Future<List<Tag>> getSimilarTags() async {
       await getAllTags();
@@ -283,7 +283,7 @@ class TagServices {
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
             color: leveled ? AppColors.secondaryLeveled : AppColors.leveled,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(0),
           ),
           width: 500,
           height: 50,
@@ -305,29 +305,58 @@ class TagServices {
             blendMode: BlendMode.dstIn,
             child: ListView.builder(
               clipBehavior: Clip.none,
+              padding: EdgeInsets.only(left: 25),
               scrollDirection: Axis.horizontal,
               itemCount: List.from(chosenTags).length + 1,
               itemBuilder: (_, tagId) {
-                if (List.from(chosenTags).length == tagId) {
-                  return Padding(
-                      padding: const EdgeInsets.only(
-                          top: 5, bottom: 5, right: 30, left: 10),
-                      child: MyButton(
-                        width: 60,
-                        height: 30,
-                        padding: const EdgeInsets.all(0),
-                        onPressed: () {
-                          showChooseTagDropDown(context);
-                        },
-                        backgroundColor: AppColors.primary,
-                        child: const Center(
-                            child: Icon(Icons.add_rounded,
-                                // fontWeight: FontWeight(10),
-                                color: AppColors.text,
-                                size: 40)),
-                      ));
+                if (0 == tagId) {
+                  return List.from(chosenTags).length != 0
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: MyButton(
+                            width: 60,
+                            height: 30,
+                            borderRadius: BorderRadius.circular(5),
+                            padding: const EdgeInsets.all(0),
+                            onPressed: () {
+                              showChooseTagDropDown(context);
+                            },
+                            backgroundColor: AppColors.primary,
+                            child: const Center(
+                                child: Icon(Icons.add_rounded,
+                                    // fontWeight: FontWeight(10),
+                                    color: AppColors.text,
+                                    size: 40)),
+                          ))
+                      : Row(children: [
+                          Padding(
+                              padding: const EdgeInsets.only(),
+                              child: MyButton(
+                                width: 50 / 1.2,
+                                height: 40 / 1.2,
+                                borderRadius: BorderRadius.circular(5),
+                                padding: const EdgeInsets.only(bottom: 10),
+                                onPressed: () {
+                                  showChooseTagDropDown(context);
+                                },
+                                backgroundColor: AppColors.primary,
+                                child: const Center(
+                                    child: Icon(Icons.add,
+                                        // fontWeight: FontWeight(10),
+                                        color: AppColors.text,
+                                        size: 40)),
+                              )),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          LabelText(
+                            "tap '+' to add tags",
+                            // size: 17,
+                            // fontWeight: FontWeight.w600,
+                          ),
+                        ]);
                 } else {
-                  final Tag tag = tagLookup[chosenTags[tagId]]!;
+                  final Tag tag = tagLookup[chosenTags[tagId - 1]]!;
                   return Padding(
                       padding:
                           const EdgeInsets.only(top: 10, bottom: 10, right: 10),
