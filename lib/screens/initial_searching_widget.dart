@@ -39,6 +39,7 @@ class _InitialSearchingWidgetState extends State<InitialSearchingWidget> {
             decoration: BoxDecoration(
                 color: AppColors.background,
                 borderRadius: BorderRadius.circular(20)),
+            // child: Column(children: [SearchServices.searchBarWidget(context,autofocus:true)],),
           )),
     );
   }

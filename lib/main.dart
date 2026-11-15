@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nextfind/models/business_models.dart';
 import 'package:nextfind/screens/homepage.dart';
-import 'package:nextfind/screens/search_page/initial_searching_widget.dart';
+import 'package:nextfind/screens/initial_searching_widget.dart';
+import 'package:nextfind/screens/map_view_widget.dart';
 import 'package:nextfind/screens/searchpage.dart';
 import 'package:nextfind/screens/userpage.dart';
 import 'package:nextfind/screens/businesspage.dart';
@@ -122,8 +123,8 @@ final GoRouter _router = GoRouter(initialLocation: "/home", observers: [
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
-            path: "/search",
-            builder: (context, state) => const SearchPage(),
+            path: "/search/map",
+            builder: (context, state) => const MapSearchView(),
           )
         ]),
         StatefulShellBranch(routes: [
@@ -132,19 +133,16 @@ final GoRouter _router = GoRouter(initialLocation: "/home", observers: [
             builder: (context, state) => const UserPage(),
           )
         ]),
-        
       ]),
-          GoRoute(
-            path: "/business-location/:id",
-            builder: (context, state) {
-                    SearchPageGlobals.mapReady = false;
+  GoRoute(
+    path: "/business-location/:id",
+    builder: (context, state) {
+      SearchPageGlobals.mapReady = false;
 
-              final businessLocationId = state.pathParameters["id"]!;
-              return BusinessLocationFullPage(
-                  locationId: businessLocationId);
-            },
-          )
-        
+      final businessLocationId = state.pathParameters["id"]!;
+      return BusinessLocationFullPage(locationId: businessLocationId);
+    },
+  )
 ]);
 
 class MyApp extends StatelessWidget {
@@ -154,10 +152,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Next Find',
+
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
+        fontFamily: 'Montserrat',
+        iconTheme: const IconThemeData(
+          color: AppColors.text, // Changes back arrow color globally
+        ),
         tooltipTheme: TooltipThemeData(
-          showDuration: Duration(seconds: 10),
+          showDuration: const Duration(seconds: 3),
           decoration: BoxDecoration(
             color: AppColors.text, // Background color of the tooltip bubble
             borderRadius: BorderRadius.circular(8.0), // Rounded corners

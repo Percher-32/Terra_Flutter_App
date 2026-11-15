@@ -65,7 +65,12 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: SearchServices.createSearchBar(context),
+        appBar: PreferredSize(
+            preferredSize: Size.fromHeight(100),
+            child: Column(children: [
+              SizedBox(height: 50),
+              MySearchBar(),
+            ])),
         body: Stack(
           children: [
             Positioned(
@@ -132,60 +137,6 @@ class _HomePageState extends State<HomePage> {
                     }
                   },
                 )),
-            // ValueListenableBuilder(
-            //     valueListenable: _scrollOffset,
-            //     builder: (_, scrollOffset, __) {
-            //       return Positioned(
-            //         top: 0,
-            //         left: 0,
-            //         right: 0,
-            //         height: 40, // Height of the fade area
-            //         child: IgnorePointer(
-            //           child: Opacity(
-            //             opacity: (_scrollOffset.value / 50.0).clamp(0.0, 1.0),
-            //             child: const DecoratedBox(
-            //               decoration: BoxDecoration(
-            //                 gradient: LinearGradient(
-            //                   begin: Alignment.topCenter,
-            //                   end: Alignment.bottomCenter,
-            //                   colors: [
-            //                     AppColors.background,
-            //                     Colors.transparent,
-            //                   ],
-            //                 ),
-            //               ),
-            //             ),
-            //           ),
-            //         ),
-            //       );
-            //     }),
-            // ValueListenableBuilder(
-            //     valueListenable: _scrollOffset,
-            //     builder: (_, scrollOffset, __) {
-            //       return Positioned(
-            //         bottom: 0,
-            //         left: 0,
-            //         right: 0,
-            //         height: 20, // Height of the fade area
-            //         child: IgnorePointer(
-            //           child: Opacity(
-            //             opacity: (_scrollOffset.value / 50.0).clamp(0.0, 1.0),
-            //             child: const DecoratedBox(
-            //               decoration: BoxDecoration(
-            //                 gradient: LinearGradient(
-            //                   end: Alignment.topCenter,
-            //                   begin: Alignment.bottomCenter,
-            //                   colors: [
-            //                     AppColors.background,
-            //                     Colors.transparent,
-            //                   ],
-            //                 ),
-            //               ),
-            //             ),
-            //           ),
-            //         ),
-            //       );
-            //     }),
           ],
         ));
   }

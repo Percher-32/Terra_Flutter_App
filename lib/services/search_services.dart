@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:nextfind/screens/initial_searching_widget.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/services/business_services.dart';
+import 'package:nextfind/helpers/networking.dart';
 import 'package:nextfind/services/user_services.dart';
 import 'package:nextfind/services/tag_services.dart';
 import 'package:nextfind/models/business_models.dart';
@@ -9,14 +11,13 @@ import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
 import 'dart:typed_data';
 import 'package:go_router/go_router.dart';
 
-enum MainSearchPageMode { map, list, choosing, thumbnail ,initial}
+enum MainSearchPageMode { map, list, choosing, thumbnail }
 
 enum BusinessMarkerLevel { full, reduced, mini }
 
 class SearchPageGlobals {
   static final ValueNotifier<MainSearchPageMode> mapMode =
-      ValueNotifier(MainSearchPageMode.initial);
-  static final ValueNotifier<bool> reloadMapTrigger = ValueNotifier(false);
+      ValueNotifier(MainSearchPageMode.map);
   static final ValueNotifier<bool> runSearchTrigger = ValueNotifier(false);
   static final ValueNotifier<bool> reloadUserPositionTrigger =
       ValueNotifier(false);
@@ -28,9 +29,7 @@ class SearchPageGlobals {
   static final ValueNotifier<List<MiniBusinessLocation>> miniBusinessLocations =
       ValueNotifier([]);
 
-  static final Map<int, Uint8List>
-      businessMarkerIconCache = {};
-
+  static final Map<int, Uint8List> businessMarkerIconCache = {};
 
   static bool hasWifi = false;
 
@@ -47,16 +46,12 @@ class SearchPageGlobals {
 
   static void reloadMap() {
     if (mapMode.value == MainSearchPageMode.map) {
-      reloadMapTrigger.value = !reloadMapTrigger.value;
+      runSearchTrigger.value = !runSearchTrigger.value;
     }
   }
 
   static void reloadUserPosition() {
     reloadUserPositionTrigger.value = !reloadUserPositionTrigger.value;
-  }
-
-  static void runSearch() {
-    runSearchTrigger.value = !runSearchTrigger.value;
   }
 
   static void changeMapLocation(List<double> newLocation) {
@@ -67,6 +62,33 @@ class SearchPageGlobals {
       );
     }
   }
+
+  static void runSearch() {
+    runSearchTrigger.value = !runSearchTrigger.value;
+  }
+
+  static Future<void> runSearchApiCall() async {
+    if (isLoading.value || !mapReady) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      isLoading.value = true;
+    });
+
+    hasWifi = await Networking.isOnline();
+
+    miniBusinessLocations.value = (await BusinessService.getNearbyBusinesses(
+      location: UserService.userLocation,
+      query: SearchServices.searchQuery.value,
+      maxdist: SearchServices.searchRadius,
+      type: SearchServices.categoryIndex.value,
+    ))!;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      isLoading.value = false;
+    });
+
+    reloadMap();
+  }
 }
 
 class SearchServices {
@@ -74,6 +96,8 @@ class SearchServices {
 
   static int sortingByIndex = 1;
   static const List sortingByValues = ["Relevance", "Distance", "Rating"];
+
+  static ValueNotifier<String> searchQuery = ValueNotifier("");
 
   static ValueNotifier<int?> categoryIndex = ValueNotifier(null);
 
@@ -88,8 +112,6 @@ class SearchServices {
     return notifier;
   }();
   static int searchRadius = searchRadiusValues[searchRadiusIndex.value];
-
-  static final TextEditingController controller = TextEditingController();
 
   static void filterDropDown(BuildContext parentContext) {
     Map<dynamic, Widget> allIcons = {};
@@ -136,16 +158,6 @@ class SearchServices {
                 // size: 30,
               ),
               const SizedBox(height: 10),
-              Container(
-                  decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(20)),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: HeaderInput(
-                    hint: "restraunts, shops and more",
-                    controller: SearchServices.controller,
-                    onSubmitted: (value) => parentContext.go("/search"),
-                  )),
               const SizedBox(height: 20),
               const LabelText(
                 "Sort By",
@@ -204,7 +216,7 @@ class SearchServices {
                 width: 300,
                 child: const MyText("Search", color: AppColors.text),
                 onPressed: () {
-                  parentContext.go("/search");
+                  parentContext.go("/search/map");
                 },
               ),
             ],
@@ -213,48 +225,194 @@ class SearchServices {
       },
     );
   }
+}
 
-  static PreferredSize createSearchBar(BuildContext context) {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(70),
-      child: Column(
-        children: [
-          const SizedBox(height: 30),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                color: AppColors.primary,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(width: 10),
-                    const Icon(Icons.search, color: Colors.white, size: 30),
-                    Expanded(
-                      child: HeaderInput(
-                        hint: "restraunts, shops and more",
-                        controller: controller,
-                        color: AppColors.text,
-                        // size: 16,
-                        onSubmitted: (value) => context.go("/search"),
-                      ),
+class MySearchBar extends StatefulWidget {
+  const MySearchBar({super.key});
+
+  @override
+  State<MySearchBar> createState() => _MySearchBarState();
+}
+
+class _MySearchBarState extends State<MySearchBar> {
+  // 1. Declare the controller locally inside the State class
+  late final SearchController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = SearchController();
+    SearchServices.searchQuery.addListener(() {
+      _searchController.text = SearchServices.searchQuery.value;
+    });
+    _searchController.text = SearchServices.searchQuery.value;
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose(); // Clean it up when the page is destroyed
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: const EdgeInsets.all(10),
+        child: SearchAnchor(
+            dividerColor: Colors.transparent,
+            isFullScreen: true,
+            searchController: _searchController,
+            viewBackgroundColor: AppColors.background,
+            // barHintText: 'Search restraunts, shops and more',
+            viewOnClose: () {
+              SearchServices.searchQuery.value = _searchController.text;
+            },
+            viewOnChanged: (value) {
+              SearchServices.searchQuery.value = _searchController.text;
+
+              // return value;
+            },
+            viewOnSubmitted: (value) {
+              context.go("/search/map");
+              SearchServices.searchQuery.value = _searchController.text;
+
+              SearchPageGlobals.runSearch();
+
+              _searchController.closeView(value);
+            },
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.only(left: 10, right: 30),
+                height: 40,
+                decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: AppColors.secondaryLeveled, width: 2)),
+                child: Row(children: [
+                  const Icon(
+                    Icons.search,
+                    size: 20,
+                  ),
+                  SizedBox(width: 5),
+                  Flexible(
+                      child: MyText(
+                    _searchController.text,
+                    size: 15,
+                    color: AppColors.secondaryText,
+                    overflow: TextOverflow.ellipsis,
+                    maxlines: 1,
+                    textAlign: TextAlign.left,
+                  )),
+                  SizedBox(width: 10),
+                  MyText(
+                    "Current Location",
+                    size: 15,
+                    color: AppColors.highlightText,
+                    overflow: TextOverflow.ellipsis,
+                    maxlines: 1,
+                    textAlign: TextAlign.left,
+                  )
+                ]),
+              );
+            },
+            headerTextStyle: const TextStyle(
+                color: AppColors.text,
+                fontFamily: "Montserrat",
+                fontWeight: FontWeight.w600),
+            headerHintStyle: const TextStyle(
+                color: AppColors.deselected,
+                fontFamily: "Montserrat",
+                fontWeight: FontWeight.w600),
+            viewBuilder: (Iterable<Widget> suggestions) {
+              return Column(
+                children: [
+                  // Add custom filters, headers, or banners at the top of the search view
+                  SizedBox(
+                      width: 200,
+                      height: 50,
+                      child: Row(children: [
+                        Icon(
+                          Icons.location_pin,
+                          size: 30,
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        SizedBox(
+                            width: 200,
+                            child: HeaderInput(
+                              hint:
+                                  "name of street, Postcode , geographical area",
+                              fontWeight: FontWeight.w600,
+                              hintFontWeight: FontWeight.w600,
+                              size: 16,
+                            ))
+                      ])),
+
+                  // Render the actual search suggestions below your custom layout
+                  Expanded(
+                    child: ListView(
+                      children: suggestions.toList(),
                     ),
-                    IconButton(
-                      icon:
-                          const Icon(Icons.tune, color: Colors.white, size: 30),
-                      iconSize: 35,
-                      onPressed: () => filterDropDown(context),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-                ),
-              ),
+                  ),
+                ],
+              );
+            },
+            viewHintText:
+                'type of business, business name , business specialty',
+            viewLeading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => _searchController
+                  .closeView(null), // or pass your controller reference
             ),
-          ),
-        ],
-      ),
-    );
+            viewTrailing: [
+              IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () => _searchController.clear(),
+              ),
+            ],
+            suggestionsBuilder:
+                (BuildContext context, SearchController controller) {
+              // Get what the user is typing
+              final String query = controller.text.toLowerCase();
+
+              // Filter your data list
+              final filteredList = ["1", "2", "3", "4", "5", "6"]
+                  .where((item) => item.toLowerCase().contains(query))
+                  .toList();
+
+              // Build and return the list of items shown on the full page
+              return filteredList.map(
+                (item) {
+                  return ListTile(
+                      title: MyText(
+                        item,
+                        size: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textColor: AppColors.text,
+                      leading: const Icon(
+                        Icons.article,
+                        color: AppColors.secondaryText,
+                      ),
+                      onTap: () {
+                        if (_searchController.text == item) {
+                          _searchController.closeView(item);
+                          context.go("/search/map");
+
+                          SearchServices.searchQuery.value =
+                              _searchController.text;
+
+                          SearchPageGlobals.runSearch();
+                        }
+                        _searchController.text = item;
+
+                        // setState(() {});
+                      });
+                },
+              );
+            }));
   }
 }
 

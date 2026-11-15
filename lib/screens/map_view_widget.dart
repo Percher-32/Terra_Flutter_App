@@ -51,6 +51,8 @@ class _MapSearchViewState extends State<MapSearchView>
 
   bool sourceAddedAlready = false;
 
+  double? fullScreenHeight;
+
   @override
   void initState() {
     initComplete = false;
@@ -59,7 +61,8 @@ class _MapSearchViewState extends State<MapSearchView>
 
     SearchPageGlobals.mapReady = false;
 
-    SearchPageGlobals.reloadMapTrigger.addListener(() async {
+    SearchPageGlobals.runSearchTrigger.addListener(() async {
+      await SearchPageGlobals.runSearchApiCall();
       await _updateBusinessIconPotisions();
     });
 
@@ -68,6 +71,7 @@ class _MapSearchViewState extends State<MapSearchView>
     });
 
     initComplete = true;
+    SearchPageGlobals.isLoading.value = false;
   }
 
   Future<Uint8List?> loadAndRegisterWidgetIcon(
@@ -463,64 +467,72 @@ class _MapSearchViewState extends State<MapSearchView>
       return const SizedBox();
     }
 
-    return map_gl.MapLibreMap(
-      styleString:
-          "https://api.maptiler.com/maps/01a196d6-bda3-74d5-b701-fd441b3d6892/style.json?key=6qbiNDxrdNlr98KHQ1F9",
-      initialCameraPosition: map_gl.CameraPosition(
-        target:
-            //Use the user position or the chosen location to start of with
-            SearchPageGlobals.chosenBusinessLocation != null
-                ? map_gl.LatLng(
-                    SearchPageGlobals.chosenBusinessLocation!.location[0],
-                    SearchPageGlobals.chosenBusinessLocation!.location[1],
-                  )
-                : map_gl.LatLng(
-                    UserService.userLocation[0], UserService.userLocation[1]),
-        tilt: 60,
-        zoom: 16,
-      ),
-      trackCameraPosition: true,
-      scrollGesturesEnabled: !_lockCamera,
-      zoomGesturesEnabled: !_lockCamera,
-      rotateGesturesEnabled: !_lockCamera,
-      tiltGesturesEnabled: !_lockCamera,
-      onMapCreated: (controller) async {
-        SearchPageGlobals.mapReady = false;
-        SearchPageGlobals.mapController = controller;
-      },
-      onStyleLoadedCallback: () async {
-        if (!lifecycle.isPaused) {
+    fullScreenHeight ??= View.of(context).physicalSize.height /
+        View.of(context).devicePixelRatio;
+
+    return Stack(alignment: AlignmentGeometry.center, children: [
+      Positioned.fill(
+          child: map_gl.MapLibreMap(
+        styleString:
+            "https://api.maptiler.com/maps/01a196d6-bda3-74d5-b701-fd441b3d6892/style.json?key=6qbiNDxrdNlr98KHQ1F9",
+        initialCameraPosition: map_gl.CameraPosition(
+          target:
+              //Use the user position or the chosen location to start of with
+              SearchPageGlobals.chosenBusinessLocation != null
+                  ? map_gl.LatLng(
+                      SearchPageGlobals.chosenBusinessLocation!.location[0],
+                      SearchPageGlobals.chosenBusinessLocation!.location[1],
+                    )
+                  : map_gl.LatLng(
+                      UserService.userLocation[0], UserService.userLocation[1]),
+          tilt: 60,
+          zoom: 16,
+        ),
+        trackCameraPosition: true,
+        scrollGesturesEnabled: !_lockCamera,
+        zoomGesturesEnabled: !_lockCamera,
+        rotateGesturesEnabled: !_lockCamera,
+        tiltGesturesEnabled: !_lockCamera,
+        onMapCreated: (controller) async {
+          SearchPageGlobals.mapReady = false;
+          SearchPageGlobals.mapController = controller;
+        },
+        onStyleLoadedCallback: () async {
+          if (!lifecycle.isPaused) {
+            SearchPageGlobals.mapReady = true;
+            SearchPageGlobals.reloadUserPosition();
+          }
+          SearchPageGlobals.reloadMap();
+        },
+        onCameraMove: (cameraPosition) async {
           SearchPageGlobals.mapReady = true;
-          SearchPageGlobals.reloadUserPosition();
-        }
-        SearchPageGlobals.reloadMap();
-      },
-      onCameraMove: (cameraPosition) async {
-        SearchPageGlobals.mapReady = true;
-      },
-      onMapIdle: () async {
-        SearchPageGlobals.mapReady = true;
-      },
-      onMapClick: (_, map_gl.LatLng latLng) {
-        if (SearchPageGlobals.mapMode.value == MainSearchPageMode.choosing) {
-          final tappedLat = latLng.latitude;
-          final tappedLng = latLng.longitude;
-
-          UserService.userLocation = [tappedLat, tappedLng];
-          UserService.userLocation = UserService.userLocation;
-
-          SearchPageGlobals.changeMapLocation(UserService.userLocation);
-          SearchPageGlobals.reloadUserPosition();
-
-          SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
-        } else {
-          _lockCamera = false;
-
-          SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
-        }
-      },
-      compassEnabled: false,
-    );
+        },
+        onMapIdle: () async {
+          SearchPageGlobals.mapReady = true;
+        },
+        onMapClick: (_, map_gl.LatLng latLng) {
+          if (SearchPageGlobals.mapMode.value == MainSearchPageMode.choosing) {
+            final tappedLat = latLng.latitude;
+            final tappedLng = latLng.longitude;
+            UserService.userLocation = [tappedLat, tappedLng];
+            UserService.userLocation = UserService.userLocation;
+            SearchPageGlobals.changeMapLocation(UserService.userLocation);
+            SearchPageGlobals.reloadUserPosition();
+            SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
+          } else {
+            _lockCamera = false;
+            SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
+          }
+        },
+        compassEnabled: false,
+      )),
+      Positioned(
+        top: 50,
+        child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: const MySearchBar()),
+      ),
+    ]);
   }
 }
 

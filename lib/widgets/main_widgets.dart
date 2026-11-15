@@ -15,7 +15,7 @@ class AppColors {
   // fromARGB(255, 255, 255, 255);
 
   static const text = Color.fromARGB(255, 255, 255, 255);
-  static const deselected = Color.fromARGB(255, 108, 145, 0);
+  static const deselected = Color.fromARGB(255, 199, 225, 129);
   static const secondaryText = Color.fromARGB(255, 163, 222, 0);
   static const highlightText = Color.fromARGB(255, 187, 255, 0);
 
@@ -120,25 +120,59 @@ class HeaderInput extends StatefulWidget {
   const HeaderInput(
       {super.key,
       this.hint = "",
+      this.locked = false,
       this.color = AppColors.text,
       this.size = 18.0,
       this.controller,
-      this.onSubmitted});
+      this.autofocus = false,
+      this.fontWeight = FontWeight.w800,
+      this.hintFontWeight = FontWeight.w800,
+      this.onSubmitted,
+      this.onTap});
 
   final Color color;
   final double size;
   final String hint;
+  final bool autofocus;
+  final bool locked;
+  final FontWeight fontWeight;
+  final FontWeight hintFontWeight;
   final TextEditingController? controller;
   final void Function(String value)? onSubmitted;
+  final void Function()? onTap;
 
   @override
   State<HeaderInput> createState() => HeaderInputState();
 }
 
 class HeaderInputState extends State<HeaderInput> {
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+
+    // Listen for focus changes
+    _focusNode.addListener(() {
+      if (widget.onTap != null) {
+        widget.onTap!();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return TextField(
+      focusNode: _focusNode,
+      autofocus: widget.autofocus,
+      readOnly: widget.locked,
       cursorColor: AppColors.secondaryLeveled,
       controller: widget.controller,
       onSubmitted: (value) {
@@ -151,16 +185,16 @@ class HeaderInputState extends State<HeaderInput> {
         hintText: widget.hint,
         hintStyle: TextStyle(
           fontSize: widget.size,
-          fontWeight: FontWeight.w800,
+          fontWeight: widget.hintFontWeight,
           fontFamily: "Montserrat",
-          color: const Color.fromARGB(103, 187, 255, 0),
+          color: AppColors.deselected,
         ),
         enabledBorder: InputBorder.none,
         focusedBorder: InputBorder.none,
       ),
       style: TextStyle(
         fontSize: widget.size,
-        fontWeight: FontWeight.w800,
+        fontWeight: widget.fontWeight,
         fontFamily: "Montserrat",
         color: widget.color,
       ),

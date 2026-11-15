@@ -35,7 +35,7 @@ class _ListSearchViewState extends State<ListSearchView> {
       child: Stack(children: [
         RefreshIndicator(
             onRefresh: () async {
-              SearchPageGlobals.runSearch();
+              await SearchPageGlobals.runSearchApiCall();
             },
             child: ListView.separated(
               controller: scrollController,

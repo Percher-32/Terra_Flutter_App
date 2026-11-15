@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:nextfind/main.dart';
-import 'package:nextfind/screens/search_page/initial_searching_widget.dart';
+import 'package:nextfind/screens/initial_searching_widget.dart';
 
 import 'package:nextfind/services/device_services.dart';
 import 'package:nextfind/services/business_services.dart';
@@ -16,8 +16,8 @@ import 'package:nextfind/widgets/main_widgets.dart';
 import 'package:nextfind/helpers/logger.dart';
 import 'package:nextfind/helpers/networking.dart';
 import 'package:nextfind/widgets/business_widgets.dart';
-import 'package:nextfind/screens/search_page/list_view_widget.dart';
-import 'package:nextfind/screens/search_page/map_view_widget.dart';
+import 'package:nextfind/screens/list_view_widget.dart';
+import 'package:nextfind/screens/map_view_widget.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -28,98 +28,17 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> with RouteAware {
   @override
-  void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      SearchPageGlobals.isLoading.value = false;
-      // _counter.value = newValue; // Safe because the build phase is complete
-    });
-
-    super.initState();
-    WidgetsBinding.instance.addObserver(lifecycle);
-
-    SearchPageGlobals.hasWifi = true;
-
-    //All the globals trigers
-    SearchPageGlobals.runSearchTrigger.addListener(() async {
-      await _runSearchFunction();
-    });
-
-    SearchPageGlobals.runSearch();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // 2. Subscribe to the route observer
-    routeObserver.subscribe(this, ModalRoute.of(context)!);
-  }
-
-  @override
-  void dispose() {
-    // 3. Always unsubscribe when the widget is destroyed
-    routeObserver.unsubscribe(this);
-
-    super.dispose();
-  }
-
-  // --- These methods trigger automatically when you switch tabs/routes ---
-
-  @override
-  void didPushNext() {
-    // Called when a new route is pushed on top (leaving this page)
-    SearchPageGlobals.mapReady = false; // Set your variable to false!
-  }
-
-  // @override
-  // void didPopNext() {
-  //   // Called when coming back to this page from another route/tab
-  //   SearchPageGlobals.mapReady = true; // Set your variable back to true!
-  // }
-
-  Future<void> _runSearchFunction() async {
-    // Prevent overlapping searches
-    if (SearchPageGlobals.isLoading.value) return;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      SearchPageGlobals.isLoading.value = true;
-    });
-
-    SearchPageGlobals.hasWifi = await Networking.isOnline();
-
-    SearchPageGlobals.miniBusinessLocations.value =
-        (await BusinessService.getNearbyBusinesses(
-      location: UserService.userLocation,
-      query: SearchServices.controller.text,
-      maxdist: SearchServices.searchRadius,
-      type: SearchServices.categoryIndex.value,
-    ))!;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      SearchPageGlobals.isLoading.value = false;
-    });
-    SearchPageGlobals.reloadMap();
-
-    if (!mounted) return;
-
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
         valueListenable: SearchPageGlobals.mapMode,
         builder: (_, mapMode, ___) {
           return PopScope(
               canPop: SearchPageGlobals.mapMode.value !=
-                  MainSearchPageMode
-                      .thumbnail, // BLOCK back button when thumbnail is showing
+                  MainSearchPageMode.thumbnail,
               onPopInvokedWithResult: (didPop, result) {
                 if (SearchPageGlobals.mapMode.value ==
                     MainSearchPageMode.thumbnail) {
-                  // Custom back behaviour
                   SearchPageGlobals.mapMode.value = MainSearchPageMode.map;
-
-                  // DO NOT allow pop
                   return;
                 }
               },
@@ -134,7 +53,7 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
                         }
                         return Column(
                           children: [
-                            SearchServices.createSearchBar(context),
+                            // SearchServices.createSearchBar(context),
                             Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 10),
@@ -179,7 +98,8 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
                           ].contains(choosing)) {
                             return const SizedBox(); // hide search bar
                           }
-                          return SearchServices.createSearchBar(context);
+                          return SizedBox();
+                          // return SearchServices.createSearchBar(context);
                         },
                       ),
                     ),
@@ -261,9 +181,9 @@ class SearchPageBody extends StatelessWidget {
     return ValueListenableBuilder<MainSearchPageMode>(
       valueListenable: SearchPageGlobals.mapMode,
       builder: (_, mapMode, ___) {
-        if (mapMode == MainSearchPageMode.initial) {
-          return const InitialSearchingWidget();
-        }
+        // if (mapMode == MainSearchPageMode.initial) {
+        //   return const InitialSearchingWidget();
+        // }
 
         Widget mainSearchPageWidget = const SizedBox();
 
@@ -388,8 +308,8 @@ class SearchPageBody extends StatelessWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
             splashColor: const Color.fromARGB(111, 252, 178, 74),
-            onTap: () {
-              SearchPageGlobals.runSearch();
+            onTap: () async {
+              await SearchPageGlobals.runSearchApiCall();
             },
             child: Ink(
               width: 60,
