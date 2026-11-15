@@ -9,7 +9,8 @@ This repository and its source code are published strictly for review and evalua
 
 No part of this software—including source code, design, or assets—may be reproduced, distributed, modified, sub-licensed, or used for commercial or non-commercial purposes without explicit written permission from the copyright holder.
 
-
+## What is this
+This is an app for people to find local businesses in thier area , rate them , log visits , and even book services.
 
 ## Why I Made this
 I made this as an easy way for businesses in my area to have a local platform for people to find them
