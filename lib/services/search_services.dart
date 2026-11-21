@@ -78,7 +78,7 @@ class SearchPageGlobals {
 
     miniBusinessLocations.value = (await BusinessService.getNearbyBusinesses(
       location: UserService.userLocation,
-      query: SearchServices.searchQuery.value,
+      query: SearchServices.searchBarController.text,
       maxdist: SearchServices.searchRadius,
       type: SearchServices.categoryIndex.value,
     ))!;
@@ -97,7 +97,8 @@ class SearchServices {
   static int sortingByIndex = 1;
   static const List sortingByValues = ["Relevance", "Distance", "Rating"];
 
-  static ValueNotifier<String> searchQuery = ValueNotifier("");
+  static TextEditingController searchBarController =
+      TextEditingController(text: "");
 
   static ValueNotifier<int?> categoryIndex = ValueNotifier(null);
 
@@ -115,23 +116,6 @@ class SearchServices {
 
   static final TextEditingController locationTextController =
       TextEditingController(text: "Current Location");
-
-  static final List<void Function(String)> _listeners = [];
-  static void registerListener(void Function(String) listener) {
-    _listeners.add(listener);
-  }
-
-  static void unregisterListener(void Function(String) listener) {
-    _listeners.remove(listener);
-  }
-
-  static void updateQuery(String newQuery) {
-    searchQuery.value = newQuery;
-    // Forcefully update every active search bar instantly
-    for (var listener in _listeners) {
-      listener(newQuery);
-    }
-  }
 
   static void filterDropDown(BuildContext parentContext) {
     Map<dynamic, Widget> allIcons = {};
@@ -248,7 +232,9 @@ class SearchServices {
 }
 
 class MySearchBar extends StatefulWidget {
-  const MySearchBar({super.key});
+  const MySearchBar({super.key, required this.tag});
+
+  final String tag;
 
   @override
   State<MySearchBar> createState() => _MySearchBarState();
@@ -256,17 +242,11 @@ class MySearchBar extends StatefulWidget {
 
 class _MySearchBarState extends State<MySearchBar> with RouteAware {
   // 1. Declare the controller locally inside the State class
-  late final SearchController _searchController;
   final FocusNode myFocus = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    _searchController = SearchController();
-    SearchServices.registerListener((_) {
-      _searchController.text = SearchServices.searchQuery.value;
-    });
-    _searchController.text = SearchServices.searchQuery.value;
   }
 
   @override
@@ -279,12 +259,7 @@ class _MySearchBarState extends State<MySearchBar> with RouteAware {
   @override
   void dispose() {
     routeObserver.unsubscribe(this);
-    _searchController.dispose();
     myFocus.dispose();
-
-    SearchServices.unregisterListener((_) {
-      _searchController.text = SearchServices.searchQuery.value;
-    });
 
     super.dispose();
   }
@@ -294,214 +269,138 @@ class _MySearchBarState extends State<MySearchBar> with RouteAware {
   void didPopNext() {
     super.didPopNext();
     // Force sync the text controller with the latest global value
-    if (_searchController.text != SearchServices.searchQuery.value) {
-      _searchController.text = SearchServices.searchQuery.value;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.all(10),
-        child: SearchAnchor(
-          
-            dividerColor: Colors.transparent,
-            isFullScreen: true,
-            searchController: _searchController,
-            viewBackgroundColor: AppColors.leveled,
-            viewOnClose: () {
-              SearchServices.updateQuery(_searchController.text);
-            },
-            viewOnChanged: (value) {
-              // SearchServices.updateQuery(_searchController.text) ;
-            },
-            viewOnSubmitted: (value) {
-              context.go("/search/map");
-              SearchServices.searchQuery.value = _searchController.text;
-
-              SearchPageGlobals.runSearch();
-
-              _searchController.closeView(value);
-            },
-            builder: (context, controller) {
-              return ValueListenableBuilder(
-                  valueListenable: _searchController,
-                  builder: (_, __, ___) {
-                    final Widget widgetOnViewBar =
-                        _searchController.text.isEmpty
-                            ? const Row(children: [
-                                Icon(
-                                  Icons.search,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 5),
-                                Flexible(
-                                    child: MyText(
-                                  "type of business, business name , business specialty",
-                                  size: 15,
-                                  color: AppColors.deselected,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxlines: 1,
-                                  textAlign: TextAlign.left,
-                                )),
-                                SizedBox(width: 10),
-                              ])
-                            : Row(children: [
-                                const Icon(
-                                  Icons.search,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 5),
-                                Flexible(
-                                    child: MyText(
-                                  _searchController.text,
-                                  size: 15,
-                                  color: AppColors.text,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxlines: 1,
-                                  textAlign: TextAlign.left,
-                                )),
-                                // Flexible(child: SizedBox(width: 100)),
-                                SizedBox(width: 20),
-
-                                MyText(
-                                  SearchServices.locationTextController.text,
-                                  size: 15,
-                                  color: AppColors.highlightText,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxlines: 1,
-                                  textAlign: TextAlign.left,
-                                ),
-                                SizedBox(width: 10),
-                              ]);
-
-                    return Container(
-                      padding: const EdgeInsets.only(left: 10, right: 30),
-                      height: 40,
-                      decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: AppColors.secondaryLeveled, width: 2)),
-                      child: widgetOnViewBar,
-                    );
-                  });
-            },
-            headerTextStyle: const TextStyle(
-                color: AppColors.text,
-                fontFamily: "Montserrat",
-                fontWeight: FontWeight.w600),
-            headerHintStyle: const TextStyle(
-                color: AppColors.deselected,
-                fontFamily: "Montserrat",
-                fontWeight: FontWeight.w600),
-            viewBuilder: (Iterable<Widget> suggestions) {
-              return Container(
-                  color: AppColors.background,
-                  child: Column(
-                    children: [
-                      Padding(
-                          padding: EdgeInsets.only(left: 0, right: 0),
-                          child: Container(
-                              height: 70,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(0),
-                                color: AppColors.leveled,
+    return GestureDetector(
+        onTap: () {
+          context.push('/search/initial/${widget.tag}');
+        },
+        child: Hero(
+            tag: widget.tag, // Must match the tag on the full screen
+            child: ValueListenableBuilder(
+                valueListenable: SearchServices.searchBarController,
+                builder: (_, __, ___) {
+                  final Widget widgetOnViewBar =
+                      SearchServices.searchBarController.text.isEmpty
+                          ? const Row(children: [
+                              Icon(
+                                Icons.search,
+                                size: 20,
                               ),
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(
-                                      width: 10 + 10,
-                                    ),
-                                    const Icon(
-                                      Icons.location_on_sharp,
-                                      size: 30,
-                                    ),
-                                    const SizedBox(
-                                      width: 10,
-                                    ),
-                                    Expanded(
-                                        child: HeaderInput(
-                                      hint:
-                                          "enter a name of street, Postcode , geographical area",
-                                      fontWeight: FontWeight.w600,
-                                      hintFontWeight: FontWeight.w600,
-                                      controller:
-                                          SearchServices.locationTextController,
-                                          onTap: (){
-                                            // _searchController.f
-                                          },
-                                      size: 16,
-                                    )),
-                                    const SizedBox(
-                                      width: 40 + 10,
-                                    ),
-                                  ]))),
-                      Expanded(
-                        child: ListView(
-                          children: suggestions.toList(),
-                        ),
-                      ),
-                    ],
-                  ));
-            },
-            viewHintText:
-                'type of business, business name , business specialty',
-            viewLeading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => _searchController
-                  .closeView(null), // or pass your controller reference
-            ),
-            viewTrailing: [
-              IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () => _searchController.clear(),
-              ),
-            ],
-            suggestionsBuilder:
-                (BuildContext context, SearchController controller) {
-              // Get what the user is typing
-              final String query = controller.text.toLowerCase();
+                              SizedBox(width: 5),
+                              Flexible(
+                                  child: MyText(
+                                "type of business, business name , business specialty",
+                                size: 15,
+                                color: AppColors.deselected,
+                                overflow: TextOverflow.ellipsis,
+                                maxlines: 1,
+                                textAlign: TextAlign.left,
+                              )),
+                              SizedBox(width: 10),
+                            ])
+                          : Row(children: [
+                              const Icon(
+                                Icons.search,
+                                size: 20,
+                              ),
+                              SizedBox(width: 5),
+                              Flexible(
+                                  child: MyText(
+                                SearchServices.searchBarController.text,
+                                size: 15,
+                                color: AppColors.text,
+                                overflow: TextOverflow.ellipsis,
+                                maxlines: 1,
+                                textAlign: TextAlign.left,
+                              )),
+                              // Flexible(child: SizedBox(width: 100)),
+                              SizedBox(width: 20),
 
-              final allTags = TagServices.tagLookup.values.toList();
+                              MyText(
+                                SearchServices.locationTextController.text,
+                                size: 15,
+                                color: AppColors.highlightText,
+                                overflow: TextOverflow.ellipsis,
+                                maxlines: 1,
+                                textAlign: TextAlign.left,
+                              ),
+                              SizedBox(width: 10),
+                            ]);
 
-              // Filter your data list
-              final filteredList = query.isEmpty
-                  ? allTags
-                  : TagServices.searchSimilarTags(query, allTags);
+                  return Container(
+                    padding: const EdgeInsets.only(left: 10, right: 30),
+                    height: 40,
+                    decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: AppColors.secondaryLeveled, width: 2)),
+                    child: widgetOnViewBar,
+                  );
+                })));
+  }
+}
 
-              // Build and return the list of items shown on the full page
-              return filteredList.map(
-                (item) {
-                  return ListTile(
-                      title: MyText(
-                        item.name,
-                        size: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textColor: AppColors.text,
-                      leading: const Icon(
-                        Icons.tag,
-                        color: AppColors.secondaryText,
-                      ),
-                      onTap: () {
-                        if (_searchController.text == item.name) {
-                          _searchController.closeView(item.name);
-                          context.go("/search/map");
+class FullScreenSearchWidget extends StatelessWidget {
+  const FullScreenSearchWidget({super.key, required this.tag});
 
-                          SearchServices.searchQuery.value =
-                              _searchController.text;
+  final String tag;
 
-                          SearchPageGlobals.runSearch();
-                        }
-                        _searchController.text = item.name;
-
-                        // setState(() {});
-                      });
-                },
-              );
-            }));
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+        child: Scaffold(
+            backgroundColor: AppColors.background,
+            body: SafeArea(
+                child: Hero(
+                    tag: tag,
+                    child: Material(
+                        color: Colors.transparent,
+                        child: Column(children: [
+                          const SizedBox(
+                            height: 30,
+                          ),
+                          MyTextInputWidget(
+                              hint:
+                                  "type of business, business name or business specialty",
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color: AppColors.leveled, width: 3)),
+                              height: 60,
+                              fontWeight: FontWeight.w600,
+                              hintFontWeight: FontWeight.w600,
+                              controller: SearchServices.searchBarController,
+                              startIcon: const Icon(
+                                Icons.search,
+                                size: 30,
+                              ),
+                              onTap: () {},
+                              size: 16),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          MyTextInputWidget(
+                              hint:
+                                  "enter a name of street, Postcode , geographical area",
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color: AppColors.leveled, width: 3)),
+                              height: 60,
+                              fontWeight: FontWeight.w600,
+                              hintFontWeight: FontWeight.w600,
+                              controller: SearchServices.locationTextController,
+                              onTap: () {},
+                              size: 16),
+                        ]))))));
   }
 }
 

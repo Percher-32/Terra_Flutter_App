@@ -34,8 +34,6 @@ void showErrorMessage(BuildContext context, dynamic message) {
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
 
-
-
 final GoRouter router = GoRouter(initialLocation: "/home", observers: [
   routeObserver
 ], routes: [
@@ -144,6 +142,23 @@ final GoRouter router = GoRouter(initialLocation: "/home", observers: [
           )
         ]),
       ]),
+  GoRoute(
+    path: "/search/initial/:tag",
+    pageBuilder: (context, state) => CustomTransitionPage(
+      key: state.pageKey,
+      child:  Material(
+        color: Colors.transparent,
+        child: FullScreenSearchWidget(tag:state.pathParameters["tag"]!),
+      ),
+      opaque: false,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+    ),
+  ),
   GoRoute(
     path: "/business-location/:id",
     builder: (context, state) {

@@ -116,6 +116,87 @@ class MyButton extends StatelessWidget {
   }
 }
 
+class MyTextInputWidget extends StatelessWidget {
+  const MyTextInputWidget(
+      {super.key,
+      this.hint = "",
+      this.color = AppColors.text,
+      this.size = 18.0,
+      this.controller,
+      this.autofocus = false,
+      this.fontWeight = FontWeight.w800,
+      this.hintFontWeight = FontWeight.w800,
+      this.onSubmitted,
+      this.height = 70,
+      this.decoration,
+      this.startIcon = const Icon(
+        Icons.location_on_sharp,
+        size: 30,
+      ),
+      this.padding = const EdgeInsets.only(left: 0, right: 0),
+      this.onTap});
+
+  final Color color;
+  final double size;
+  final String hint;
+  final bool autofocus;
+  final FontWeight fontWeight;
+  final FontWeight hintFontWeight;
+  final TextEditingController? controller;
+  final void Function(String value)? onSubmitted;
+  final double height;
+  final Widget startIcon;
+  final BoxDecoration? decoration;
+  final void Function()? onTap;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    SearchPageGlobals.mapReady = false;
+
+    return Container(
+        color: AppColors.background,
+        child: Column(
+          children: [
+            Padding(
+                padding: padding,
+                child: Container(
+                    height: height,
+                    decoration: decoration ??
+                        BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: AppColors.leveled,
+                        ),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const SizedBox(
+                            width: 10 + 10,
+                          ),
+                          startIcon,
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Expanded(
+                              child: HeaderInput(
+                                  hint: hint,
+                                  color: color,
+                                  size: size,
+                                  autofocus: autofocus,
+                                  fontWeight: fontWeight,
+                                  hintFontWeight: hintFontWeight,
+                                  controller: controller,
+                                  onSubmitted: onSubmitted,
+                                  onTap: onTap)),
+                          const SizedBox(
+                            width: 40 + 10,
+                          ),
+                        ])))
+          ],
+        ));
+  }
+}
+
 class HeaderInput extends StatefulWidget {
   const HeaderInput(
       {super.key,
@@ -173,7 +254,7 @@ class HeaderInputState extends State<HeaderInput> {
       focusNode: _focusNode,
       autofocus: widget.autofocus,
       readOnly: widget.locked,
-      cursorColor: AppColors.secondaryLeveled,
+      cursorColor: AppColors.highlightText,
       controller: widget.controller,
       onSubmitted: (value) {
         if (widget.onSubmitted != null) {

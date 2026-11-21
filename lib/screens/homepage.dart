@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
             preferredSize: Size.fromHeight(80),
             child: Column(children: [
               SizedBox(height: 50),
-              MySearchBar(),
+              MySearchBar(tag: "homepagetag"),
             ])),
         body: Stack(
           children: [

@@ -530,7 +530,7 @@ class _MapSearchViewState extends State<MapSearchView>
         top: 50,
         child: SizedBox(
             width: MediaQuery.of(context).size.width,
-            child: const MySearchBar()),
+            child: const MySearchBar(tag: "mapviewtag")),
       ),
     ]);
   }
