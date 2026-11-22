@@ -390,8 +390,9 @@ class _MySearchBarState extends State<MySearchBar> with RouteAware {
                   return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Container(
-                        padding: const EdgeInsets.only(left: 10, right: 30),
-                        height: 50,
+                        padding: const EdgeInsets.only(
+                            left: 10, right: 30, top: 10, bottom: 10),
+                        // height: 50,
                         decoration: BoxDecoration(
                             color: AppColors.background,
                             borderRadius: BorderRadius.circular(10),
@@ -437,182 +438,235 @@ class _FullScreenSearchWidgetState extends State<FullScreenSearchWidget> {
                     tag: widget.tag,
                     child: Material(
                         color: Colors.transparent,
-                        child: Column(children: [
-                          const SizedBox(
-                            height: 30,
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  // 🔑 Wrap the text input in Expanded so it doesn't overflow the Row
-                                  child: MyTextInputWidget(
-                                    leadingDistance: 0,
-                                    hint:
-                                        "type of business, business name or business specialty",
-                                    padding: const EdgeInsets.only(
-                                        left: 10, right: 10),
-                                    startIcon: IconButton(
-                                      onPressed: () {
-                                        context.pop();
-                                      },
-                                      highlightColor: AppColors.leveled,
-                                      splashColor: AppColors.leveled,
-                                      icon: Icon(
-                                        color: AppColors.text,
-                                        Icons.arrow_back,
-                                        size: 25,
-                                      ),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                          color: AppColors.leveled, width: 3),
-                                    ),
-                                    height: 50,
-                                    fontWeight: FontWeight.w600,
-                                    focusNode: searchBarFocusNode,
-                                    hintFontWeight: FontWeight.w600,
-                                    controller:
-                                        SearchServices.searchBarController,
-                                    onSubmitted: (_) {
-                                      context.go("/search/map");
-                                      SearchPageGlobals.runSearch();
-                                    },
-                                    size: 16,
-                                  ),
-                                ),
-                                IconButton(
-                                    padding: EdgeInsets.all(10),
-                                    style: IconButton.styleFrom(
-                                        backgroundColor: AppColors.leveled,
-                                        foregroundColor: AppColors
-                                            .paleText, // Sets the color of the icon itself
-
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10))),
-                                    onPressed: () {
-                                      SearchServices.filterDropDown(context);
-                                    },
-                                    icon: Icon(
-                                      Icons.tune,
-                                      size: 30,
-                                    )),
-                                SizedBox(width: 10)
-                              ],
+                        child: Stack(alignment: Alignment.center, children: [
+                          Column(children: [
+                            const SizedBox(
+                              height: 30,
                             ),
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          MyTextInputWidget(
-                              hint:
-                                  "enter a name of street, Postcode , geographical area",
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              internalPadding: EdgeInsets.only(left: 10),
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                      color: AppColors.leveled, width: 3)),
-                              height: 50,
-                              fontWeight: FontWeight.w600,
-                              hintFontWeight: FontWeight.w600,
-                              startIcon: const Icon(
-                                color: AppColors.text,
-                                Icons.location_on_sharp,
-                                size: 25,
-                              ),
-                              controller: SearchServices.locationTextController,
-                              onTap: () {},
-                              onSubmitted: (_) {
-                                searchBarFocusNode.requestFocus();
-                              },
-                              size: 16),
-                          FutureBuilder(
-                              future: SearchServices.getIndexableSearchData(),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                  return ValueListenableBuilder(
-                                      valueListenable:
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    // 🔑 Wrap the text input in Expanded so it doesn't overflow the Row
+                                    child: MyTextInputWidget(
+                                      leadingDistance: 0,
+                                      hint:
+                                          "type of business, business name or business specialty",
+                                      padding: const EdgeInsets.only(
+                                          left: 10, right: 10),
+                                      startIcon: IconButton(
+                                        onPressed: () {
+                                          context.pop();
+                                        },
+                                        highlightColor: AppColors.leveled,
+                                        splashColor: AppColors.leveled,
+                                        icon: Icon(
+                                          color: AppColors.text,
+                                          Icons.arrow_back,
+                                          size: 25,
+                                        ),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                            color: AppColors.leveled, width: 3),
+                                      ),
+                                      height: 50,
+                                      fontWeight: FontWeight.w600,
+                                      focusNode: searchBarFocusNode,
+                                      hintFontWeight: FontWeight.w600,
+                                      controller:
                                           SearchServices.searchBarController,
-                                      builder: (_, __, ___) {
-                                        final List rankedItems = SearchServices
-                                            .rankBusinessNamesAndTags(
-                                                SearchServices
-                                                    .searchBarController.text);
-
-                                        return Expanded(
-                                            child: ListView.builder(
-                                          itemBuilder: (BuildContext context,
-                                              int index) {
-                                            final searchItem =
-                                                rankedItems[index];
-                                            return searchItem.runtimeType == Tag
-                                                ? ListTile(
-                                                    title: MyText(
-                                                      searchItem.name,
-                                                      size: 15,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                    textColor: AppColors.text,
-                                                    leading: const Icon(
-                                                      Icons.tag,
-                                                      color: AppColors
-                                                          .secondaryText,
-                                                    ),
-                                                    onTap: () {
-                                                      if (SearchServices
-                                                              .searchBarController
-                                                              .text ==
-                                                          searchItem.name) {
-                                                        context
-                                                            .go("/search/map");
-                                                        SearchPageGlobals
-                                                            .runSearch();
-                                                      }
+                                      onSubmitted: (_) {
+                                        context.go("/search/map");
+                                        SearchPageGlobals.runSearch();
+                                      },
+                                      size: 16,
+                                    ),
+                                  ),
+                                  IconButton(
+                                      padding: EdgeInsets.all(10),
+                                      style: IconButton.styleFrom(
+                                          backgroundColor: AppColors.leveled,
+                                          foregroundColor: AppColors
+                                              .paleText, // Sets the color of the icon itself
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10))),
+                                      onPressed: () {
+                                        SearchServices.filterDropDown(context);
+                                      },
+                                      icon: Icon(
+                                        Icons.tune,
+                                        size: 30,
+                                      )),
+                                  SizedBox(width: 10)
+                                ],
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            MyTextInputWidget(
+                                hint:
+                                    "enter a name of street, Postcode , geographical area",
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                internalPadding: EdgeInsets.only(left: 10),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                        color: AppColors.leveled, width: 3)),
+                                height: 50,
+                                fontWeight: FontWeight.w600,
+                                hintFontWeight: FontWeight.w600,
+                                startIcon: const Icon(
+                                  color: AppColors.text,
+                                  Icons.location_on_sharp,
+                                  size: 25,
+                                ),
+                                controller:
+                                    SearchServices.locationTextController,
+                                onTap: () {},
+                                onSubmitted: (_) {
+                                  searchBarFocusNode.requestFocus();
+                                },
+                                size: 16),
+                            FutureBuilder(
+                                future: SearchServices.getIndexableSearchData(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    return ValueListenableBuilder(
+                                        valueListenable:
+                                            SearchServices.searchBarController,
+                                        builder: (_, __, ___) {
+                                          final List rankedItems =
+                                              SearchServices
+                                                  .rankBusinessNamesAndTags(
                                                       SearchServices
                                                           .searchBarController
-                                                          .text = searchItem.name;
-                                                      // setState(() {});
-                                                    })
-                                                : ListTile(
-                                                    title: MyText(
-                                                      "${searchItem.name} ${searchItem.address["suburb"]}",
-                                                      size: 15,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                    textColor: AppColors.text,
-                                                    leading: const Icon(
-                                                      Icons.business,
-                                                      color: AppColors
-                                                          .secondaryText,
-                                                    ),
-                                                    onTap: () {
-                                                      context.push(
-                                                          "/business-location/${searchItem.locationId}");
-                                                      // setState(() {});
-                                                    });
-                                          },
-                                          // shrinkWrap: true,
-                                          scrollDirection: Axis.vertical,
-                                          itemCount: rankedItems.length,
-                                        ));
-                                      });
-                                } else if (snapshot.hasError) {
-                                  showErrorMessage(
-                                      context, snapshot.error.toString());
-                                  return SizedBox();
-                                } else {
-                                  return CircularProgressIndicator(
-                                    color: AppColors.text,
-                                  );
-                                }
-                              })
+                                                          .text);
+                                          return Expanded(
+                                              child: ListView.separated(
+                                            separatorBuilder: (_, __) {
+                                              return const Divider(
+                                                color: AppColors.leveled,
+                                                height: 2,
+                                                thickness: 1,
+                                              );
+                                            },
+                                            itemBuilder: (BuildContext context,
+                                                int index) {
+                                              final searchItem =
+                                                  rankedItems[index];
+                                              return searchItem.runtimeType ==
+                                                      Tag
+                                                  ? ListTile(
+                                                      title: MyText(
+                                                        searchItem.name,
+                                                        size: 15,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                      textColor: AppColors.text,
+                                                      leading: Image.asset(
+                                                        businessIconLookup[
+                                                            searchItem
+                                                                .category]!,
+                                                        width: 45,
+                                                        height: 45,
+                                                      ),
+                                                      onTap: () {
+                                                        if (SearchServices
+                                                                .searchBarController
+                                                                .text ==
+                                                            searchItem.name) {
+                                                          context.go(
+                                                              "/search/map");
+                                                          SearchPageGlobals
+                                                              .runSearch();
+                                                        }
+                                                        SearchServices
+                                                            .searchBarController
+                                                            .text = searchItem.name;
+                                                        // setState(() {});
+                                                      })
+                                                  : ListTile(
+                                                      title: MyText(
+                                                        "${searchItem.name} ${searchItem.address["road"] ?? searchItem.address["locality"] ?? searchItem.address["postcode"]}",
+                                                        size: 15,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                      textColor: AppColors.text,
+                                                      leading: BaseImage(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
+                                                          width: 45,
+                                                          height: 45,
+                                                          url: searchItem
+                                                                  .thumbnailPath ??
+                                                              "No Url"),
+                                                      onTap: () {
+                                                        context.push(
+                                                            "/business-location/${searchItem.locationId}");
+                                                        // setState(() {});
+                                                      });
+                                            },
+                                            // shrinkWrap: true,
+                                            scrollDirection: Axis.vertical,
+                                            itemCount: rankedItems.length,
+                                          ));
+                                        });
+                                  } else if (snapshot.hasError) {
+                                    showErrorMessage(
+                                        context, snapshot.error.toString());
+                                    return SizedBox();
+                                  } else {
+                                    return CircularProgressIndicator(
+                                      color: AppColors.text,
+                                    );
+                                  }
+                                })
+                          ]),
+                          Positioned(
+                              bottom: 10,
+                              left: MediaQuery.of(context).size.width / 8,
+                              child: Material(
+                                  color: AppColors.secondaryLeveled,
+                                  borderRadius: BorderRadius.circular(10),
+                                  clipBehavior: Clip.hardEdge,
+                                  child: InkWell(
+                                    splashColor: AppColors.primary,
+                                    highlightColor: AppColors.primary,
+                                    onTap: () {
+                                      context.go("/search/map");
+
+                                      SearchPageGlobals.runSearch();
+                                    },
+                                    child: const SizedBox(
+                                        width: 300,
+                                        height: 50,
+                                        child: Center(
+                                            child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                              MyText(
+                                                "Go To Map",
+                                                size: 20,
+                                                color: AppColors.paleText,
+                                              ),
+                                              SizedBox(width: 10),
+                                              Icon(
+                                                Icons.map_rounded,
+                                                size: 30,
+                                                color: AppColors.paleText,
+                                              )
+                                            ]))),
+                                  )))
                         ]))))));
   }
 }

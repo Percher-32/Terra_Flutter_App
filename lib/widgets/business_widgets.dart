@@ -130,7 +130,7 @@ class BusinessLocationThumbnailBodyWidget extends StatelessWidget {
 
     Widget unVerifiedBadge = const SizedBox();
     // miniBusinessLocation.verified = true;
-    if (!miniBusinessLocation.verified || true) {
+    if (!miniBusinessLocation.verified) {
       unVerifiedBadge = Image.asset(
           "assets/icons/business_icons/unverified_badge.png",
           scale: 3);

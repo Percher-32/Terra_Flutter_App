@@ -201,7 +201,7 @@ class MyTextInputWidget extends StatelessWidget {
                                   controller.text = "";
                                 },
                                 icon: const Icon(
-                                  Icons.cancel_outlined,
+                                  Icons.close,
                                   color: AppColors.text,
                                   size: 25,
                                 ));

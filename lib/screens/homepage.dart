@@ -123,12 +123,10 @@ class _HomePageState extends State<HomePage> {
                               );
                             } else {
                               return TrendScrollWidget(
-                                trendingBusinesses: index % 1 == 0
-                                    ? snapshot.data!.trendingBusinesses!
-                                    : snapshot
-                                        .data!.trendingBusinesses!.reversed
-                                        .toList(),
+                                trendingBusinesses:
+                                    snapshot.data!.trendingBusinesses!,
                                 title: names[index - 1],
+                                index: index,
                               );
                             }
                           },
@@ -147,8 +145,12 @@ class _HomePageState extends State<HomePage> {
 
 class TrendScrollWidget extends StatelessWidget {
   const TrendScrollWidget(
-      {super.key, required this.trendingBusinesses, required this.title});
+      {super.key,
+      required this.trendingBusinesses,
+      required this.title,
+      required this.index});
   final String title;
+  final int index;
 
   final List<MiniBusinessLocation> trendingBusinesses;
 
@@ -173,8 +175,8 @@ class TrendScrollWidget extends StatelessWidget {
                     locationId: trendingBusinesses[i].locationId,
                   ),
                   // Add a separator space after every item except the last one
-                  if (i < trendingBusinesses.length - 1)
-                    const SizedBox(width: 20),
+                  // if (i < trendingBusinesses.length - 1)
+                  const SizedBox(width: 20),
                 ],
                 const SizedBox(width: 10),
               ])))

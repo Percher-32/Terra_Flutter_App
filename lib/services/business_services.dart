@@ -154,7 +154,8 @@ class BusinessService {
     List data;
 
     if (NextfindDebugOptions.useTestTrendingData) {
-      data = await Loadfiles.loadJsonFile(
+      data = 
+      await Loadfiles.loadJsonFile(
           "assets/testdata/trending_businesses_data.json");
     } else {
       final response = await Networking.apiGet("homepage/trending",
