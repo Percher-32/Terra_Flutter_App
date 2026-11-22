@@ -15,6 +15,10 @@ This is an app for people to find local businesses in thier area , rate them , l
 ## Why I Made this
 I made this as an easy way for businesses in my area to have a local platform for people to find them
 
+## How I made this
+I used flutter for the UI , and the back-end (which isn't public), was made with fast-api
+
+
 
 ## Demo
 Notice -> This demo only shows how the app function without a server present , I've added mock data to allow anyone to test it
