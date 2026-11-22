@@ -7,6 +7,7 @@ import 'package:maplibre_gl/maplibre_gl.dart' as map_gl;
 import 'package:nextfind/helpers/debug_options.dart';
 import 'package:nextfind/services/business_services.dart';
 import 'package:nextfind/services/user_services.dart';
+import 'package:nextfind/widgets/business_widgets.dart';
 import 'package:nextfind/services/search_services.dart';
 import 'package:nextfind/services/lifecycle_services.dart';
 import 'package:nextfind/widgets/main_widgets.dart';
@@ -18,7 +19,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter/scheduler.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 String getRandomString(int length) {
   const chars =
       'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
@@ -229,7 +230,7 @@ class _MapSearchViewState extends State<MapSearchView>
           "user_marker_layer",
           const map_gl.SymbolLayerProperties(
             iconImage: "user_marker",
-            iconSize: 2.0,
+            iconSize: kIsWeb ? 1 : 2.0,
             iconAllowOverlap: true,
             iconIgnorePlacement: true,
           ),
@@ -247,6 +248,7 @@ class _MapSearchViewState extends State<MapSearchView>
       if (!mounted ||
           SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
           !SearchPageGlobals.mapReady) {
+        SearchPageGlobals.businessMarkerIconCache.clear();
         return;
       }
 
@@ -268,11 +270,12 @@ class _MapSearchViewState extends State<MapSearchView>
 
         if (!mounted ||
             SearchPageGlobals.mapMode.value == MainSearchPageMode.list ||
-            !SearchPageGlobals.mapReady) {
+            !SearchPageGlobals.mapReady || businessMarker == null) {
+          SearchPageGlobals.businessMarkerIconCache.clear();
           return;
         }
         SearchPageGlobals.businessMarkerIconCache[businessIconCacheKey] =
-            businessMarker!;
+            businessMarker;
       }
     } finally {}
   }
@@ -378,7 +381,7 @@ class _MapSearchViewState extends State<MapSearchView>
           belowLayerId: "user_marker_layer",
           const map_gl.SymbolLayerProperties(
             iconImage: "mini_icon",
-            iconSize: 1,
+            iconSize: kIsWeb ? 1/2 : 1,
             iconOffset: [-10, 5],
             iconAllowOverlap: true,
           ),
@@ -412,7 +415,7 @@ class _MapSearchViewState extends State<MapSearchView>
               'get',
               'iconId'
             ], // 3. Tells it to read the 'id' property from your GeoJSON
-            iconSize: 1.2, // 4. Size scaling
+            iconSize: kIsWeb?1.2/2 : 1.2 , // 4. Size scaling
             textAllowOverlap: true,
             symbolSortKey: ['get', 'index'],
             // iconAllowOverlap:
@@ -532,6 +535,45 @@ class _MapSearchViewState extends State<MapSearchView>
             width: MediaQuery.of(context).size.width,
             child: const MySearchBar(tag: "mapviewtag")),
       ),
+      ValueListenableBuilder<MainSearchPageMode>(
+              valueListenable: SearchPageGlobals.mapMode,
+              builder: (_, choosing, __) {
+                if (choosing != MainSearchPageMode.thumbnail) {
+                  return const SizedBox();
+                }
+                if (SearchPageGlobals.chosenBusinessLocation == null) {
+                  return const SizedBox();
+                }
+
+                return Positioned(
+                  bottom: 60,
+                  // left: 20,
+                  child: BusinessLocationThumbnail(
+                      locationId:
+                          SearchPageGlobals.chosenBusinessLocation!.locationId),
+                );
+              },
+            ),
+            ValueListenableBuilder<bool>(
+              valueListenable: SearchPageGlobals.isLoading,
+              builder: (_, choosing, __) {
+                if ([MainSearchPageMode.thumbnail, MainSearchPageMode.list]
+                        .contains(SearchPageGlobals.mapMode.value) ||
+                    !choosing) {
+                  return const SizedBox();
+                }
+
+                return const Center(
+                    child: SizedBox(
+                  width: 200,
+                  height: 200,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 14,
+                    color: AppColors.text,
+                  ),
+                ));
+              },
+            ),
     ]);
   }
 }

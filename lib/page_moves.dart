@@ -133,6 +133,10 @@ final GoRouter router = GoRouter(initialLocation: "/home", observers: [
           GoRoute(
             path: "/search/map",
             builder: (context, state) => const MapSearchView(),
+            onExit: (context, state) {
+              SearchPageGlobals.mapReady = false;
+              return true;
+            },
           )
         ]),
         StatefulShellBranch(routes: [
@@ -146,26 +150,57 @@ final GoRouter router = GoRouter(initialLocation: "/home", observers: [
     path: "/search/initial/:tag",
     pageBuilder: (context, state) => CustomTransitionPage(
       key: state.pageKey,
-      child:  Material(
+      child: Material(
         color: Colors.transparent,
-        child: FullScreenSearchWidget(tag:state.pathParameters["tag"]!),
+        child: FullScreenSearchWidget(tag: state.pathParameters["tag"]!),
       ),
       opaque: false,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
+        var slideAnimation = Tween<Offset>(
+          begin:
+              const Offset(0.0, 0.05), // Starts just slightly lower (5% down)
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        ));
+        return SlideTransition(
+          position: slideAnimation,
+          child: FadeTransition(
+            opacity: animation,
+            child: child,
+          ),
         );
       },
     ),
   ),
   GoRoute(
     path: "/business-location/:id",
-    builder: (context, state) {
-      SearchPageGlobals.mapReady = false;
+    // builder: (context, state) => SearchPageGlobals.mapReady = false,
+    pageBuilder: (context, state) => CustomTransitionPage(
+      transitionDuration: Duration(milliseconds: 300),
+      key: state.pageKey,
+      child: Material(
+        color: Colors.transparent,
+        child:
+            BusinessLocationFullPage(locationId: state.pathParameters["id"]!),
+      ),
+      opaque: false,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        var slideAnimation = Tween<Offset>(
+          begin: const Offset(0.0, 1), // Starts just slightly lower (5% down)
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOut,
+            reverseCurve: Curves.easeIn));
 
-      final businessLocationId = state.pathParameters["id"]!;
-      return BusinessLocationFullPage(locationId: businessLocationId);
-    },
+        return RepaintBoundary(
+            child: SlideTransition(
+          position: slideAnimation,
+          child: child,
+        ));
+      },
+    ),
   )
 ]);

@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: PreferredSize(
+        appBar: const PreferredSize(
             preferredSize: Size.fromHeight(80),
             child: Column(children: [
               SizedBox(height: 50),
@@ -102,6 +102,12 @@ class _HomePageState extends State<HomePage> {
                           context, "Error Geting Trending Businesses");
                       return const SizedBox();
                     } else {
+                      final names = [
+                        "Trending Now",
+                        "Really Popular",
+                        "Hidden Gems",
+                        "Discounts"
+                      ];
                       return SizedBox(
                         height: MediaQuery.of(context).size.height,
                         child: ListView.separated(
@@ -109,24 +115,21 @@ class _HomePageState extends State<HomePage> {
                           physics: const BouncingScrollPhysics(
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
-                          itemCount:
-                              snapshot.data!.nearbyBusinesses!.length + 2,
+                          itemCount: names.length + 1,
                           itemBuilder: (context, index) {
                             if (index == 0) {
                               return const SizedBox(
                                 height: 0,
                               );
-                            } else if (index == 1) {
-                              return TrendScrollWidget(
-                                  trendingBusinesses:
-                                      snapshot.data!.trendingBusinesses!);
                             } else {
-                              return Center(
-                                  child: BusinessLocationThumbnail(
-                                      locationId: snapshot
-                                          .data!
-                                          .nearbyBusinesses![index - 2]
-                                          .locationId));
+                              return TrendScrollWidget(
+                                trendingBusinesses: index % 1 == 0
+                                    ? snapshot.data!.trendingBusinesses!
+                                    : snapshot
+                                        .data!.trendingBusinesses!.reversed
+                                        .toList(),
+                                title: names[index - 1],
+                              );
                             }
                           },
                           separatorBuilder: (context, index) =>
@@ -143,40 +146,38 @@ class _HomePageState extends State<HomePage> {
 }
 
 class TrendScrollWidget extends StatelessWidget {
-  const TrendScrollWidget({super.key, required this.trendingBusinesses});
+  const TrendScrollWidget(
+      {super.key, required this.trendingBusinesses, required this.title});
+  final String title;
 
   final List<MiniBusinessLocation> trendingBusinesses;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: 20,
-      children: [
-        SizedBox(
-          width: 10,
-        ),
-        const SubHeading(
-          "Trending Now🔥",
-          color: AppColors.text,
-        ),
-        SizedBox(
-            height: 290,
-            child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return const SizedBox(width: 0);
-                  } else {
-                    String trendyBusinessLocationId =
-                        trendingBusinesses[index - 1].locationId;
-                    return BusinessLocationThumbnail(
-                      locationId: trendyBusinessLocationId,
-                    );
-                  }
-                },
-                separatorBuilder: (context, index) => const SizedBox(width: 20),
-                itemCount: trendingBusinesses.length + 1))
-      ],
-    );
+    return Column(spacing: 20, children: [
+      const SizedBox(
+        width: 10,
+      ),
+      SubHeading(
+        title,
+        color: AppColors.text,
+      ),
+      SizedBox(
+          // height: 500,
+          child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: [
+                const SizedBox(width: 10), // Leading padding
+                for (int i = 0; i < trendingBusinesses.length; i++) ...[
+                  BusinessLocationThumbnail(
+                    locationId: trendingBusinesses[i].locationId,
+                  ),
+                  // Add a separator space after every item except the last one
+                  if (i < trendingBusinesses.length - 1)
+                    const SizedBox(width: 20),
+                ],
+                const SizedBox(width: 10),
+              ])))
+    ]);
   }
 }

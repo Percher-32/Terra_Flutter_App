@@ -145,14 +145,18 @@ class BusinessLocationPageWidget extends StatelessWidget {
     return CustomScrollView(
       slivers: [
         SliverAppBar(
-          expandedHeight:
-              490.0, // Total height of your image + text details when at the top
-          pinned: true, // Keeps the app bar pinned at the top when scrolling
+          expandedHeight: 445,
+          pinned: true,
           backgroundColor: AppColors.leveled,
           elevation: 0,
-
-          title: MyText(
+          scrolledUnderElevation: 0.0,
+          title: SubSubHeading(
             businessLocation.name,
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back,
+                color: AppColors.text), // Set your custom color here
+            onPressed: () => Navigator.maybePop(context),
           ),
           actions: [
             unVerifiedBadge,
@@ -162,57 +166,43 @@ class BusinessLocationPageWidget extends StatelessWidget {
           flexibleSpace: FlexibleSpaceBar(
             background: Stack(
               children: [
-                Column(
-                  children: [
-                    const SizedBox(height: 390),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                MyText(
-                                  businessLocation.name,
-                                  size: 20,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                    MyText(
-                                      businessTypeLookup[
-                                          businessLocation.type]!,
-                                      color: AppColors.text,
-                                      size: 17,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                    const SizedBox(width: 2),
-                                    Image.asset(iconPath,
-                                        width: 25, height: 25),
-                                    const SizedBox(width: 10),
-                                    ratingWidget,
-                                  ],
-                                ),
-                              ],
-                            )),
-                      ),
-                    ),
-                  ],
-                ),
                 Positioned(
                   top: 0,
                   left: 0,
                   right: 0,
                   child: BaseImage(
-                    radius: 0,
+                    borderRadius: BorderRadius.circular(0),
                     url: imageUrl,
-                    height: 380,
+                    height: 400,
                     width: MediaQuery.of(context).size.width,
                   ),
                 ),
+                Positioned(
+                    top: 390,
+                    left: -10,
+                    child: Container(
+                        height: 50,
+                        width: MediaQuery.of(context).size.width + 20,
+                        decoration: BoxDecoration(
+                            color: AppColors.leveled,
+                            borderRadius: BorderRadius.circular(100)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            children: [
+                              MyText(
+                                businessTypeLookup[businessLocation.type]!,
+                                color: AppColors.text,
+                                size: 17,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              const SizedBox(width: 2),
+                              Image.asset(iconPath, width: 25, height: 25),
+                              const SizedBox(width: 10),
+                              ratingWidget,
+                            ],
+                          ),
+                        ))),
               ],
             ),
           ),
@@ -220,11 +210,13 @@ class BusinessLocationPageWidget extends StatelessWidget {
           // 3. The OptionsNotch stays pinned right below the app bar title when scrolling
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(60.0),
-            child: Container(
-              color: AppColors.leveled,
-              child: const OptionsNotch(
-                options: ["General", "Menu", "Reviews", "Photos"],
-              ),
+            child: const OptionsNotch(
+              options: [
+                "General",
+                "Photos",
+                "Reviews",
+                "Location",
+              ],
             ),
           ),
         ),
@@ -246,9 +238,6 @@ class BusinessLocationPageWidget extends StatelessWidget {
   }
 }
 
-
-
-
 class OptionsNotch extends StatefulWidget {
   const OptionsNotch({super.key, required this.options, this.startIndex = 0});
 
@@ -269,19 +258,20 @@ class OptionsNotchState extends State<OptionsNotch> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width,
+      width: MediaQuery.of(context).size.width + 10,
+      // padding: const EdgeInsets.only(left: 10),
       // height: 60,
       decoration: BoxDecoration(
         color: AppColors.leveled,
         borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+            bottomLeft: Radius.circular(0), bottomRight: Radius.circular(0)),
         boxShadow: [
           BoxShadow(
-            color:
-                Colors.black.withValues(alpha: 0.2), // Shadow color and opacity
+            color: Colors.black
+                .withValues(alpha: 0.15), // Shadow color and opacity
             spreadRadius: 4, // How much the shadow spreads
             blurRadius: 8, // Softness of the shadow
-            offset: Offset(0, 20), // Changes position of shadow (x, y)
+            offset: Offset(0, 10), // Changes position of shadow (x, y)
           ),
         ],
       ),
@@ -290,7 +280,7 @@ class OptionsNotchState extends State<OptionsNotch> {
           child: Row(
             spacing: 20,
             children: [
-              SizedBox(width: 0),
+              // SizedBox(width: 5),
               ...List.generate(widget.options.length, (index) {
                 return ValueListenableBuilder(
                     valueListenable: BusinessPageGlobals.currentIndex,
@@ -303,12 +293,12 @@ class OptionsNotchState extends State<OptionsNotch> {
                             ? AppColors.secondaryLeveled
                             : AppColors.leveled,
                         borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(20),
-                            bottomRight: Radius.circular(20)),
+                            bottomLeft: Radius.circular(00),
+                            bottomRight: Radius.circular(00)),
                         child: InkWell(
                           borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(20),
-                              bottomRight: Radius.circular(20)),
+                              bottomLeft: Radius.circular(00),
+                              bottomRight: Radius.circular(00)),
                           onTap: () {
                             BusinessPageGlobals.currentIndex.value = index;
                           },
@@ -320,7 +310,7 @@ class OptionsNotchState extends State<OptionsNotch> {
                                 widget.options[index],
                                 color: isSelected
                                     ? AppColors.text
-                                    : AppColors.secondaryText,
+                                    : AppColors.deselected,
                                 size: 17,
                                 fontWeight: isSelected
                                     ? FontWeight.w700

@@ -9,12 +9,13 @@ import 'package:nextfind/widgets/text_widgets.dart';
 export 'package:nextfind/widgets/text_widgets.dart';
 
 class AppColors {
-  static const background = Color.fromARGB(255, 1, 29, 0);
+  static const background = Color.fromARGB(255, 0, 15, 4);
   static const leveled = Color.fromARGB(255, 25, 44, 0);
   static const secondaryLeveled = Color.fromARGB(255, 37, 65, 0);
   // fromARGB(255, 255, 255, 255);
 
   static const text = Color.fromARGB(255, 255, 255, 255);
+  static const paleText = Color.fromARGB(255, 208, 230, 149);
   static const deselected = Color.fromARGB(255, 199, 225, 129);
   static const secondaryText = Color.fromARGB(255, 163, 222, 0);
   static const highlightText = Color.fromARGB(255, 187, 255, 0);
@@ -122,18 +123,21 @@ class MyTextInputWidget extends StatelessWidget {
       this.hint = "",
       this.color = AppColors.text,
       this.size = 18.0,
-      this.controller,
+      required this.controller,
       this.autofocus = false,
       this.fontWeight = FontWeight.w800,
       this.hintFontWeight = FontWeight.w800,
       this.onSubmitted,
       this.height = 70,
+      this.focusNode,
       this.decoration,
       this.startIcon = const Icon(
         Icons.location_on_sharp,
         size: 30,
       ),
       this.padding = const EdgeInsets.only(left: 0, right: 0),
+      this.internalPadding = const EdgeInsets.only(left: 0, right: 0),
+      this.leadingDistance = 10,
       this.onTap});
 
   final Color color;
@@ -141,14 +145,17 @@ class MyTextInputWidget extends StatelessWidget {
   final String hint;
   final bool autofocus;
   final FontWeight fontWeight;
+  final FocusNode? focusNode;
   final FontWeight hintFontWeight;
-  final TextEditingController? controller;
+  final TextEditingController controller;
   final void Function(String value)? onSubmitted;
   final double height;
   final Widget startIcon;
   final BoxDecoration? decoration;
   final void Function()? onTap;
   final EdgeInsets padding;
+  final EdgeInsets internalPadding;
+  final double leadingDistance;
 
   @override
   Widget build(BuildContext context) {
@@ -156,44 +163,50 @@ class MyTextInputWidget extends StatelessWidget {
 
     return Container(
         color: AppColors.background,
-        child: Column(
-          children: [
-            Padding(
-                padding: padding,
-                child: Container(
-                    height: height,
-                    decoration: decoration ??
-                        BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: AppColors.leveled,
-                        ),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            width: 10 + 10,
-                          ),
-                          startIcon,
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Expanded(
-                              child: HeaderInput(
-                                  hint: hint,
-                                  color: color,
-                                  size: size,
-                                  autofocus: autofocus,
-                                  fontWeight: fontWeight,
-                                  hintFontWeight: hintFontWeight,
-                                  controller: controller,
-                                  onSubmitted: onSubmitted,
-                                  onTap: onTap)),
-                          const SizedBox(
-                            width: 40 + 10,
-                          ),
-                        ])))
-          ],
-        ));
+        child: Padding(
+            padding: padding,
+            child: Container(
+                // height: height,
+                decoration: decoration ??
+                    BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.leveled,
+                    ),
+                padding: internalPadding,
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                  startIcon,
+                  SizedBox(
+                    width: leadingDistance,
+                  ),
+                  Expanded(
+                      child: HeaderInput(
+                          hint: hint,
+                          color: color,
+                          size: size,
+                          autofocus: autofocus,
+                          fontWeight: fontWeight,
+                          focusNode: focusNode,
+                          hintFontWeight: hintFontWeight,
+                          controller: controller,
+                          onSubmitted: onSubmitted,
+                          onTap: onTap)),
+                  ValueListenableBuilder(
+                      valueListenable: controller,
+                      builder: (_, __, ___) {
+                        return controller.text.isEmpty
+                            ? const SizedBox(width: 40)
+                            : IconButton(
+                                onPressed: () {
+                                  controller.text = "";
+                                },
+                                icon: const Icon(
+                                  Icons.cancel_outlined,
+                                  color: AppColors.text,
+                                  size: 25,
+                                ));
+                      }),
+                ]))));
   }
 }
 
@@ -209,6 +222,7 @@ class HeaderInput extends StatefulWidget {
       this.fontWeight = FontWeight.w800,
       this.hintFontWeight = FontWeight.w800,
       this.onSubmitted,
+      this.focusNode,
       this.onTap});
 
   final Color color;
@@ -217,6 +231,7 @@ class HeaderInput extends StatefulWidget {
   final bool autofocus;
   final bool locked;
   final FontWeight fontWeight;
+  final FocusNode? focusNode;
   final FontWeight hintFontWeight;
   final TextEditingController? controller;
   final void Function(String value)? onSubmitted;
@@ -227,34 +242,31 @@ class HeaderInput extends StatefulWidget {
 }
 
 class HeaderInputState extends State<HeaderInput> {
-  late FocusNode _focusNode;
-
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
 
-    // Listen for focus changes
-    _focusNode.addListener(() {
-      if (widget.onTap != null) {
-        widget.onTap!();
-      }
-    });
+    if (widget.focusNode != null) {
+      widget.focusNode!.addListener(() {
+        if (widget.onTap != null) {
+          widget.onTap!();
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      focusNode: _focusNode,
+      focusNode: widget.focusNode,
       autofocus: widget.autofocus,
       readOnly: widget.locked,
-      cursorColor: AppColors.highlightText,
+      cursorColor: AppColors.deselected,
       controller: widget.controller,
       onSubmitted: (value) {
         if (widget.onSubmitted != null) {
@@ -277,6 +289,7 @@ class HeaderInputState extends State<HeaderInput> {
         fontSize: widget.size,
         fontWeight: widget.fontWeight,
         fontFamily: "Montserrat",
+        // overflow: TextOverflow.fade,
         color: widget.color,
       ),
     );
@@ -287,15 +300,15 @@ class BaseImage extends StatefulWidget {
   final String url;
   final double width;
   final double height;
-  final double radius;
   final BoxFit fit;
+  final BorderRadius? borderRadius;
 
   const BaseImage({
     required this.url,
     this.width = 180,
     this.height = 170,
-    this.radius = 18,
     this.fit = BoxFit.cover,
+    this.borderRadius,
     super.key,
   });
 
@@ -322,7 +335,7 @@ class _BaseImageState extends State<BaseImage> {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(widget.radius),
+      borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
       child: Image(
         image: provider,
         width: widget.width,
